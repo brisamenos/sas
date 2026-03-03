@@ -22,7 +22,7 @@
       --border: #e2e8f0; --border-light: #f1f5f9;
       --success: #10b981; --success-bg: #d1fae5; --success-text: #065f46;
       --danger: #ef4444; --danger-bg: #fee2e2; --danger-text: #991b1b;
-      --warning: #f59e0b; --warning-bg: #fef3c7; --warning-text: #92400e;
+      --warning: #f59e0b; --warning-bg: #fffbeb; --warning-text: #b45309;
       --info: #3b82f6; --info-bg: #dbeafe; --info-text: #1e40af;
       
       /* Sombras e Raios (Bordas) mais modernos */
@@ -42,7 +42,7 @@
     ::-webkit-scrollbar { width: 8px; height: 8px; }
     ::-webkit-scrollbar-track { background: transparent; }
     ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
-    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; border: 2px solid transparent; background-clip: padding-box; }
+    ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
 
     /* MENU LATERAL (SIDEBAR) */
     .sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh; background: #0f172a; color: #f8fafc; display: flex; flex-direction: column; z-index: 100; transition: transform .4s cubic-bezier(.4,0,.2,1); box-shadow: 4px 0 15px rgba(0,0,0,0.05); }
@@ -64,7 +64,7 @@
     /* BARRA SUPERIOR */
     .topbar { height: var(--header-height); background: rgba(255,255,255,.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 30px; position: sticky; top: 0; z-index: 50; }
     .topbar-left { display: flex; align-items: center; gap: 15px; }
-    .topbar h2 { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -.5px; }
+    .topbar h2 { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -.5px; margin: 0; }
     .menu-btn { display: none; background: #f1f5f9; border: none; cursor: pointer; color: var(--text); width: 40px; height: 40px; border-radius: var(--radius-sm); transition: var(--transition); align-items: center; justify-content: center; }
     .menu-btn:hover { background: #e2e8f0; }
     
@@ -114,6 +114,15 @@
     .badge-warning { background: var(--warning-bg); color: var(--warning-text); }
     .badge-info { background: var(--info-bg); color: var(--info-text); }
     .badge-neutral { background: #e2e8f0; color: #475569; }
+
+    /* ETIQUETAS INTERATIVAS (KORBAN STYLE) */
+    .badge-btn { cursor: pointer; transition: all 0.2s ease; user-select: none; border: 1px solid transparent; }
+    .badge-btn:hover { filter: brightness(0.95); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .badge-btn:active { transform: scale(0.94); }
+    .badge-neutral.badge-btn { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
+    .badge-neutral.badge-btn:hover { background: #e2e8f0; color: #64748b; border-color: #cbd5e1; }
+    .badge-success.badge-btn { border-color: rgba(16,185,129,0.3); }
+    .badge-danger.badge-btn { border-color: rgba(239,68,68,0.3); }
 
     /* BARRA DE PESQUISA */
     .search-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -177,6 +186,12 @@
     @keyframes toastIn { from { opacity: 0; transform: translateX(50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
     @keyframes toastOut { to { opacity: 0; transform: translateX(50px) scale(0.9); } }
 
+    /* TABS */
+    .tabs { display: flex; gap: 15px; border-bottom: 2px solid var(--border); margin-bottom: 20px; overflow-x: auto; }
+    .tab { background: none; border: none; padding: 10px 15px; font-size: 14px; font-weight: 600; color: var(--text-light); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition); white-space: nowrap; }
+    .tab:hover { color: var(--primary-light); }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
     /* RESPONSIVIDADE MOBILE (SMARTPHONES) */
     .overlay-bg { display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(3px); z-index: 90; transition: opacity .3s; opacity: 0; }
     .overlay-bg.open { display: block; opacity: 1; }
@@ -204,7 +219,7 @@
       .form-section-title { font-size: 13px; margin-top: 15px; }
     }
 
-    /* Detalhes Visuais Extras */
+    /* Detalhes Visuais Extras para o ViewCliente */
     .detail-item { padding: 12px 0; border-bottom: 1px solid var(--border-light); }
     .detail-label { font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 700; margin-bottom: 4px; letter-spacing: 0.5px; }
     .detail-value { font-size: 14.5px; font-weight: 500; color: var(--text); }
@@ -441,9 +456,12 @@
               <input type="text" id="searchOperacoes" placeholder="Buscar contrato..." oninput="loadOperacoes()" />
               <input type="date" id="filterOpDate" onchange="loadOperacoes()" title="Data de Contratação" />
               <select id="filterStatusOp" onchange="loadOperacoes()">
-                <option value="">Todos os status</option><option value="em_analise">Em Análise</option>
-                <option value="aprovada">Aprovada</option><option value="liberada">Liberada</option>
-                <option value="em_andamento">Em Andamento</option><option value="quitada">Quitada</option>
+                <option value="">Todos os status</option>
+                <option value="em_analise">Em Análise</option>
+                <option value="aprovada">Aprovada</option>
+                <option value="liberada">Liberada</option>
+                <option value="em_andamento">Em Andamento</option>
+                <option value="quitada">Quitada</option>
                 <option value="inadimplente">Inadimplente</option>
               </select>
               <button class="btn btn-primary" onclick="openOperacaoModal()">Nova Operação</button>
@@ -467,8 +485,10 @@
             <div class="search-bar">
               <input type="text" id="filterParcelaBusca" placeholder="Nome ou CPF do Cliente..." oninput="loadParcelas()" />
               <select id="filterParcelaStatus" onchange="loadParcelas()">
-                <option value="">Todas</option><option value="pendente">Pendentes</option>
-                <option value="paga">Pagas</option><option value="atrasada">Atrasadas</option>
+                <option value="">Todas</option>
+                <option value="pendente">Pendentes</option>
+                <option value="paga">Pagas</option>
+                <option value="atrasada">Atrasadas</option>
               </select>
               <input type="date" id="filterParcelaDate" onchange="loadParcelas()" title="Data de Vencimento" />
             </div>
@@ -489,14 +509,19 @@
           <div class="card-header">
             <h3>Controle de Inadimplência</h3>
             <div class="search-bar">
+               <select id="filterInadStatus" onchange="loadInadimplencia()">
+                  <option value="pendente" selected>Apenas Pendentes</option>
+                  <option value="resolvido">Apenas Resolvidos</option>
+                  <option value="">Todos os Registos</option>
+               </select>
                <button class="btn btn-outline" onclick="printInadimplenciaGeral()">Gerar PDF Geral</button>
-               <button class="btn btn-primary" onclick="checkInadimplencia()">Atualizar Status</button>
+               <button class="btn btn-primary" onclick="checkInadimplencia()">Atualizar Sistema</button>
             </div>
           </div>
           <div class="card-body no-padding">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Cliente</th><th>CPF</th><th>Parcelas Atrasadas</th><th>Total Devido</th><th>Ações</th></tr></thead>
+                <thead><tr><th>Cliente</th><th>CPF</th><th>Situação</th><th>Total Devido</th><th>Ações</th></tr></thead>
                 <tbody id="tblInadimplencia"></tbody>
               </table>
             </div>
@@ -665,24 +690,322 @@
 
 <div class="modal-overlay" id="modalViewCliente">
   <div class="modal">
-    <div class="modal-header"><h3 id="viewNome">Detalhes do Cliente</h3><button class="modal-close" onclick="closeModal('modalViewCliente')">&times;</button></div>
+    <div class="modal-header">
+      <h3 id="viewNome">Detalhes do Cliente</h3>
+      <button class="modal-close" onclick="closeModal('modalViewCliente')">&times;</button>
+    </div>
     <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" id="viewClienteBody"></div>
-    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalViewCliente')">Fechar</button><button class="btn btn-primary" id="btnViewPrint" onclick=""><svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Gerar PDF / Imprimir</button></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalViewCliente')">Fechar</button>
+      <button class="btn btn-primary" id="btnViewPrint" onclick="">
+        <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Gerar PDF / Imprimir
+      </button>
+    </div>
   </div>
 </div>
 
-<div class="modal-overlay" id="modalAvalista"><div class="modal"><div class="modal-header"><h3 id="modalAvalistaTitle">Avalista</h3><button class="modal-close" onclick="closeModal('modalAvalista')">&times;</button></div><div class="modal-body"><input type="hidden" id="avalistaId" /><div class="form-grid"><h4 class="form-section-title">Dados do Avalista</h4><div class="form-group full"><label>Cliente Relacionado</label><select id="aCliente"></select></div><div class="form-group"><label>Nome</label><input type="text" id="aNome" /></div><div class="form-group"><label>CPF</label><input type="text" id="aCpf" maxlength="14" oninput="maskCPF(this)" /></div><div class="form-group"><label>RG</label><input type="text" id="aRg" /></div><div class="form-group"><label>Telefone</label><input type="text" id="aTel" /></div><div class="form-group"><label>Celular</label><input type="text" id="aCel" /></div><div class="form-group full"><label>E-mail</label><input type="email" id="aEmail" /></div><h4 class="form-section-title">Endereço e Finanças</h4><div class="form-group"><label>Endereço</label><input type="text" id="aEnd" /></div><div class="form-group"><label>Número</label><input type="text" id="aNum" /></div><div class="form-group"><label>Bairro</label><input type="text" id="aBairro" /></div><div class="form-group"><label>Cidade</label><input type="text" id="aCidade" /></div><div class="form-group"><label>UF</label><input type="text" id="aUf" maxlength="2" /></div><div class="form-group"><label>CEP</label><input type="text" id="aCep" /></div><div class="form-group"><label>Renda Mensal (R$)</label><input type="text" id="aRenda" oninput="maskMoney(this)" /></div><div class="form-group"><label>Parentesco</label><select id="aParent"><option value="">Selecione</option><option>Cônjuge</option><option>Amigo(a)</option><option>Outro</option></select></div><div class="form-group full"><label>Observações</label><textarea id="aObs"></textarea></div><div class="form-group full"><label>Foto Perfil</label><div class="file-upload-box"><span>Escolher Foto</span><input type="file" id="aFoto" accept="image/*" /></div><input type="hidden" id="aFotoUrl" /></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalAvalista')">Cancelar</button><button class="btn btn-primary" onclick="saveAvalista()" id="btnSaveAvalista">Salvar</button></div></div></div>
+<div class="modal-overlay" id="modalAvalista">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalAvalistaTitle">Avalista</h3>
+      <button class="modal-close" onclick="closeModal('modalAvalista')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="avalistaId" />
+      <div class="form-grid">
+        <h4 class="form-section-title">Dados do Avalista</h4>
+        <div class="form-group full"><label>Cliente Relacionado</label><select id="aCliente"></select></div>
+        <div class="form-group"><label>Nome</label><input type="text" id="aNome" /></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="aCpf" maxlength="14" oninput="maskCPF(this)" /></div>
+        <div class="form-group"><label>RG</label><input type="text" id="aRg" /></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="aTel" /></div>
+        <div class="form-group"><label>Celular</label><input type="text" id="aCel" /></div>
+        <div class="form-group full"><label>E-mail</label><input type="email" id="aEmail" /></div>
+        
+        <h4 class="form-section-title">Endereço e Finanças</h4>
+        <div class="form-group"><label>Endereço</label><input type="text" id="aEnd" /></div>
+        <div class="form-group"><label>Número</label><input type="text" id="aNum" /></div>
+        <div class="form-group"><label>Bairro</label><input type="text" id="aBairro" /></div>
+        <div class="form-group"><label>Cidade</label><input type="text" id="aCidade" /></div>
+        <div class="form-group"><label>UF</label><input type="text" id="aUf" maxlength="2" /></div>
+        <div class="form-group"><label>CEP</label><input type="text" id="aCep" /></div>
+        <div class="form-group"><label>Renda Mensal (R$)</label><input type="text" id="aRenda" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Parentesco</label>
+          <select id="aParent">
+            <option value="">Selecione</option>
+            <option>Cônjuge</option>
+            <option>Amigo(a)</option>
+            <option>Outro</option>
+          </select>
+        </div>
+        
+        <div class="form-group full"><label>Observações</label><textarea id="aObs"></textarea></div>
+        <div class="form-group full">
+          <label>Foto Perfil</label>
+          <div class="file-upload-box">
+            <span>Escolher Foto</span>
+            <input type="file" id="aFoto" accept="image/*" />
+          </div>
+          <input type="hidden" id="aFotoUrl" />
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalAvalista')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAvalista()" id="btnSaveAvalista">Salvar Avalista</button>
+    </div>
+  </div>
+</div>
 
-<div class="modal-overlay" id="modalNegocio"><div class="modal"><div class="modal-header"><h3 id="modalNegocioTitle">Negócio</h3><button class="modal-close" onclick="closeModal('modalNegocio')">&times;</button></div><div class="modal-body"><input type="hidden" id="negocioId" /><div class="form-grid"><h4 class="form-section-title">Informações</h4><div class="form-group full"><label>Cliente</label><select id="nCliente"></select></div><div class="form-group"><label>Nome Fantasia</label><input type="text" id="nNome" /></div><div class="form-group"><label>CPF/CNPJ</label><input type="text" id="nCpf" oninput="maskCPF(this)" /></div><div class="form-group"><label>Atividade</label><input type="text" id="nAtiv" /></div><div class="form-group"><label>Setor</label><select id="nSetor"><option value="">Selecione</option><option>Comércio</option><option>Serviços</option></select></div><div class="form-group"><label>Início</label><input type="date" id="nDataInicio" onchange="calcTempoAtividade()" /></div><div class="form-group"><label>Tempo</label><input type="text" id="nTempoCalculado" readonly style="background:var(--border-light);" /></div><h4 class="form-section-title">Localização</h4><div class="form-group"><label>Endereço</label><input type="text" id="nEnd" /></div><div class="form-group"><label>Nº</label><input type="text" id="nNum" /></div><div class="form-group"><label>Bairro</label><input type="text" id="nBairro" /></div><div class="form-group"><label>Cidade</label><input type="text" id="nCidade" /></div><div class="form-group"><label>UF</label><input type="text" id="nUf" maxlength="2" /></div><div class="form-group"><label>CEP</label><input type="text" id="nCep" /></div><h4 class="form-section-title">Financeiro</h4><div class="form-group"><label>Faturamento (R$)</label><input type="text" id="nFat" oninput="maskMoney(this)" /></div><div class="form-group"><label>Custo (R$)</label><input type="text" id="nCusto" oninput="maskMoney(this)" /></div><div class="form-group"><label>Lucro (R$)</label><input type="text" id="nLucro" oninput="maskMoney(this)" /></div><div class="form-group"><label>Funcionários</label><input type="number" id="nFunc" /></div><div class="form-group"><label>Local</label><select id="nTipoLocal"><option value="">Selecione</option><option>Próprio</option><option>Alugado</option></select></div><div class="form-group full"><label>Obs</label><textarea id="nObs"></textarea></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalNegocio')">Cancelar</button><button class="btn btn-primary" onclick="saveNegocio()">Salvar</button></div></div></div>
+<div class="modal-overlay" id="modalNegocio">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalNegocioTitle">Negócio</h3>
+      <button class="modal-close" onclick="closeModal('modalNegocio')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="negocioId" />
+      <div class="form-grid">
+        <h4 class="form-section-title">Informações</h4>
+        <div class="form-group full"><label>Cliente Responsável</label><select id="nCliente"></select></div>
+        <div class="form-group"><label>Nome Fantasia</label><input type="text" id="nNome" /></div>
+        <div class="form-group"><label>CPF/CNPJ</label><input type="text" id="nCpf" oninput="maskCPF(this)" /></div>
+        <div class="form-group"><label>Atividade</label><input type="text" id="nAtiv" /></div>
+        <div class="form-group"><label>Setor</label>
+          <select id="nSetor"><option value="">Selecione</option><option>Comércio</option><option>Serviços</option></select>
+        </div>
+        <div class="form-group"><label>Início</label><input type="date" id="nDataInicio" onchange="calcTempoAtividade()" /></div>
+        <div class="form-group"><label>Tempo</label><input type="text" id="nTempoCalculado" readonly style="background:var(--border-light);" /></div>
+        
+        <h4 class="form-section-title">Localização</h4>
+        <div class="form-group"><label>Endereço</label><input type="text" id="nEnd" /></div>
+        <div class="form-group"><label>Nº</label><input type="text" id="nNum" /></div>
+        <div class="form-group"><label>Bairro</label><input type="text" id="nBairro" /></div>
+        <div class="form-group"><label>Cidade</label><input type="text" id="nCidade" /></div>
+        <div class="form-group"><label>UF</label><input type="text" id="nUf" maxlength="2" /></div>
+        <div class="form-group"><label>CEP</label><input type="text" id="nCep" /></div>
+        
+        <h4 class="form-section-title">Financeiro</h4>
+        <div class="form-group"><label>Faturamento (R$)</label><input type="text" id="nFat" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Custo (R$)</label><input type="text" id="nCusto" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Lucro (R$)</label><input type="text" id="nLucro" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Funcionários</label><input type="number" id="nFunc" /></div>
+        <div class="form-group"><label>Local</label>
+          <select id="nTipoLocal"><option value="">Selecione</option><option>Próprio</option><option>Alugado</option></select>
+        </div>
+        <div class="form-group full"><label>Observações</label><textarea id="nObs"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalNegocio')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNegocio()">Salvar Negócio</button>
+    </div>
+  </div>
+</div>
 
-<div class="modal-overlay" id="modalOperacao"><div class="modal"><div class="modal-header"><h3 id="modalOperacaoTitle">Operação</h3><button class="modal-close" onclick="closeModal('modalOperacao')">&times;</button></div><div class="modal-body"><input type="hidden" id="operacaoId" /><div class="form-grid"><h4 class="form-section-title">Dados do Contrato</h4><div class="form-group"><label>Contrato</label><input type="text" id="opContrato" /></div><div class="form-group"><label>Cliente</label><select id="opCliente" onchange="loadClienteAvalistas()"></select></div><div class="form-group"><label>Avalista</label><select id="opAvalista"><option value="">Nenhum</option></select></div><div class="form-group"><label>Negócio</label><select id="opNegocio"><option value="">Nenhum</option></select></div><h4 class="form-section-title">Valores e Taxas</h4><div class="form-group"><label>Solicitado (R$)</label><input type="text" id="opValorSolic" oninput="maskMoney(this)" /></div><div class="form-group"><label>Aprovado (R$)</label><input type="text" id="opValorAprov" oninput="maskMoney(this)" /></div><div class="form-group"><label>Juros (% am)</label><input type="number" id="opTaxa" step="0.01" value="2.5" /></div><div class="form-group"><label>Parcelas</label><input type="number" id="opNumParc" value="12" /></div><div class="form-group"><label>Data Contrato</label><input type="date" id="opDataContr" /></div><div class="form-group"><label>1º Vencimento</label><input type="date" id="opDataVenc" /></div><div class="form-group full"><label>Finalidade</label><input type="text" id="opFinalidade" /></div><div class="form-group full"><label>Garantia</label><input type="text" id="opGarantia" /></div><div class="form-group full"><label>Status</label><select id="opStatus"><option value="em_analise">Em Análise</option><option value="aprovada">Aprovada</option><option value="liberada">Liberada</option><option value="em_andamento">Em Andamento</option><option value="quitada">Quitada</option></select></div><div class="form-group full"><label>Obs</label><textarea id="opObs"></textarea></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalOperacao')">Cancelar</button><button class="btn btn-success" onclick="saveOperacaoAndGenerateParcelas()" id="btnSaveOpParcelas">Salvar e Gerar Parcelas</button><button class="btn btn-primary" onclick="saveOperacao()">Apenas Salvar</button></div></div></div>
+<div class="modal-overlay" id="modalOperacao">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalOperacaoTitle">Operação</h3>
+      <button class="modal-close" onclick="closeModal('modalOperacao')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="operacaoId" />
+      <div class="form-grid">
+        <h4 class="form-section-title">Dados do Contrato</h4>
+        <div class="form-group"><label>Número do Contrato</label><input type="text" id="opContrato" /></div>
+        <div class="form-group"><label>Cliente</label><select id="opCliente" onchange="loadClienteAvalistas()"></select></div>
+        <div class="form-group"><label>Avalista</label><select id="opAvalista"><option value="">Nenhum</option></select></div>
+        <div class="form-group"><label>Negócio</label><select id="opNegocio"><option value="">Nenhum</option></select></div>
+        
+        <h4 class="form-section-title">Valores e Taxas</h4>
+        <div class="form-group"><label>Solicitado (R$)</label><input type="text" id="opValorSolic" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Aprovado (R$)</label><input type="text" id="opValorAprov" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Juros (% a.m.)</label><input type="number" id="opTaxa" step="0.01" value="2.5" /></div>
+        <div class="form-group"><label>Nº Parcelas</label><input type="number" id="opNumParc" value="12" /></div>
+        <div class="form-group"><label>Data Contrato</label><input type="date" id="opDataContr" /></div>
+        <div class="form-group"><label>1º Vencimento</label><input type="date" id="opDataVenc" /></div>
+        
+        <h4 class="form-section-title">Informações Adicionais</h4>
+        <div class="form-group full"><label>Finalidade</label><input type="text" id="opFinalidade" /></div>
+        <div class="form-group full"><label>Garantia</label><input type="text" id="opGarantia" /></div>
+        <div class="form-group full"><label>Status</label>
+          <select id="opStatus">
+            <option value="em_analise">Em Análise</option>
+            <option value="aprovada">Aprovada</option>
+            <option value="liberada">Liberada</option>
+            <option value="em_andamento">Em Andamento</option>
+            <option value="quitada">Quitada</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>Observações</label><textarea id="opObs"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalOperacao')">Cancelar</button>
+      <button class="btn btn-success" onclick="saveOperacaoAndGenerateParcelas()" id="btnSaveOpParcelas">Salvar e Gerar Parcelas</button>
+      <button class="btn btn-primary" onclick="saveOperacao()">Apenas Salvar</button>
+    </div>
+  </div>
+</div>
 
-<div class="modal-overlay" id="modalPagarParcela"><div class="modal" style="max-width:420px;"><div class="modal-header"><h3>Pagamento</h3><button class="modal-close" onclick="closeModal('modalPagarParcela')">&times;</button></div><div class="modal-body"><input type="hidden" id="ppId" /><div class="form-grid"><div class="form-group full"><label>Data de Pagamento</label><input type="date" id="ppData" /></div><div class="form-group"><label>Valor Pago (R$)</label><input type="text" id="ppValor" oninput="maskMoney(this)" /></div><div class="form-group"><label>Desconto (R$)</label><input type="text" id="ppDesconto" oninput="maskMoney(this)" /></div><div class="form-group full"><label>Forma de Pgto</label><select id="ppForma"><option>Dinheiro</option><option>PIX</option><option>Transferência</option></select></div><div class="form-group full"><label>Obs</label><textarea id="ppObs" style="min-height: 60px;"></textarea></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalPagarParcela')">Cancelar</button><button class="btn btn-success" style="width: 100%;" onclick="pagarParcela()">Confirmar Pagamento</button></div></div></div>
+<div class="modal-overlay" id="modalPagarParcela">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header">
+      <h3>Baixa de Parcela</h3>
+      <button class="modal-close" onclick="closeModal('modalPagarParcela')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="ppId" />
+      <div class="form-grid">
+        <div class="form-group full"><label>Data de Pagamento</label><input type="date" id="ppData" /></div>
+        <div class="form-group"><label>Valor Pago (R$)</label><input type="text" id="ppValor" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Desconto (R$)</label><input type="text" id="ppDesconto" oninput="maskMoney(this)" /></div>
+        <div class="form-group full"><label>Forma de Pagamento</label>
+          <select id="ppForma"><option>Dinheiro</option><option>PIX</option><option>Transferência</option></select>
+        </div>
+        <div class="form-group full"><label>Observações</label><textarea id="ppObs" style="min-height: 60px;"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalPagarParcela')">Cancelar</button>
+      <button class="btn btn-success" style="width: 100%;" onclick="pagarParcela()">Confirmar Recebimento</button>
+    </div>
+  </div>
+</div>
 
-<div class="modal-overlay" id="modalAvaliacao"><div class="modal"><div class="modal-header"><h3 id="modalAvaliacaoTitle">Avaliação</h3><button class="modal-close" onclick="closeModal('modalAvaliacao')">&times;</button></div><div class="modal-body"><input type="hidden" id="avaliacaoId" /><div class="form-grid"><div class="form-group full"><label>Cliente</label><select id="avCliente"></select></div><div class="form-group"><label>Renda Fam.</label><input type="text" id="avRendaFam" oninput="maskMoney(this)" /></div><div class="form-group"><label>Outras Rendas</label><input type="text" id="avOutrasRendas" oninput="maskMoney(this)" /></div><div class="form-group"><label>Desp. Fixas</label><input type="text" id="avDespFixas" oninput="maskMoney(this)" /></div><div class="form-group"><label>Desp. Var.</label><input type="text" id="avDespVar" oninput="maskMoney(this)" /></div><div class="form-group"><label>Prestações</label><input type="text" id="avPrestacoes" oninput="maskMoney(this)" /></div><div class="form-group"><label>Patrimônio</label><input type="text" id="avPatrimonio" oninput="maskMoney(this)" /></div><div class="form-group"><label>Dívidas</label><input type="text" id="avDividas" oninput="maskMoney(this)" /></div><div class="form-group"><label>Capacidade Pgto</label><input type="text" id="avCapacidade" oninput="maskMoney(this)" /></div><div class="form-group full"><label>Avaliador</label><input type="text" id="avAvaliador" /></div><div class="form-group full"><label>Aprovado?</label><select id="avAprovado"><option value="false">Não</option><option value="true">Sim</option></select></div><div class="form-group full"><label>Parecer</label><textarea id="avParecer"></textarea></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalAvaliacao')">Cancelar</button><button class="btn btn-primary" onclick="saveAvaliacao()">Salvar</button></div></div></div>
-<div class="modal-overlay" id="modalFluxo"><div class="modal"><div class="modal-header"><h3 id="modalFluxoTitle">Fluxo Caixa</h3><button class="modal-close" onclick="closeModal('modalFluxo')">&times;</button></div><div class="modal-body"><input type="hidden" id="fluxoId" /><div class="form-grid"><div class="form-group full"><label>Negócio</label><select id="fNegocio"></select></div><div class="form-group full"><label>Mês</label><input type="month" id="fMes" /></div><div class="form-group"><label>Vendas</label><input type="text" id="fRecVendas" oninput="maskMoney(this)" /></div><div class="form-group"><label>Serviços</label><input type="text" id="fRecServ" oninput="maskMoney(this)" /></div><div class="form-group"><label>Custo Merc.</label><input type="text" id="fCustoMerc" oninput="maskMoney(this)" /></div><div class="form-group"><label>Custo Mat.</label><input type="text" id="fCustoMat" oninput="maskMoney(this)" /></div><div class="form-group"><label>Aluguel</label><input type="text" id="fAluguel" oninput="maskMoney(this)" /></div><div class="form-group"><label>Salários</label><input type="text" id="fSalarios" oninput="maskMoney(this)" /></div><div class="form-group"><label>Outras Receitas</label><input type="text" id="fOutrasRec" oninput="maskMoney(this)" /></div><div class="form-group"><label>Outras Despesas</label><input type="text" id="fOutrasDesp" oninput="maskMoney(this)" /></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalFluxo')">Cancelar</button><button class="btn btn-primary" onclick="saveFluxo()">Salvar</button></div></div></div>
-<div class="modal-overlay" id="modalRenovacao"><div class="modal" style="max-width:480px;"><div class="modal-header"><h3>Nova Renovação</h3><button class="modal-close" onclick="closeModal('modalRenovacao')">&times;</button></div><div class="modal-body"><div class="form-grid"><div class="form-group full"><label>Operação Original</label><select id="rnOperacao" onchange="loadSaldoDevedor()"></select></div><div class="form-group full"><label>Saldo Devedor</label><input type="text" id="rnSaldo" readonly style="background:var(--border-light);" /></div><div class="form-group full"><label>Novo Valor Empréstimo</label><input type="text" id="rnNovoValor" oninput="maskMoney(this)" /></div><div class="form-group full"><label>Aprovado?</label><select id="rnAprovado"><option value="false">Não</option><option value="true">Sim</option></select></div><div class="form-group full"><label>Motivo</label><textarea id="rnMotivo"></textarea></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalRenovacao')">Cancelar</button><button class="btn btn-primary" onclick="saveRenovacao()">Salvar</button></div></div></div>
-<div class="modal-overlay" id="modalCobranca"><div class="modal"><div class="modal-header"><h3>Cobrança - <span id="cobNomeClienteTitle" style="color:var(--primary);"></span></h3><button class="modal-close" onclick="closeModal('modalCobranca')">&times;</button></div><div class="modal-body"><input type="hidden" id="cobClienteId" /><input type="hidden" id="cobTelefone" /><div class="form-grid"><h4 class="form-section-title">Novo Contato</h4><div class="form-group"><label>Data</label><input type="date" id="cobData" /></div><div class="form-group"><label>Canal</label><select id="cobTipo"><option>WhatsApp</option><option>Telefone</option><option>Visita</option></select></div><div class="form-group full"><label>Mensagem</label><textarea id="cobResultado" style="min-height:90px;"></textarea></div><div class="form-group full" style="flex-direction: row; gap: 10px;"><button class="btn btn-info" onclick="gerarMensagemCobranca()">Gerar Texto</button><button class="btn btn-success" onclick="enviarWhatsApp()">Enviar WhatsApp</button></div><h4 class="form-section-title" style="margin-top: 20px;">Histórico</h4><div id="listHistorico" style="grid-column: 1 / -1; max-height:200px; overflow-y:auto; font-size: 13px;"></div></div></div><div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalCobranca')">Fechar</button><button class="btn btn-primary" onclick="saveCobranca()">Salvar Histórico</button></div></div></div>
+<div class="modal-overlay" id="modalAvaliacao">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalAvaliacaoTitle">Avaliação</h3>
+      <button class="modal-close" onclick="closeModal('modalAvaliacao')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="avaliacaoId" />
+      <div class="form-grid">
+        <h4 class="form-section-title">Dados Iniciais</h4>
+        <div class="form-group full"><label>Cliente</label><select id="avCliente"></select></div>
+        
+        <h4 class="form-section-title">Receitas e Despesas</h4>
+        <div class="form-group"><label>Renda Familiar</label><input type="text" id="avRendaFam" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Outras Rendas</label><input type="text" id="avOutrasRendas" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Desp. Fixas</label><input type="text" id="avDespFixas" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Desp. Variáveis</label><input type="text" id="avDespVar" oninput="maskMoney(this)" /></div>
+        
+        <h4 class="form-section-title">Análise de Risco</h4>
+        <div class="form-group"><label>Prestações Atuais</label><input type="text" id="avPrestacoes" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Patrimônio Estimado</label><input type="text" id="avPatrimonio" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Dívidas Ativas</label><input type="text" id="avDividas" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Capacidade de Pgto</label><input type="text" id="avCapacidade" oninput="maskMoney(this)" /></div>
+        
+        <h4 class="form-section-title">Conclusão</h4>
+        <div class="form-group full"><label>Avaliador</label><input type="text" id="avAvaliador" /></div>
+        <div class="form-group full"><label>Status de Aprovação</label>
+          <select id="avAprovado"><option value="false">Não Aprovado</option><option value="true">Aprovado</option></select>
+        </div>
+        <div class="form-group full"><label>Parecer Técnico</label><textarea id="avParecer"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalAvaliacao')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveAvaliacao()">Salvar Avaliação</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalFluxo">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalFluxoTitle">Fluxo Caixa</h3>
+      <button class="modal-close" onclick="closeModal('modalFluxo')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="fluxoId" />
+      <div class="form-grid">
+        <h4 class="form-section-title">Referência</h4>
+        <div class="form-group full"><label>Negócio</label><select id="fNegocio"></select></div>
+        <div class="form-group full"><label>Mês de Referência</label><input type="month" id="fMes" /></div>
+        
+        <h4 class="form-section-title">Entradas (Receitas)</h4>
+        <div class="form-group"><label>Vendas</label><input type="text" id="fRecVendas" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Serviços</label><input type="text" id="fRecServ" oninput="maskMoney(this)" /></div>
+        <div class="form-group full"><label>Outras Receitas</label><input type="text" id="fOutrasRec" oninput="maskMoney(this)" /></div>
+        
+        <h4 class="form-section-title">Saídas (Despesas)</h4>
+        <div class="form-group"><label>Custo Mercadorias</label><input type="text" id="fCustoMerc" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Custo Materiais</label><input type="text" id="fCustoMat" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Aluguel</label><input type="text" id="fAluguel" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Salários</label><input type="text" id="fSalarios" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Energia</label><input type="text" id="fEnergia" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Água</label><input type="text" id="fAgua" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Telefone/Internet</label><input type="text" id="fTelefone" oninput="maskMoney(this)" /></div>
+        <div class="form-group"><label>Transporte</label><input type="text" id="fTransporte" oninput="maskMoney(this)" /></div>
+        <div class="form-group full"><label>Outras Despesas</label><input type="text" id="fOutrasDesp" oninput="maskMoney(this)" /></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalFluxo')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveFluxo()">Salvar Fluxo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalRenovacao">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3>Nova Renovação</h3>
+      <button class="modal-close" onclick="closeModal('modalRenovacao')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Operação Original</label><select id="rnOperacao" onchange="loadSaldoDevedor()"></select></div>
+        <div class="form-group full"><label>Saldo Devedor (Calculado)</label><input type="text" id="rnSaldo" readonly style="background:var(--border-light);" /></div>
+        <div class="form-group full"><label>Novo Valor do Empréstimo</label><input type="text" id="rnNovoValor" oninput="maskMoney(this)" /></div>
+        <div class="form-group full"><label>Aprovado?</label>
+          <select id="rnAprovado"><option value="false">Não</option><option value="true">Sim</option></select>
+        </div>
+        <div class="form-group full"><label>Motivo da Renovação</label><textarea id="rnMotivo"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalRenovacao')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveRenovacao()">Salvar Renovação</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalCobranca">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Cobrança - <span id="cobNomeClienteTitle" style="color:var(--primary);"></span></h3>
+      <button class="modal-close" onclick="closeModal('modalCobranca')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cobClienteId" />
+      <input type="hidden" id="cobTelefone" />
+      <div class="form-grid">
+        <h4 class="form-section-title">Novo Contato</h4>
+        <div class="form-group"><label>Data</label><input type="date" id="cobData" /></div>
+        <div class="form-group"><label>Canal</label>
+          <select id="cobTipo"><option>WhatsApp</option><option>Telefone</option><option>Visita</option></select>
+        </div>
+        <div class="form-group full"><label>Mensagem / Resultado</label><textarea id="cobResultado" style="min-height:90px;"></textarea></div>
+        <div class="form-group full" style="flex-direction: row; gap: 10px;">
+          <button class="btn btn-info" onclick="gerarMensagemCobranca()">Gerar Texto</button>
+          <button class="btn btn-success" onclick="enviarWhatsApp()">Enviar via WhatsApp</button>
+        </div>
+        
+        <h4 class="form-section-title" style="margin-top: 20px;">Histórico de Contatos</h4>
+        <div id="listHistorico" style="grid-column: 1 / -1; max-height:200px; overflow-y:auto; font-size: 13px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalCobranca')">Fechar</button>
+      <button class="btn btn-primary" onclick="saveCobranca()">Salvar Histórico</button>
+    </div>
+  </div>
+</div>
 
 
 <script>
@@ -1247,7 +1570,7 @@
   }
 
   // =============================================
-  // O RESTO DAS FUNÇÕES MANTÉM-SE INALTERADAS (APENAS HTML MUDOU)
+  // AVALISTAS
   // =============================================
   async function loadAvalistas() {
     const search = (document.getElementById('searchAvalistas')?.value || '').trim();
@@ -1293,6 +1616,7 @@
   }
 
   async function editAvalista(id) { const { data } = await sb.from('avalistas').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openAvalistaModal(data); }
+  
   async function saveAvalista() {
     const id = document.getElementById('avalistaId').value;
     const btnSave = document.getElementById('btnSaveAvalista');
@@ -1302,21 +1626,53 @@
       let fotoUrl = document.getElementById('aFotoUrl').value;
       const fileFoto = document.getElementById('aFoto').files[0];
       if (fileFoto) fotoUrl = await uploadFileToSupabase(fileFoto, 'avalistas');
-      const obj = { empresa_id: EMPRESA_ID, cliente_id: document.getElementById('aCliente').value || null, nome: document.getElementById('aNome').value, cpf: document.getElementById('aCpf').value, rg: document.getElementById('aRg').value, telefone: document.getElementById('aTel').value, celular: document.getElementById('aCel').value, email: document.getElementById('aEmail').value, endereco: document.getElementById('aEnd').value, numero: document.getElementById('aNum').value, bairro: document.getElementById('aBairro').value, cidade: document.getElementById('aCidade').value, uf: document.getElementById('aUf').value, cep: document.getElementById('aCep').value, renda_mensal: unmaskMoney(document.getElementById('aRenda').value), parentesco: document.getElementById('aParent').value, observacoes: document.getElementById('aObs').value, foto_perfil: fotoUrl, };
+      const obj = { 
+        empresa_id: EMPRESA_ID, 
+        cliente_id: document.getElementById('aCliente').value || null, 
+        nome: document.getElementById('aNome').value, 
+        cpf: document.getElementById('aCpf').value, 
+        rg: document.getElementById('aRg').value, 
+        telefone: document.getElementById('aTel').value, 
+        celular: document.getElementById('aCel').value, 
+        email: document.getElementById('aEmail').value, 
+        endereco: document.getElementById('aEnd').value, 
+        numero: document.getElementById('aNum').value, 
+        bairro: document.getElementById('aBairro').value, 
+        cidade: document.getElementById('aCidade').value, 
+        uf: document.getElementById('aUf').value, 
+        cep: document.getElementById('aCep').value, 
+        renda_mensal: unmaskMoney(document.getElementById('aRenda').value), 
+        parentesco: document.getElementById('aParent').value, 
+        observacoes: document.getElementById('aObs').value, 
+        foto_perfil: fotoUrl, 
+      };
       await (id ? sb.from('avalistas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avalistas').insert(obj));
       closeModal('modalAvalista'); loadAvalistas();
     } catch (e) { showToast('Erro', 'error'); } finally { btnSave.textContent = 'Salvar'; btnSave.disabled = false; }
   }
+  
   async function deleteAvalista(id) { if (!confirm('Apagar avalista?')) return; await sb.from('avalistas').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadAvalistas(); }
 
-  // NEGOCIOS
+  // =============================================
+  // MICRO NEGÓCIOS
+  // =============================================
   async function loadNegocios() {
     const search = (document.getElementById('searchNegocios')?.value || '').trim();
     let q = sb.from('micro_negocios').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('nome_fantasia');
     if (search) q = q.ilike('nome_fantasia', `%${search}%`);
     const { data } = await q;
-    document.getElementById('tblNegocios').innerHTML = (data || []).map(n => `<tr><td><strong>${n.nome_fantasia || '-'}</strong></td><td>${n.cliente?.nome || '-'}</td><td>${n.atividade || '-'}</td><td>${fmt(n.faturamento_mensal)}</td><td>${fmt(n.lucro_mensal)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editNegocio('${n.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteNegocio('${n.id}')">Excluir</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum negócio</td></tr>';
+    document.getElementById('tblNegocios').innerHTML = (data || []).map(n => `
+      <tr>
+        <td><strong>${n.nome_fantasia || '-'}</strong></td>
+        <td>${n.cliente?.nome || '-'}</td>
+        <td>${n.atividade || '-'}</td>
+        <td>${fmt(n.faturamento_mensal)}</td>
+        <td>${fmt(n.lucro_mensal)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editNegocio('${n.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteNegocio('${n.id}')">Excluir</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum negócio registado</td></tr>';
   }
+  
   function calcTempoAtividade() {
     const inputData = document.getElementById('nDataInicio').value; const calcOutput = document.getElementById('nTempoCalculado');
     if (!inputData) { calcOutput.value = ''; return; }
@@ -1328,66 +1684,570 @@
     const partes = []; if (anos > 0) partes.push(`${anos} ano${anos > 1 ? 's' : ''}`); if (meses > 0) partes.push(`${meses} mês${meses > 1 ? 'es' : ''}`); if (dias > 0) partes.push(`${dias} dia${dias > 1 ? 's' : ''}`);
     calcOutput.value = partes.length > 0 ? partes.join(', ') : 'Menos de 1 dia';
   }
-  async function openNegocioModal(n) { document.getElementById('modalNegocioTitle').textContent = n ? 'Editar Negócio' : 'Novo Negócio'; await loadClienteOptions('nCliente', n?.cliente_id); document.getElementById('negocioId').value = n?.id || ''; document.getElementById('nNome').value = n?.nome_fantasia || ''; document.getElementById('nCpf').value = n?.cpf || ''; document.getElementById('nAtiv').value = n?.atividade || ''; document.getElementById('nSetor').value = n?.setor || ''; document.getElementById('nDataInicio').value = n?.data_inicio || ''; calcTempoAtividade(); document.getElementById('nEnd').value = n?.endereco_comercial || ''; document.getElementById('nNum').value = n?.numero || ''; document.getElementById('nBairro').value = n?.bairro || ''; document.getElementById('nCidade').value = n?.cidade || ''; document.getElementById('nUf').value = n?.uf || ''; document.getElementById('nCep').value = n?.cep || ''; document.getElementById('nFat').value = toMoneyInput(n?.faturamento_mensal); document.getElementById('nCusto').value = toMoneyInput(n?.custo_mensal); document.getElementById('nLucro').value = toMoneyInput(n?.lucro_mensal); document.getElementById('nFunc').value = n?.num_funcionarios || ''; document.getElementById('nTipoLocal').value = n?.tipo_local || ''; document.getElementById('nObs').value = n?.observacoes || ''; openModal('modalNegocio'); }
+  
+  async function openNegocioModal(n) { 
+    document.getElementById('modalNegocioTitle').textContent = n ? 'Editar Negócio' : 'Novo Negócio'; 
+    await loadClienteOptions('nCliente', n?.cliente_id); 
+    document.getElementById('negocioId').value = n?.id || ''; 
+    document.getElementById('nNome').value = n?.nome_fantasia || ''; 
+    document.getElementById('nCpf').value = n?.cpf || ''; 
+    document.getElementById('nAtiv').value = n?.atividade || ''; 
+    document.getElementById('nSetor').value = n?.setor || ''; 
+    document.getElementById('nDataInicio').value = n?.data_inicio || ''; calcTempoAtividade(); 
+    document.getElementById('nEnd').value = n?.endereco_comercial || ''; 
+    document.getElementById('nNum').value = n?.numero || ''; 
+    document.getElementById('nBairro').value = n?.bairro || ''; 
+    document.getElementById('nCidade').value = n?.cidade || ''; 
+    document.getElementById('nUf').value = n?.uf || ''; 
+    document.getElementById('nCep').value = n?.cep || ''; 
+    document.getElementById('nFat').value = toMoneyInput(n?.faturamento_mensal); 
+    document.getElementById('nCusto').value = toMoneyInput(n?.custo_mensal); 
+    document.getElementById('nLucro').value = toMoneyInput(n?.lucro_mensal); 
+    document.getElementById('nFunc').value = n?.num_funcionarios || ''; 
+    document.getElementById('nTipoLocal').value = n?.tipo_local || ''; 
+    document.getElementById('nObs').value = n?.observacoes || ''; 
+    openModal('modalNegocio'); 
+  }
+  
   async function editNegocio(id) { const { data } = await sb.from('micro_negocios').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openNegocioModal(data); }
-  async function saveNegocio() { const id = document.getElementById('negocioId').value; const obj = { empresa_id: EMPRESA_ID, cliente_id: document.getElementById('nCliente').value || null, nome_fantasia: document.getElementById('nNome').value, cpf: document.getElementById('nCpf').value, atividade: document.getElementById('nAtiv').value, setor: document.getElementById('nSetor').value, data_inicio: document.getElementById('nDataInicio').value || null, endereco_comercial: document.getElementById('nEnd').value, numero: document.getElementById('nNum').value, bairro: document.getElementById('nBairro').value, cidade: document.getElementById('nCidade').value, uf: document.getElementById('nUf').value, cep: document.getElementById('nCep').value, faturamento_mensal: unmaskMoney(document.getElementById('nFat').value), custo_mensal: unmaskMoney(document.getElementById('nCusto').value), lucro_mensal: unmaskMoney(document.getElementById('nLucro').value), num_funcionarios: parseInt(document.getElementById('nFunc').value) || 0, tipo_local: document.getElementById('nTipoLocal').value, observacoes: document.getElementById('nObs').value, }; await (id ? sb.from('micro_negocios').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('micro_negocios').insert(obj)); closeModal('modalNegocio'); loadNegocios(); }
+  
+  async function saveNegocio() { 
+    const id = document.getElementById('negocioId').value; 
+    const obj = { 
+      empresa_id: EMPRESA_ID, 
+      cliente_id: document.getElementById('nCliente').value || null, 
+      nome_fantasia: document.getElementById('nNome').value, 
+      cpf: document.getElementById('nCpf').value, 
+      atividade: document.getElementById('nAtiv').value, 
+      setor: document.getElementById('nSetor').value, 
+      data_inicio: document.getElementById('nDataInicio').value || null, 
+      endereco_comercial: document.getElementById('nEnd').value, 
+      numero: document.getElementById('nNum').value, 
+      bairro: document.getElementById('nBairro').value, 
+      cidade: document.getElementById('nCidade').value, 
+      uf: document.getElementById('nUf').value, 
+      cep: document.getElementById('nCep').value, 
+      faturamento_mensal: unmaskMoney(document.getElementById('nFat').value), 
+      custo_mensal: unmaskMoney(document.getElementById('nCusto').value), 
+      lucro_mensal: unmaskMoney(document.getElementById('nLucro').value), 
+      num_funcionarios: parseInt(document.getElementById('nFunc').value) || 0, 
+      tipo_local: document.getElementById('nTipoLocal').value, 
+      observacoes: document.getElementById('nObs').value, 
+    }; 
+    await (id ? sb.from('micro_negocios').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('micro_negocios').insert(obj)); 
+    closeModal('modalNegocio'); loadNegocios(); 
+  }
+  
   async function deleteNegocio(id) { if (!confirm('Excluir?')) return; await sb.from('micro_negocios').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadNegocios(); }
 
-  // AVALIAÇÃO
-  async function loadAvaliacoes() { const { data } = await sb.from('avaliacao_financeira').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); document.getElementById('tblAvaliacao').innerHTML = (data || []).map(a => `<tr><td>${a.cliente?.nome || '-'}</td><td>${fmt(a.renda_familiar)}</td><td>${fmt(a.capacidade_pagamento)}</td><td>${a.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td><td>${fmtDate(a.data_avaliacao)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvaliacao('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvaliacao('${a.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma avaliação</td></tr>'; }
-  async function openAvaliacaoModal(a) { document.getElementById('modalAvaliacaoTitle').textContent = a ? 'Editar' : 'Nova Avaliação'; await loadClienteOptions('avCliente', a?.cliente_id); document.getElementById('avaliacaoId').value = a?.id || ''; document.getElementById('avRendaFam').value = toMoneyInput(a?.renda_familiar); document.getElementById('avOutrasRendas').value = toMoneyInput(a?.outras_rendas); document.getElementById('avDespFixas').value = toMoneyInput(a?.despesas_fixas); document.getElementById('avDespVar').value = toMoneyInput(a?.despesas_variaveis); document.getElementById('avPrestacoes').value = toMoneyInput(a?.prestacoes_existentes); document.getElementById('avPatrimonio').value = toMoneyInput(a?.patrimonio_estimado); document.getElementById('avDividas').value = toMoneyInput(a?.dividas_existentes); document.getElementById('avCapacidade').value = toMoneyInput(a?.capacidade_pagamento); document.getElementById('avAvaliador').value = a?.avaliador || ''; document.getElementById('avAprovado').value = a?.aprovado ? 'true' : 'false'; document.getElementById('avParecer').value = a?.parecer || ''; openModal('modalAvaliacao'); }
+  // =============================================
+  // AVALIAÇÃO FINANCEIRA
+  // =============================================
+  async function loadAvaliacoes() { 
+    const { data } = await sb.from('avaliacao_financeira').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); 
+    document.getElementById('tblAvaliacao').innerHTML = (data || []).map(a => `
+      <tr>
+        <td>${a.cliente?.nome || '-'}</td>
+        <td>${fmt(a.renda_familiar)}</td>
+        <td>${fmt(a.capacidade_pagamento)}</td>
+        <td>${a.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td>
+        <td>${fmtDate(a.data_avaliacao)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvaliacao('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvaliacao('${a.id}')">Apagar</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma avaliação registada</td></tr>'; 
+  }
+  
+  async function openAvaliacaoModal(a) { 
+    document.getElementById('modalAvaliacaoTitle').textContent = a ? 'Editar Avaliação' : 'Nova Avaliação'; 
+    await loadClienteOptions('avCliente', a?.cliente_id); 
+    document.getElementById('avaliacaoId').value = a?.id || ''; 
+    document.getElementById('avRendaFam').value = toMoneyInput(a?.renda_familiar); 
+    document.getElementById('avOutrasRendas').value = toMoneyInput(a?.outras_rendas); 
+    document.getElementById('avDespFixas').value = toMoneyInput(a?.despesas_fixas); 
+    document.getElementById('avDespVar').value = toMoneyInput(a?.despesas_variaveis); 
+    document.getElementById('avPrestacoes').value = toMoneyInput(a?.prestacoes_existentes); 
+    document.getElementById('avPatrimonio').value = toMoneyInput(a?.patrimonio_estimado); 
+    document.getElementById('avDividas').value = toMoneyInput(a?.dividas_existentes); 
+    document.getElementById('avCapacidade').value = toMoneyInput(a?.capacidade_pagamento); 
+    document.getElementById('avAvaliador').value = a?.avaliador || ''; 
+    document.getElementById('avAprovado').value = a?.aprovado ? 'true' : 'false'; 
+    document.getElementById('avParecer').value = a?.parecer || ''; 
+    openModal('modalAvaliacao'); 
+  }
+  
   async function editAvaliacao(id) { const { data } = await sb.from('avaliacao_financeira').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openAvaliacaoModal(data); }
-  async function saveAvaliacao() { const obj = { empresa_id: EMPRESA_ID, cliente_id: document.getElementById('avCliente').value || null, renda_familiar: unmaskMoney(document.getElementById('avRendaFam').value), outras_rendas: unmaskMoney(document.getElementById('avOutrasRendas').value), despesas_fixas: unmaskMoney(document.getElementById('avDespFixas').value), despesas_variaveis: unmaskMoney(document.getElementById('avDespVar').value), prestacoes_existentes: unmaskMoney(document.getElementById('avPrestacoes').value), patrimonio_estimado: unmaskMoney(document.getElementById('avPatrimonio').value), dividas_existentes: unmaskMoney(document.getElementById('avDividas').value), capacidade_pagamento: unmaskMoney(document.getElementById('avCapacidade').value), avaliador: document.getElementById('avAvaliador').value, aprovado: document.getElementById('avAprovado').value === 'true', parecer: document.getElementById('avParecer').value, }; const id = document.getElementById('avaliacaoId').value; await (id ? sb.from('avaliacao_financeira').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avaliacao_financeira').insert(obj)); closeModal('modalAvaliacao'); loadAvaliacoes(); }
+  
+  async function saveAvaliacao() { 
+    const obj = { 
+      empresa_id: EMPRESA_ID, 
+      cliente_id: document.getElementById('avCliente').value || null, 
+      renda_familiar: unmaskMoney(document.getElementById('avRendaFam').value), 
+      outras_rendas: unmaskMoney(document.getElementById('avOutrasRendas').value), 
+      despesas_fixas: unmaskMoney(document.getElementById('avDespFixas').value), 
+      despesas_variaveis: unmaskMoney(document.getElementById('avDespVar').value), 
+      prestacoes_existentes: unmaskMoney(document.getElementById('avPrestacoes').value), 
+      patrimonio_estimado: unmaskMoney(document.getElementById('avPatrimonio').value), 
+      dividas_existentes: unmaskMoney(document.getElementById('avDividas').value), 
+      capacidade_pagamento: unmaskMoney(document.getElementById('avCapacidade').value), 
+      avaliador: document.getElementById('avAvaliador').value, 
+      aprovado: document.getElementById('avAprovado').value === 'true', 
+      parecer: document.getElementById('avParecer').value, 
+    }; 
+    const id = document.getElementById('avaliacaoId').value; 
+    await (id ? sb.from('avaliacao_financeira').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avaliacao_financeira').insert(obj)); 
+    closeModal('modalAvaliacao'); loadAvaliacoes(); 
+  }
+  
   async function deleteAvaliacao(id) { if (!confirm('Apagar?')) return; await sb.from('avaliacao_financeira').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadAvaliacoes(); }
 
-  // FLUXO
-  async function loadFluxos() { const { data } = await sb.from('fluxo_caixa').select('*,negocio:micro_negocios(nome_fantasia)').eq('empresa_id', EMPRESA_ID).order('mes_referencia', { ascending: false }); document.getElementById('tblFluxo').innerHTML = (data || []).map(f => `<tr><td>${f.negocio?.nome_fantasia || '-'}</td><td>${f.mes_referencia}</td><td>${fmt(f.total_receitas)}</td><td>${fmt(f.total_despesas)}</td><td style="font-weight:700;color:${f.saldo >= 0 ? 'var(--success-text)' : 'var(--danger-text)'}">${fmt(f.saldo)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editFluxo('${f.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteFluxo('${f.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum fluxo</td></tr>'; }
-  async function openFluxoModal(f) { document.getElementById('modalFluxoTitle').textContent = f ? 'Editar Fluxo' : 'Novo Fluxo'; await loadNegocioOptions('fNegocio', f?.micro_negocio_id); document.getElementById('fluxoId').value = f?.id || ''; document.getElementById('fMes').value = f?.mes_referencia || ''; document.getElementById('fRecVendas').value = toMoneyInput(f?.receita_vendas); document.getElementById('fRecServ').value = toMoneyInput(f?.receita_servicos); document.getElementById('fOutrasRec').value = toMoneyInput(f?.outras_receitas); document.getElementById('fCustoMerc').value = toMoneyInput(f?.custo_mercadorias); document.getElementById('fCustoMat').value = toMoneyInput(f?.custo_materiais); document.getElementById('fAluguel').value = toMoneyInput(f?.despesa_aluguel); document.getElementById('fSalarios').value = toMoneyInput(f?.despesa_salarios); document.getElementById('fEnergia').value = toMoneyInput(f?.despesa_energia); document.getElementById('fAgua').value = toMoneyInput(f?.despesa_agua); document.getElementById('fTelefone').value = toMoneyInput(f?.despesa_telefone); document.getElementById('fTransporte').value = toMoneyInput(f?.despesa_transporte); document.getElementById('fOutrasDesp').value = toMoneyInput(f?.outras_despesas); openModal('modalFluxo'); }
+  // =============================================
+  // FLUXO DE CAIXA
+  // =============================================
+  async function loadFluxos() { 
+    const { data } = await sb.from('fluxo_caixa').select('*,negocio:micro_negocios(nome_fantasia)').eq('empresa_id', EMPRESA_ID).order('mes_referencia', { ascending: false }); 
+    document.getElementById('tblFluxo').innerHTML = (data || []).map(f => `
+      <tr>
+        <td>${f.negocio?.nome_fantasia || '-'}</td>
+        <td>${f.mes_referencia}</td>
+        <td>${fmt(f.total_receitas)}</td>
+        <td>${fmt(f.total_despesas)}</td>
+        <td style="font-weight:700;color:${f.saldo >= 0 ? 'var(--success-text)' : 'var(--danger-text)'}">${fmt(f.saldo)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editFluxo('${f.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteFluxo('${f.id}')">Apagar</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum fluxo registado</td></tr>'; 
+  }
+  
+  async function openFluxoModal(f) { 
+    document.getElementById('modalFluxoTitle').textContent = f ? 'Editar Fluxo' : 'Novo Fluxo'; 
+    await loadNegocioOptions('fNegocio', f?.micro_negocio_id); 
+    document.getElementById('fluxoId').value = f?.id || ''; 
+    document.getElementById('fMes').value = f?.mes_referencia || ''; 
+    document.getElementById('fRecVendas').value = toMoneyInput(f?.receita_vendas); 
+    document.getElementById('fRecServ').value = toMoneyInput(f?.receita_servicos); 
+    document.getElementById('fOutrasRec').value = toMoneyInput(f?.outras_receitas); 
+    document.getElementById('fCustoMerc').value = toMoneyInput(f?.custo_mercadorias); 
+    document.getElementById('fCustoMat').value = toMoneyInput(f?.custo_materiais); 
+    document.getElementById('fAluguel').value = toMoneyInput(f?.despesa_aluguel); 
+    document.getElementById('fSalarios').value = toMoneyInput(f?.despesa_salarios); 
+    document.getElementById('fEnergia').value = toMoneyInput(f?.despesa_energia); 
+    document.getElementById('fAgua').value = toMoneyInput(f?.despesa_agua); 
+    document.getElementById('fTelefone').value = toMoneyInput(f?.despesa_telefone); 
+    document.getElementById('fTransporte').value = toMoneyInput(f?.despesa_transporte); 
+    document.getElementById('fOutrasDesp').value = toMoneyInput(f?.outras_despesas); 
+    openModal('modalFluxo'); 
+  }
+  
   async function editFluxo(id) { const { data } = await sb.from('fluxo_caixa').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openFluxoModal(data); }
-  async function saveFluxo() { const rv = unmaskMoney(document.getElementById('fRecVendas').value); const rs = unmaskMoney(document.getElementById('fRecServ').value); const ro = unmaskMoney(document.getElementById('fOutrasRec').value); const cm = unmaskMoney(document.getElementById('fCustoMerc').value); const cmat = unmaskMoney(document.getElementById('fCustoMat').value); const da = unmaskMoney(document.getElementById('fAluguel').value); const ds = unmaskMoney(document.getElementById('fSalarios').value); const de = unmaskMoney(document.getElementById('fEnergia').value); const dag = unmaskMoney(document.getElementById('fAgua').value); const dt = unmaskMoney(document.getElementById('fTelefone').value); const dtr = unmaskMoney(document.getElementById('fTransporte').value); const dout = unmaskMoney(document.getElementById('fOutrasDesp').value); const totalR = rv + rs + ro; const totalD = cm + cmat + da + ds + de + dag + dt + dtr + dout; const obj = { empresa_id: EMPRESA_ID, micro_negocio_id: document.getElementById('fNegocio').value || null, mes_referencia: document.getElementById('fMes').value, receita_vendas: rv, receita_servicos: rs, outras_receitas: ro, custo_mercadorias: cm, custo_materiais: cmat, despesa_aluguel: da, despesa_salarios: ds, despesa_energia: de, despesa_agua: dag, despesa_telefone: dt, despesa_transporte: dtr, outras_despesas: dout, total_receitas: totalR, total_despesas: totalD, saldo: totalR - totalD, }; const id = document.getElementById('fluxoId').value; await (id ? sb.from('fluxo_caixa').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('fluxo_caixa').insert(obj)); closeModal('modalFluxo'); loadFluxos(); }
+  
+  async function saveFluxo() { 
+    const rv = unmaskMoney(document.getElementById('fRecVendas').value); 
+    const rs = unmaskMoney(document.getElementById('fRecServ').value); 
+    const ro = unmaskMoney(document.getElementById('fOutrasRec').value); 
+    const cm = unmaskMoney(document.getElementById('fCustoMerc').value); 
+    const cmat = unmaskMoney(document.getElementById('fCustoMat').value); 
+    const da = unmaskMoney(document.getElementById('fAluguel').value); 
+    const ds = unmaskMoney(document.getElementById('fSalarios').value); 
+    const de = unmaskMoney(document.getElementById('fEnergia').value); 
+    const dag = unmaskMoney(document.getElementById('fAgua').value); 
+    const dt = unmaskMoney(document.getElementById('fTelefone').value); 
+    const dtr = unmaskMoney(document.getElementById('fTransporte').value); 
+    const dout = unmaskMoney(document.getElementById('fOutrasDesp').value); 
+    const totalR = rv + rs + ro; const totalD = cm + cmat + da + ds + de + dag + dt + dtr + dout; 
+    
+    const obj = { 
+      empresa_id: EMPRESA_ID, 
+      micro_negocio_id: document.getElementById('fNegocio').value || null, 
+      mes_referencia: document.getElementById('fMes').value, 
+      receita_vendas: rv, receita_servicos: rs, outras_receitas: ro, 
+      custo_mercadorias: cm, custo_materiais: cmat, despesa_aluguel: da, despesa_salarios: ds, despesa_energia: de, despesa_agua: dag, despesa_telefone: dt, despesa_transporte: dtr, outras_despesas: dout, 
+      total_receitas: totalR, total_despesas: totalD, saldo: totalR - totalD, 
+    }; 
+    const id = document.getElementById('fluxoId').value; 
+    await (id ? sb.from('fluxo_caixa').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('fluxo_caixa').insert(obj)); 
+    closeModal('modalFluxo'); loadFluxos(); 
+  }
+  
   async function deleteFluxo(id) { if (!confirm('Apagar?')) return; await sb.from('fluxo_caixa').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadFluxos(); }
 
+  // =============================================
   // OPERACOES
-  async function loadOperacoes() { const searchStr = (document.getElementById('searchOperacoes')?.value || '').trim().toLowerCase(); const status = document.getElementById('filterStatusOp')?.value; const dateFilter = document.getElementById('filterOpDate')?.value; let q = sb.from('operacoes').select('*,cliente:clientes(nome,cpf)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); if (status) q = q.eq('status', status); if (dateFilter) q = q.eq('data_contratacao', dateFilter); let { data } = await q; if (searchStr) { data = (data || []).filter(o => (o.numero_contrato && o.numero_contrato.toLowerCase().includes(searchStr)) || (o.cliente?.nome && o.cliente.nome.toLowerCase().includes(searchStr)) || (o.cliente?.cpf && o.cliente.cpf.includes(searchStr)) ); } document.getElementById('tblOperacoes').innerHTML = (data || []).map(o => `<tr><td><strong>${o.numero_contrato || '-'}</strong></td><td>${o.cliente?.nome || '-'}</td><td>${fmt(o.valor_aprovado || o.valor_solicitado)}</td><td>${o.taxa_juros}%</td><td>${o.num_parcelas}x</td><td>${statusBadge(o.status)}</td><td>${fmtDate(o.data_contratacao)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editOperacao('${o.id}')">Editar</button><button class="btn btn-success btn-sm" onclick="gerarParcelas('${o.id}')">Parcelas</button><button class="btn btn-danger btn-sm" onclick="deleteOperacao('${o.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="8" class="empty-state">Nenhuma operação</td></tr>'; }
-  async function openOperacaoModal(o) { document.getElementById('modalOperacaoTitle').textContent = o ? 'Editar' : 'Nova Operação'; await loadClienteOptions('opCliente', o?.cliente_id); document.getElementById('operacaoId').value = o?.id || ''; document.getElementById('opContrato').value = o?.numero_contrato || ''; document.getElementById('opValorSolic').value = toMoneyInput(o?.valor_solicitado); document.getElementById('opValorAprov').value = toMoneyInput(o?.valor_aprovado); document.getElementById('opTaxa').value = o?.taxa_juros ?? 2.5; document.getElementById('opNumParc').value = o?.num_parcelas || 12; document.getElementById('opDataContr').value = o?.data_contratacao || new Date().toISOString().slice(0,10); document.getElementById('opDataVenc').value = o?.data_primeiro_vencimento || ''; document.getElementById('opFinalidade').value = o?.finalidade || ''; document.getElementById('opGarantia').value = o?.garantia || ''; document.getElementById('opStatus').value = o?.status || 'em_analise'; document.getElementById('opObs').value = o?.observacoes || ''; document.getElementById('btnSaveOpParcelas').style.display = o ? 'none' : 'inline-flex'; if (o?.cliente_id) await loadClienteAvalistas(); openModal('modalOperacao'); }
-  async function loadClienteAvalistas() { const cid = document.getElementById('opCliente').value; if (!cid) return; const [aRes, nRes] = await Promise.all([ sb.from('avalistas').select('id,nome').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID), sb.from('micro_negocios').select('id,nome_fantasia').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID), ]); document.getElementById('opAvalista').innerHTML = '<option value="">Nenhum</option>' + (aRes.data || []).map(a => `<option value="${a.id}">${a.nome}</option>`).join(''); document.getElementById('opNegocio').innerHTML = '<option value="">Nenhum</option>' + (nRes.data || []).map(n => `<option value="${n.id}">${n.nome_fantasia}</option>`).join(''); }
-  async function saveOperacao() { const id = document.getElementById('operacaoId').value; const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); const valor = vAprov || vSolic || 0; const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; const nparc = parseInt(document.getElementById('opNumParc').value) || 1; const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc; const obj = { empresa_id: EMPRESA_ID, numero_contrato: document.getElementById('opContrato').value, cliente_id: document.getElementById('opCliente').value || null, avalista_id: document.getElementById('opAvalista').value || null, micro_negocio_id: document.getElementById('opNegocio').value || null, valor_solicitado: vSolic, valor_aprovado: vAprov, taxa_juros: taxa, num_parcelas: nparc, valor_parcela: Math.round(pmt * 100) / 100, data_contratacao: document.getElementById('opDataContr').value || null, data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, finalidade: document.getElementById('opFinalidade').value, garantia: document.getElementById('opGarantia').value, status: document.getElementById('opStatus').value, observacoes: document.getElementById('opObs').value, }; await (id ? sb.from('operacoes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('operacoes').insert(obj)); closeModal('modalOperacao'); loadOperacoes(); }
-  async function saveOperacaoAndGenerateParcelas() { const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); const valor = vAprov || vSolic || 0; const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; const nparc = parseInt(document.getElementById('opNumParc').value) || 1; const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc; const obj = { empresa_id: EMPRESA_ID, numero_contrato: document.getElementById('opContrato').value, cliente_id: document.getElementById('opCliente').value || null, avalista_id: document.getElementById('opAvalista').value || null, micro_negocio_id: document.getElementById('opNegocio').value || null, valor_solicitado: vSolic, valor_aprovado: vAprov, taxa_juros: taxa, num_parcelas: nparc, valor_parcela: Math.round(pmt * 100) / 100, data_contratacao: document.getElementById('opDataContr').value || null, data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, finalidade: document.getElementById('opFinalidade').value, garantia: document.getElementById('opGarantia').value, status: 'em_andamento', observacoes: document.getElementById('opObs').value, }; const { data: inserted, error } = await sb.from('operacoes').insert(obj).select().single(); if (error) { showToast('Erro: ' + error.message, 'error'); return; } await generateParcelsForOp(inserted); showToast('Parcelas geradas!', 'success'); closeModal('modalOperacao'); loadOperacoes(); }
-  async function generateParcelsForOp(op) { const valor = op.valor_aprovado || op.valor_solicitado; const taxa = op.taxa_juros / 100; const n = op.num_parcelas; const pmt = taxa > 0 ? (valor * taxa * Math.pow(1 + taxa, n)) / (Math.pow(1 + taxa, n) - 1) : valor / n; let saldo = valor; const baseDate = new Date(op.data_primeiro_vencimento || op.data_contratacao); const parcelas = []; for (let i = 1; i <= n; i++) { const vencDate = new Date(baseDate); vencDate.setMonth(vencDate.getMonth() + (i - 1)); const juros = saldo * taxa; const principal = pmt - juros; saldo -= principal; parcelas.push({ empresa_id: EMPRESA_ID, operacao_id: op.id, numero_parcela: i, valor_principal: Math.round(principal * 100) / 100, valor_juros: Math.round(juros * 100) / 100, valor_total: Math.round(pmt * 100) / 100, data_vencimento: vencDate.toISOString().slice(0, 10), status: 'pendente', }); } await sb.from('parcelas').insert(parcelas); }
-  async function gerarParcelas(opId) { if (!confirm('Gerar parcelas?')) return; const { data: op } = await sb.from('operacoes').select('*').eq('id', opId).eq('empresa_id', EMPRESA_ID).single(); if (!op) return; const { count } = await sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID); if (count > 0) { showToast('Já existem parcelas', 'error'); return; } await generateParcelsForOp(op); showToast('Geradas!', 'success'); }
-  async function deleteOperacao(id) { if (!confirm('Excluir operação e parcelas?')) return; await sb.from('parcelas').delete().eq('operacao_id', id).eq('empresa_id', EMPRESA_ID); await sb.from('operacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadOperacoes(); }
+  // =============================================
+  async function loadOperacoes() { 
+    const searchStr = (document.getElementById('searchOperacoes')?.value || '').trim().toLowerCase(); 
+    const status = document.getElementById('filterStatusOp')?.value; 
+    const dateFilter = document.getElementById('filterOpDate')?.value; 
+    
+    let q = sb.from('operacoes').select('*,cliente:clientes(nome,cpf)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); 
+    if (status) q = q.eq('status', status); 
+    if (dateFilter) q = q.eq('data_contratacao', dateFilter); 
+    
+    let { data } = await q; 
+    
+    if (searchStr) { 
+      data = (data || []).filter(o => (o.numero_contrato && o.numero_contrato.toLowerCase().includes(searchStr)) || (o.cliente?.nome && o.cliente.nome.toLowerCase().includes(searchStr)) || (o.cliente?.cpf && o.cliente.cpf.includes(searchStr)) ); 
+    } 
+    
+    document.getElementById('tblOperacoes').innerHTML = (data || []).map(o => `
+      <tr>
+        <td><strong>${o.numero_contrato || '-'}</strong></td>
+        <td>${o.cliente?.nome || '-'}</td>
+        <td>${fmt(o.valor_aprovado || o.valor_solicitado)}</td>
+        <td>${o.taxa_juros}%</td>
+        <td>${o.num_parcelas}x</td>
+        <td>${statusBadge(o.status)}</td>
+        <td>${fmtDate(o.data_contratacao)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editOperacao('${o.id}')">Editar</button><button class="btn btn-success btn-sm" onclick="gerarParcelas('${o.id}')">Parcelas</button><button class="btn btn-danger btn-sm" onclick="deleteOperacao('${o.id}')">Apagar</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="8" class="empty-state">Nenhuma operação registada</td></tr>'; 
+  }
+  
+  async function openOperacaoModal(o) { 
+    document.getElementById('modalOperacaoTitle').textContent = o ? 'Editar Operação' : 'Nova Operação'; 
+    await loadClienteOptions('opCliente', o?.cliente_id); 
+    document.getElementById('operacaoId').value = o?.id || ''; 
+    document.getElementById('opContrato').value = o?.numero_contrato || ''; 
+    document.getElementById('opValorSolic').value = toMoneyInput(o?.valor_solicitado); 
+    document.getElementById('opValorAprov').value = toMoneyInput(o?.valor_aprovado); 
+    document.getElementById('opTaxa').value = o?.taxa_juros ?? 2.5; 
+    document.getElementById('opNumParc').value = o?.num_parcelas || 12; 
+    document.getElementById('opDataContr').value = o?.data_contratacao || new Date().toISOString().slice(0,10); 
+    document.getElementById('opDataVenc').value = o?.data_primeiro_vencimento || ''; 
+    document.getElementById('opFinalidade').value = o?.finalidade || ''; 
+    document.getElementById('opGarantia').value = o?.garantia || ''; 
+    document.getElementById('opStatus').value = o?.status || 'em_analise'; 
+    document.getElementById('opObs').value = o?.observacoes || ''; 
+    document.getElementById('btnSaveOpParcelas').style.display = o ? 'none' : 'inline-flex'; 
+    if (o?.cliente_id) await loadClienteAvalistas(); 
+    openModal('modalOperacao'); 
+  }
+  
+  async function loadClienteAvalistas() { 
+    const cid = document.getElementById('opCliente').value; 
+    if (!cid) return; 
+    const [aRes, nRes] = await Promise.all([ sb.from('avalistas').select('id,nome').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID), sb.from('micro_negocios').select('id,nome_fantasia').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID), ]); 
+    document.getElementById('opAvalista').innerHTML = '<option value="">Nenhum</option>' + (aRes.data || []).map(a => `<option value="${a.id}">${a.nome}</option>`).join(''); 
+    document.getElementById('opNegocio').innerHTML = '<option value="">Nenhum</option>' + (nRes.data || []).map(n => `<option value="${n.id}">${n.nome_fantasia}</option>`).join(''); 
+  }
+  
+  async function saveOperacao() { 
+    const id = document.getElementById('operacaoId').value; 
+    const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); 
+    const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); 
+    const valor = vAprov || vSolic || 0; 
+    const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; 
+    const nparc = parseInt(document.getElementById('opNumParc').value) || 1; 
+    const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc; 
+    
+    const obj = { 
+      empresa_id: EMPRESA_ID, 
+      numero_contrato: document.getElementById('opContrato').value, 
+      cliente_id: document.getElementById('opCliente').value || null, 
+      avalista_id: document.getElementById('opAvalista').value || null, 
+      micro_negocio_id: document.getElementById('opNegocio').value || null, 
+      valor_solicitado: vSolic, 
+      valor_aprovado: vAprov, 
+      taxa_juros: taxa, 
+      num_parcelas: nparc, 
+      valor_parcela: Math.round(pmt * 100) / 100, 
+      data_contratacao: document.getElementById('opDataContr').value || null, 
+      data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, 
+      finalidade: document.getElementById('opFinalidade').value, 
+      garantia: document.getElementById('opGarantia').value, 
+      status: document.getElementById('opStatus').value, 
+      observacoes: document.getElementById('opObs').value, 
+    }; 
+    
+    await (id ? sb.from('operacoes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('operacoes').insert(obj)); 
+    closeModal('modalOperacao'); loadOperacoes(); 
+  }
+  
+  async function saveOperacaoAndGenerateParcelas() { 
+    const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); 
+    const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); 
+    const valor = vAprov || vSolic || 0; 
+    const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; 
+    const nparc = parseInt(document.getElementById('opNumParc').value) || 1; 
+    const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc; 
+    
+    const obj = { 
+      empresa_id: EMPRESA_ID, 
+      numero_contrato: document.getElementById('opContrato').value, 
+      cliente_id: document.getElementById('opCliente').value || null, 
+      avalista_id: document.getElementById('opAvalista').value || null, 
+      micro_negocio_id: document.getElementById('opNegocio').value || null, 
+      valor_solicitado: vSolic, 
+      valor_aprovado: vAprov, 
+      taxa_juros: taxa, 
+      num_parcelas: nparc, 
+      valor_parcela: Math.round(pmt * 100) / 100, 
+      data_contratacao: document.getElementById('opDataContr').value || null, 
+      data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, 
+      finalidade: document.getElementById('opFinalidade').value, 
+      garantia: document.getElementById('opGarantia').value, 
+      status: 'em_andamento', 
+      observacoes: document.getElementById('opObs').value, 
+    }; 
+    
+    const { data: inserted, error } = await sb.from('operacoes').insert(obj).select().single(); 
+    if (error) { showToast('Erro: ' + error.message, 'error'); return; } 
+    await generateParcelsForOp(inserted); 
+    showToast('Parcelas geradas!', 'success'); 
+    closeModal('modalOperacao'); loadOperacoes(); 
+  }
+  
+  async function generateParcelsForOp(op) { 
+    const valor = op.valor_aprovado || op.valor_solicitado; 
+    const taxa = op.taxa_juros / 100; 
+    const n = op.num_parcelas; 
+    const pmt = taxa > 0 ? (valor * taxa * Math.pow(1 + taxa, n)) / (Math.pow(1 + taxa, n) - 1) : valor / n; 
+    let saldo = valor; 
+    const baseDate = new Date(op.data_primeiro_vencimento || op.data_contratacao); 
+    const parcelas = []; 
+    
+    for (let i = 1; i <= n; i++) { 
+      const vencDate = new Date(baseDate); 
+      vencDate.setMonth(vencDate.getMonth() + (i - 1)); 
+      const juros = saldo * taxa; 
+      const principal = pmt - juros; 
+      saldo -= principal; 
+      
+      parcelas.push({ 
+        empresa_id: EMPRESA_ID, 
+        operacao_id: op.id, 
+        numero_parcela: i, 
+        valor_principal: Math.round(principal * 100) / 100, 
+        valor_juros: Math.round(juros * 100) / 100, 
+        valor_total: Math.round(pmt * 100) / 100, 
+        data_vencimento: vencDate.toISOString().slice(0, 10), 
+        status: 'pendente', 
+      }); 
+    } 
+    await sb.from('parcelas').insert(parcelas); 
+  }
+  
+  async function gerarParcelas(opId) { 
+    if (!confirm('Gerar parcelas?')) return; 
+    const { data: op } = await sb.from('operacoes').select('*').eq('id', opId).eq('empresa_id', EMPRESA_ID).single(); 
+    if (!op) return; 
+    const { count } = await sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID); 
+    if (count > 0) { showToast('Já existem parcelas', 'error'); return; } 
+    await generateParcelsForOp(op); 
+    showToast('Geradas!', 'success'); 
+  }
+  
+  async function deleteOperacao(id) { 
+    if (!confirm('Excluir operação e parcelas?')) return; 
+    await sb.from('parcelas').delete().eq('operacao_id', id).eq('empresa_id', EMPRESA_ID); 
+    await sb.from('operacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); 
+    loadOperacoes(); 
+  }
 
+  // =============================================
   // PARCELAS
-  async function loadParcelas() { const searchStr = (document.getElementById('filterParcelaBusca')?.value || '').trim().toLowerCase(); if (!searchStr) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Pesquise para ver parcelas.</td></tr>'; return; } const status = document.getElementById('filterParcelaStatus')?.value; const date = document.getElementById('filterParcelaDate')?.value; let q = sb.from('parcelas').select('*,operacao:operacoes(numero_contrato, cliente:clientes(nome,cpf))').eq('empresa_id', EMPRESA_ID).order('data_vencimento'); if (status) q = q.eq('status', status); if (date) q = q.eq('data_vencimento', date); let { data } = await q; const today = new Date().toISOString().slice(0, 10); const overdue = (data || []).filter(p => p.status === 'pendente' && p.data_vencimento < today); for (const p of overdue) { await sb.from('parcelas').update({ status: 'atrasada' }).eq('id', p.id).eq('empresa_id', EMPRESA_ID); p.status = 'atrasada'; } data = (data||[]).filter(p => { const nome = (p.operacao?.cliente?.nome || '').toLowerCase(); const cpf = (p.operacao?.cliente?.cpf || ''); return nome.includes(searchStr) || cpf.includes(searchStr); }); if (data.length === 0) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>'; return; } document.getElementById('tblParcelas').innerHTML = data.map(p => `<tr><td><strong>${p.operacao?.cliente?.nome || '-'}</strong></td><td>${p.operacao?.numero_contrato || '-'}</td><td>${p.numero_parcela}</td><td>${fmt(p.valor_total)}</td><td>${fmtDate(p.data_vencimento)}</td><td>${fmtDate(p.data_pagamento)}</td><td>${p.valor_pago ? fmt(p.valor_pago) : '-'}</td><td>${statusBadge(p.status)}</td><td>${p.status !== 'paga' ? `<button class="btn btn-success btn-sm" onclick="openPagarParcela('${p.id}', ${p.valor_total})">Pagar</button>` : ''}</td></tr>`).join(''); }
-  function openPagarParcela(id, valor) { document.getElementById('ppId').value = id; document.getElementById('ppData').value = new Date().toISOString().slice(0, 10); document.getElementById('ppValor').value = toMoneyInput(valor); document.getElementById('ppDesconto').value = toMoneyInput(0); document.getElementById('ppObs').value = ''; openModal('modalPagarParcela'); }
-  async function pagarParcela() { const id = document.getElementById('ppId').value; const obj = { data_pagamento: document.getElementById('ppData').value, valor_pago: unmaskMoney(document.getElementById('ppValor').value), forma_pagamento: document.getElementById('ppForma').value, valor_desconto: unmaskMoney(document.getElementById('ppDesconto').value), observacoes: document.getElementById('ppObs').value, status: 'paga', }; await sb.from('parcelas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID); closeModal('modalPagarParcela'); loadParcelas(); }
+  // =============================================
+  async function loadParcelas() { 
+    const searchStr = (document.getElementById('filterParcelaBusca')?.value || '').trim().toLowerCase(); 
+    if (!searchStr) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Pesquise para ver parcelas.</td></tr>'; return; } 
+    const status = document.getElementById('filterParcelaStatus')?.value; 
+    const date = document.getElementById('filterParcelaDate')?.value; 
+    
+    let q = sb.from('parcelas').select('*,operacao:operacoes(numero_contrato, cliente:clientes(nome,cpf))').eq('empresa_id', EMPRESA_ID).order('data_vencimento'); 
+    if (status) q = q.eq('status', status); 
+    if (date) q = q.eq('data_vencimento', date); 
+    let { data } = await q; 
+    
+    const today = new Date().toISOString().slice(0, 10); 
+    const overdue = (data || []).filter(p => p.status === 'pendente' && p.data_vencimento < today); 
+    for (const p of overdue) { 
+      await sb.from('parcelas').update({ status: 'atrasada' }).eq('id', p.id).eq('empresa_id', EMPRESA_ID); 
+      p.status = 'atrasada'; 
+    } 
+    
+    data = (data||[]).filter(p => { 
+      const nome = (p.operacao?.cliente?.nome || '').toLowerCase(); 
+      const cpf = (p.operacao?.cliente?.cpf || ''); 
+      return nome.includes(searchStr) || cpf.includes(searchStr); 
+    }); 
+    
+    if (data.length === 0) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>'; return; } 
+    
+    document.getElementById('tblParcelas').innerHTML = data.map(p => `
+      <tr>
+        <td><strong>${p.operacao?.cliente?.nome || '-'}</strong></td>
+        <td>${p.operacao?.numero_contrato || '-'}</td>
+        <td>${p.numero_parcela}</td>
+        <td>${fmt(p.valor_total)}</td>
+        <td>${fmtDate(p.data_vencimento)}</td>
+        <td>${fmtDate(p.data_pagamento)}</td>
+        <td>${p.valor_pago ? fmt(p.valor_pago) : '-'}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td>${p.status !== 'paga' ? `<button class="btn btn-success btn-sm" onclick="openPagarParcela('${p.id}', ${p.valor_total})">Pagar</button>` : ''}</td>
+      </tr>
+    `).join(''); 
+  }
+  
+  function openPagarParcela(id, valor) { 
+    document.getElementById('ppId').value = id; 
+    document.getElementById('ppData').value = new Date().toISOString().slice(0, 10); 
+    document.getElementById('ppValor').value = toMoneyInput(valor); 
+    document.getElementById('ppDesconto').value = toMoneyInput(0); 
+    document.getElementById('ppObs').value = ''; 
+    openModal('modalPagarParcela'); 
+  }
+  
+  async function pagarParcela() { 
+    const id = document.getElementById('ppId').value; 
+    const obj = { 
+      data_pagamento: document.getElementById('ppData').value, 
+      valor_pago: unmaskMoney(document.getElementById('ppValor').value), 
+      forma_pagamento: document.getElementById('ppForma').value, 
+      valor_desconto: unmaskMoney(document.getElementById('ppDesconto').value), 
+      observacoes: document.getElementById('ppObs').value, 
+      status: 'paga', 
+    }; 
+    await sb.from('parcelas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID); 
+    closeModal('modalPagarParcela'); loadParcelas(); 
+  }
 
-  // INADIMPLÊNCIA
-  let inadCacheAgrupado = {};
-  async function checkInadimplencia() { const { data: atrasadas } = await sb.from('parcelas').select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)').eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); for (const p of (atrasadas || [])) { const dias = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); const multa = p.valor_total * (p.operacao?.taxa_multa || 2) / 100; const mora = p.valor_total * (p.operacao?.taxa_mora_dia || 0.0333) / 100 * dias; const total = p.valor_total + multa + mora; const { data: existente } = await sb.from('inadimplencia').select('id').eq('parcela_id', p.id).eq('status', 'pendente').eq('empresa_id', EMPRESA_ID); if (existente && existente.length > 0) { await sb.from('inadimplencia').update({ dias_atraso: dias, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); } else { await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id, parcela_id: p.id, cliente_id: p.operacao?.cliente_id, dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, status: 'pendente', }); } } showToast('Inadimplência atualizada!', 'success'); loadInadimplencia(); }
-  async function loadInadimplencia() { const { data } = await sb.from('inadimplencia').select('*, cliente:clientes(*), operacao:operacoes(numero_contrato), parcela:parcelas(numero_parcela, data_vencimento)').eq('status', 'pendente').eq('empresa_id', EMPRESA_ID).order('dias_atraso', { ascending: false }); inadCacheAgrupado = {}; (data || []).forEach(i => { if(!inadCacheAgrupado[i.cliente_id]) { inadCacheAgrupado[i.cliente_id] = { cliente: i.cliente, total: 0, itens: [] }; } inadCacheAgrupado[i.cliente_id].total += i.valor_total_devido; inadCacheAgrupado[i.cliente_id].itens.push(i); }); let html = ''; for(let cid in inadCacheAgrupado) { const g = inadCacheAgrupado[cid]; html += `<tr style="background:var(--danger-bg); font-weight:600;"><td>${g.cliente?.nome || '-'}</td><td>${g.cliente?.cpf || '-'}</td><td>${g.itens.length} atrasos</td><td style="color:var(--danger-text)">${fmt(g.total)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="toggleDetInad('${cid}')">Ver</button><button class="btn btn-primary btn-sm" onclick="openCobrancaCliente('${cid}')">Cobrar</button></div></td></tr><tr id="inad-det-${cid}" style="display:none;"><td colspan="5" style="padding:0;"><table style="background:#fff; border-left:4px solid var(--danger);"><thead><tr><th>Contrato</th><th>Parcela</th><th>Venc.</th><th>Dias</th><th>Valor</th><th>Ações</th></tr></thead><tbody>${g.itens.map(i => `<tr><td>${i.operacao?.numero_contrato}</td><td>Nº ${i.parcela?.numero_parcela}</td><td>${fmtDate(i.parcela?.data_vencimento)}</td><td>${i.dias_atraso}</td><td style="font-weight:600;">${fmt(i.valor_total_devido)}</td><td><button class="btn btn-success btn-sm" onclick="resolverInadimplencia('${i.id}')">Resolvido</button></td></tr>`).join('')}</tbody></table></td></tr>`; } document.getElementById('tblInadimplencia').innerHTML = html || '<tr><td colspan="5" class="empty-state">Tudo em dia!</td></tr>'; }
-  function toggleDetInad(cid) { const el = document.getElementById(`inad-det-${cid}`); el.style.display = el.style.display === 'none' ? 'table-row' : 'none'; }
-  async function resolverInadimplencia(id) { if (!confirm('Marcar como resolvido?')) return; await sb.from('inadimplencia').update({ status: 'resolvido' }).eq('id', id).eq('empresa_id', EMPRESA_ID); loadInadimplencia(); }
-  function printInadimplenciaGeral() { if (Object.keys(inadCacheAgrupado).length === 0) { showToast('Nenhum dado', 'info'); return; } let h = ''; let t = 0; for (let c in inadCacheAgrupado) { const g = inadCacheAgrupado[c]; t += g.total; h += `<div><h3>${g.cliente.nome}</h3><table><tr><th>Parcela</th><th>Venc</th><th>Dias</th><th>Total</th></tr>${g.itens.map(i=>`<tr><td>${i.parcela?.numero_parcela}</td><td>${fmtDate(i.parcela?.data_vencimento)}</td><td>${i.dias_atraso}</td><td>${fmt(i.valor_total_devido)}</td></tr>`).join('')}</table></div>`; } const w = window.open('','_blank'); w.document.write(`<html><head><style>body{font-family:sans-serif;} table{width:100%; border-collapse:collapse;} th,td{border:1px solid #ccc; padding:8px;}</style></head><body><h1>Relatório de Inadimplência</h1>${h}<h2>Total: ${fmt(t)}</h2></body></html>`); w.document.close(); setTimeout(()=>w.print(),1000); }
-  async function openCobrancaCliente(cid) { const g = inadCacheAgrupado[cid]; document.getElementById('cobClienteId').value = cid; document.getElementById('cobTelefone').value = g.cliente.celular || g.cliente.telefone || ''; document.getElementById('cobNomeClienteTitle').textContent = g.cliente.nome; document.getElementById('cobData').value = new Date().toISOString().slice(0, 10); document.getElementById('cobTipo').value = 'WhatsApp'; document.getElementById('cobResultado').value = ''; await carregarHistoricoCobranca(cid); openModal('modalCobranca'); }
-  function gerarMensagemCobranca() { const cid = document.getElementById('cobClienteId').value; const g = inadCacheAgrupado[cid]; if(!g) return; const n = g.cliente.nome.split(' ')[0]; document.getElementById('cobResultado').value = `Olá ${n}, tudo bem? Identificamos ${g.itens.length} parcela(s) em atraso (Total: ${fmt(g.total)}). Por favor, entre em contato.`; }
-  function enviarWhatsApp() { let p = document.getElementById('cobTelefone').value.replace(/\D/g, ''); if (p.length === 10 || p.length === 11) p = '55' + p; const m = document.getElementById('cobResultado').value; if(!m) return; window.open(`https://api.whatsapp.com/send?phone=${p}&text=${encodeURIComponent(m)}`, '_blank'); }
-  async function saveCobranca() { const cid = document.getElementById('cobClienteId').value; const obj = { empresa_id: EMPRESA_ID, cliente_id: cid, data_registro: document.getElementById('cobData').value, tipo: document.getElementById('cobTipo').value, mensagem: document.getElementById('cobResultado').value }; if(!obj.mensagem) return; await sb.from('historico_cobrancas').insert(obj); const g = inadCacheAgrupado[cid]; const ids = g.itens.map(i => i.id); await sb.from('inadimplencia').update({ data_contato: obj.data_registro }).in('id', ids).eq('empresa_id', EMPRESA_ID); showToast('Salvo!', 'success'); document.getElementById('cobResultado').value = ''; carregarHistoricoCobranca(cid); }
-  async function carregarHistoricoCobranca(cid) { const { data } = await sb.from('historico_cobrancas').select('*').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); document.getElementById('listHistorico').innerHTML = (data||[]).map(h => `<div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-bottom:8px;"><strong>${fmtDate(h.data_registro)} - ${h.tipo}</strong><br>${h.mensagem}</div>`).join('') || 'Nenhum histórico.'; }
-
+  // =============================================
   // RENOVACOES
-  async function loadRenovacoes() { const { data } = await sb.from('renovacoes').select('*,cliente:clientes(nome),op_orig:operacoes!operacao_original_id(numero_contrato)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); document.getElementById('tblRenovacoes').innerHTML = (data || []).map(r => `<tr><td>${r.cliente?.nome || '-'}</td><td>${r.op_orig?.numero_contrato || '-'}</td><td>${fmt(r.saldo_devedor)}</td><td>${fmt(r.valor_novo_emprestimo)}</td><td>${r.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td><td>${fmtDate(r.data_renovacao)}</td><td><button class="btn btn-danger btn-sm" onclick="deleteRenovacao('${r.id}')">Excluir</button></td></tr>`).join('') || '<tr><td colspan="7" class="empty-state">Nenhuma renovação</td></tr>'; }
-  async function openRenovacaoModal() { const { data: ops } = await sb.from('operacoes').select('id,numero_contrato,cliente_id').in('status', ['em_andamento', 'liberada']).eq('empresa_id', EMPRESA_ID); document.getElementById('rnOperacao').innerHTML = '<option value="">Selecione</option>' + (ops || []).map(o => `<option value="${o.id}" data-cid="${o.cliente_id}">${o.numero_contrato}</option>`).join(''); document.getElementById('rnSaldo').value = ''; document.getElementById('rnNovoValor').value = ''; document.getElementById('rnAprovado').value = 'false'; document.getElementById('rnMotivo').value = ''; openModal('modalRenovacao'); }
-  async function loadSaldoDevedor() { const opId = document.getElementById('rnOperacao').value; if (!opId) return; const { data: parcelas } = await sb.from('parcelas').select('valor_total,valor_pago,status').eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID); const saldo = (parcelas || []).filter(p => p.status !== 'paga').reduce((s, p) => s + Number(p.valor_total || 0), 0); document.getElementById('rnSaldo').value = toMoneyInput(Math.round(saldo * 100) / 100); }
-  async function saveRenovacao() { const opId = document.getElementById('rnOperacao').value; const sel = document.getElementById('rnOperacao'); const cid = sel.options[sel.selectedIndex]?.dataset?.cid; const obj = { empresa_id: EMPRESA_ID, operacao_original_id: opId || null, cliente_id: cid || null, saldo_devedor: unmaskMoney(document.getElementById('rnSaldo').value), valor_novo_emprestimo: unmaskMoney(document.getElementById('rnNovoValor').value), aprovado: document.getElementById('rnAprovado').value === 'true', motivo: document.getElementById('rnMotivo').value, }; await sb.from('renovacoes').insert(obj); closeModal('modalRenovacao'); loadRenovacoes(); }
+  // =============================================
+  async function loadRenovacoes() { 
+    const { data } = await sb.from('renovacoes').select('*,cliente:clientes(nome),op_orig:operacoes!operacao_original_id(numero_contrato)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); 
+    document.getElementById('tblRenovacoes').innerHTML = (data || []).map(r => `
+      <tr>
+        <td>${r.cliente?.nome || '-'}</td>
+        <td>${r.op_orig?.numero_contrato || '-'}</td>
+        <td>${fmt(r.saldo_devedor)}</td>
+        <td>${fmt(r.valor_novo_emprestimo)}</td>
+        <td>${r.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td>
+        <td>${fmtDate(r.data_renovacao)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteRenovacao('${r.id}')">Excluir</button></td>
+      </tr>
+    `).join('') || '<tr><td colspan="7" class="empty-state">Nenhuma renovação registada</td></tr>'; 
+  }
+  
+  async function openRenovacaoModal() { 
+    const { data: ops } = await sb.from('operacoes').select('id,numero_contrato,cliente_id').in('status', ['em_andamento', 'liberada']).eq('empresa_id', EMPRESA_ID); 
+    document.getElementById('rnOperacao').innerHTML = '<option value="">Selecione</option>' + (ops || []).map(o => `<option value="${o.id}" data-cid="${o.cliente_id}">${o.numero_contrato}</option>`).join(''); 
+    document.getElementById('rnSaldo').value = ''; 
+    document.getElementById('rnNovoValor').value = ''; 
+    document.getElementById('rnAprovado').value = 'false'; 
+    document.getElementById('rnMotivo').value = ''; 
+    openModal('modalRenovacao'); 
+  }
+  
+  async function loadSaldoDevedor() { 
+    const opId = document.getElementById('rnOperacao').value; 
+    if (!opId) return; 
+    const { data: parcelas } = await sb.from('parcelas').select('valor_total,valor_pago,status').eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID); 
+    const saldo = (parcelas || []).filter(p => p.status !== 'paga').reduce((s, p) => s + Number(p.valor_total || 0), 0); 
+    document.getElementById('rnSaldo').value = toMoneyInput(Math.round(saldo * 100) / 100); 
+  }
+  
+  async function saveRenovacao() { 
+    const opId = document.getElementById('rnOperacao').value; 
+    const sel = document.getElementById('rnOperacao'); 
+    const cid = sel.options[sel.selectedIndex]?.dataset?.cid; 
+    const obj = { 
+      empresa_id: EMPRESA_ID, 
+      operacao_original_id: opId || null, 
+      cliente_id: cid || null, 
+      saldo_devedor: unmaskMoney(document.getElementById('rnSaldo').value), 
+      valor_novo_emprestimo: unmaskMoney(document.getElementById('rnNovoValor').value), 
+      aprovado: document.getElementById('rnAprovado').value === 'true', 
+      motivo: document.getElementById('rnMotivo').value, 
+    }; 
+    await sb.from('renovacoes').insert(obj); 
+    closeModal('modalRenovacao'); loadRenovacoes(); 
+  }
+  
   async function deleteRenovacao(id) { if (!confirm('Excluir?')) return; await sb.from('renovacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadRenovacoes(); }
 
+  // =============================================
   // RELATORIOS E EXPORTAR
-  function switchReportTab(btn, tabId) { document.querySelectorAll('#page-relatorios .tab').forEach(t => t.classList.remove('active')); btn.classList.add('active'); ['repResumo', 'repCarteira', 'repExportar'].forEach(id => { document.getElementById(id).style.display = id === tabId ? 'block' : 'none'; }); if (tabId === 'repCarteira') loadCarteira(); }
-  async function loadRelatorios() { const [oRes, pRes] = await Promise.all([ sb.from('operacoes').select('*').eq('empresa_id', EMPRESA_ID), sb.from('parcelas').select('*').eq('empresa_id', EMPRESA_ID), ]); const ops = oRes.data || []; const parcs = pRes.data || []; const totalDesembolsado = ops.filter(o => ['liberada', 'em_andamento', 'quitada'].includes(o.status)).reduce((s, o) => s + Number(o.valor_aprovado || o.valor_solicitado || 0), 0); const totalRecebido = parcs.filter(p => p.status === 'paga').reduce((s, p) => s + Number(p.valor_pago || 0), 0); const totalAtrasado = parcs.filter(p => p.status === 'atrasada').reduce((s, p) => s + Number(p.valor_total || 0), 0); const taxaInadimplencia = ops.length > 0 ? (ops.filter(o => o.status === 'inadimplente').length / ops.length * 100).toFixed(1) : 0; document.getElementById('reportStats').innerHTML = `<div class="stat-card accent"><div class="label">Desembolsado</div><div class="value">${fmt(totalDesembolsado)}</div></div><div class="stat-card success"><div class="label">Recebido</div><div class="value">${fmt(totalRecebido)}</div></div><div class="stat-card danger"><div class="label">Atrasado</div><div class="value">${fmt(totalAtrasado)}</div></div><div class="stat-card info"><div class="label">Taxa Inadimplência</div><div class="value">${taxaInadimplencia}%</div></div>`; const statusCount = {}; ops.forEach(o => { statusCount[o.status] = (statusCount[o.status] || 0) + 1; }); const colors = { em_analise: '#3b82f6', aprovada: '#10b981', liberada: '#0ea5e9', em_andamento: '#ea580c', quitada: '#059669', inadimplente: '#ef4444' }; const maxCount = Math.max(...Object.values(statusCount), 1); document.getElementById('reportChart').innerHTML = `<div style="display:flex;gap:15px;align-items:end;height:200px;padding:20px 0;">${Object.entries(statusCount).map(([s, c]) => `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;"><span style="font-size:14px;font-weight:700;">${c}</span><div style="width:100%;max-width:60px;height:${(c / maxCount) * 150}px;background:${colors[s] || '#cbd5e1'};border-radius:6px 6px 0 0;"></div><span style="font-size:10px;color:var(--text-secondary);text-align:center;">${s.replace(/_/g, ' ')}</span></div>`).join('')}</div>`; }
-  async function loadCarteira() { const { data: ops } = await sb.from('operacoes').select('*,cliente:clientes(nome)').in('status', ['em_andamento', 'liberada']).eq('empresa_id', EMPRESA_ID); const rows = []; for (const o of (ops || [])) { const { data: parcs } = await sb.from('parcelas').select('*').eq('operacao_id', o.id).eq('empresa_id', EMPRESA_ID); const pagas = (parcs || []).filter(p => p.status === 'paga').length; const saldo = (parcs || []).filter(p => p.status !== 'paga').reduce((s, p) => s + Number(p.valor_total || 0), 0); rows.push({ ...o, pagas, total: (parcs || []).length, saldo }); } document.getElementById('tblCarteira').innerHTML = rows.map(r => `<tr><td>${r.cliente?.nome || '-'}</td><td>${r.numero_contrato || '-'}</td><td>${fmt(r.valor_aprovado || r.valor_solicitado)}</td><td>${r.pagas}/${r.total}</td><td>${fmt(r.saldo)}</td><td>${statusBadge(r.status)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma operação ativa</td></tr>'; }
-  async function exportCSV(table) { const { data, error } = await sb.from(table).select('*').eq('empresa_id', EMPRESA_ID); if (error || !data || data.length === 0) { showToast('Sem dados para exportar', 'error'); return; } const headers = Object.keys(data[0]); const csv = [headers.join(';'), ...data.map(row => headers.map(h => { let val = row[h] ?? ''; if (typeof val === 'string' && (val.includes(';') || val.includes('"') || val.includes('\n'))) { val = '"' + val.replace(/"/g, '""') + '"'; } return val; }).join(';'))].join('\n'); const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = `${table}_${new Date().toISOString().slice(0, 10)}.csv`; a.click(); URL.revokeObjectURL(url); showToast(`Ficheiro Excel transferido!`, 'success'); }
+  // =============================================
+  function switchReportTab(btn, tabId) { 
+    document.querySelectorAll('#page-relatorios .tab').forEach(t => t.classList.remove('active')); 
+    btn.classList.add('active'); 
+    ['repResumo', 'repCarteira', 'repExportar'].forEach(id => { document.getElementById(id).style.display = id === tabId ? 'block' : 'none'; }); 
+    if (tabId === 'repCarteira') loadCarteira(); 
+  }
+  
+  async function loadRelatorios() { 
+    const [oRes, pRes] = await Promise.all([ sb.from('operacoes').select('*').eq('empresa_id', EMPRESA_ID), sb.from('parcelas').select('*').eq('empresa_id', EMPRESA_ID), ]); 
+    const ops = oRes.data || []; const parcs = pRes.data || []; 
+    const totalDesembolsado = ops.filter(o => ['liberada', 'em_andamento', 'quitada'].includes(o.status)).reduce((s, o) => s + Number(o.valor_aprovado || o.valor_solicitado || 0), 0); 
+    const totalRecebido = parcs.filter(p => p.status === 'paga').reduce((s, p) => s + Number(p.valor_pago || 0), 0); 
+    const totalAtrasado = parcs.filter(p => p.status === 'atrasada').reduce((s, p) => s + Number(p.valor_total || 0), 0); 
+    const taxaInadimplencia = ops.length > 0 ? (ops.filter(o => o.status === 'inadimplente').length / ops.length * 100).toFixed(1) : 0; 
+    
+    document.getElementById('reportStats').innerHTML = `
+      <div class="stat-card accent"><div class="label">Desembolsado</div><div class="value">${fmt(totalDesembolsado)}</div></div>
+      <div class="stat-card success"><div class="label">Recebido</div><div class="value">${fmt(totalRecebido)}</div></div>
+      <div class="stat-card danger"><div class="label">Atrasado</div><div class="value">${fmt(totalAtrasado)}</div></div>
+      <div class="stat-card info"><div class="label">Taxa Inadimplência</div><div class="value">${taxaInadimplencia}%</div></div>
+    `; 
+    
+    const statusCount = {}; 
+    ops.forEach(o => { statusCount[o.status] = (statusCount[o.status] || 0) + 1; }); 
+    const colors = { em_analise: '#3b82f6', aprovada: '#10b981', liberada: '#0ea5e9', em_andamento: '#ea580c', quitada: '#059669', inadimplente: '#ef4444' }; 
+    const maxCount = Math.max(...Object.values(statusCount), 1); 
+    
+    document.getElementById('reportChart').innerHTML = `
+      <div style="display:flex;gap:15px;align-items:end;height:200px;padding:20px 0;">
+        ${Object.entries(statusCount).map(([s, c]) => `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;">
+            <span style="font-size:14px;font-weight:700;">${c}</span>
+            <div style="width:100%;max-width:60px;height:${(c / maxCount) * 150}px;background:${colors[s] || '#cbd5e1'};border-radius:6px 6px 0 0;"></div>
+            <span style="font-size:10px;color:var(--text-secondary);text-align:center;">${s.replace(/_/g, ' ')}</span>
+          </div>
+        `).join('')}
+      </div>`; 
+  }
+  
+  async function loadCarteira() { 
+    const { data: ops } = await sb.from('operacoes').select('*,cliente:clientes(nome)').in('status', ['em_andamento', 'liberada']).eq('empresa_id', EMPRESA_ID); 
+    const rows = []; 
+    for (const o of (ops || [])) { 
+      const { data: parcs } = await sb.from('parcelas').select('*').eq('operacao_id', o.id).eq('empresa_id', EMPRESA_ID); 
+      const pagas = (parcs || []).filter(p => p.status === 'paga').length; 
+      const saldo = (parcs || []).filter(p => p.status !== 'paga').reduce((s, p) => s + Number(p.valor_total || 0), 0); 
+      rows.push({ ...o, pagas, total: (parcs || []).length, saldo }); 
+    } 
+    document.getElementById('tblCarteira').innerHTML = rows.map(r => `
+      <tr>
+        <td>${r.cliente?.nome || '-'}</td>
+        <td>${r.numero_contrato || '-'}</td>
+        <td>${fmt(r.valor_aprovado || r.valor_solicitado)}</td>
+        <td>${r.pagas}/${r.total}</td>
+        <td>${fmt(r.saldo)}</td>
+        <td>${statusBadge(r.status)}</td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma operação ativa</td></tr>'; 
+  }
+  
+  async function exportCSV(table) { 
+    const { data, error } = await sb.from(table).select('*').eq('empresa_id', EMPRESA_ID); 
+    if (error || !data || data.length === 0) { showToast('Sem dados para exportar', 'error'); return; } 
+    const headers = Object.keys(data[0]); 
+    const csv = [headers.join(';'), ...data.map(row => headers.map(h => { 
+      let val = row[h] ?? ''; 
+      if (typeof val === 'string' && (val.includes(';') || val.includes('"') || val.includes('\n'))) { val = '"' + val.replace(/"/g, '""') + '"'; } 
+      return val; 
+    }).join(';'))].join('\n'); 
+    
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' }); 
+    const url = URL.createObjectURL(blob); 
+    const a = document.createElement('a'); 
+    a.href = url; 
+    a.download = `${table}_${new Date().toISOString().slice(0, 10)}.csv`; 
+    a.click(); 
+    URL.revokeObjectURL(url); 
+    showToast(`Ficheiro Excel transferido!`, 'success'); 
+  }
 
+  // Inicializa o Software
   initApp();
 </script>
 </body>
