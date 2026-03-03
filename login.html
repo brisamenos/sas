@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MicroCred - Iniciar Sessão</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root { 
+      --primary: #ea580c; 
+      --primary-light: #f97316; 
+      --bg: #faf7f5; 
+      --surface: #ffffff; 
+      --text: #1c1917; 
+      --text-secondary: #57534e; 
+      --text-light: #a8a29e;
+      --border: #e7e5e4; 
+      --transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
+      --radius: 16px;
+      --shadow: 0 10px 40px rgba(0,0,0,0.08);
+    }
+    
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: linear-gradient(135deg, #faf7f5 0%, #e7e5e4 100%); 
+      color: var(--text); 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      min-height: 100vh; 
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .login-wrapper {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+    }
+    
+    .login-card {
+      background: var(--surface);
+      padding: 45px 35px;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      text-align: center;
+      border: 1px solid #ffffff;
+    }
+    
+    .login-header {
+      margin-bottom: 35px;
+      /* Altura fixa para o formulário não saltar quando a imagem aparecer */
+      min-height: 140px; 
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-end;
+    }
+    
+    .login-header img {
+      max-width: 200px;
+      max-height: 90px;
+      object-fit: contain;
+      margin-bottom: 15px;
+      transition: opacity 0.5s ease, transform 0.5s ease;
+      border-radius: 8px;
+    }
+
+    .login-header img.loading {
+      opacity: 0;
+      transform: scale(0.90) translateY(10px);
+    }
+    
+    .login-header h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 5px;
+      letter-spacing: -0.5px;
+      transition: var(--transition);
+    }
+    
+    .login-header p {
+      font-size: 13.5px;
+      color: var(--text-secondary);
+    }
+    
+    .form-group {
+      text-align: left;
+      margin-bottom: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    
+    .form-group label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 14.5px;
+      transition: var(--transition);
+      background: #fafaf9;
+      color: var(--text);
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.1);
+    }
+
+    .form-group input::placeholder {
+      color: #cbd5e1;
+    }
+    
+    .btn-submit {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      cursor: pointer;
+      transition: var(--transition);
+      box-shadow: 0 4px 15px rgba(234, 88, 12, 0.25);
+      margin-top: 10px;
+      letter-spacing: 0.2px;
+    }
+    
+    .btn-submit:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(234, 88, 12, 0.35);
+    }
+    
+    .btn-submit:active {
+      transform: translateY(0);
+    }
+
+    .btn-submit:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .footer-text {
+      margin-top: 30px;
+      font-size: 12px;
+      color: var(--text-light);
+      line-height: 1.6;
+    }
+
+    /* TOAST NOTIFICATIONS */
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { padding: 14px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: toastIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275), toastOut .4s ease 3s forwards; max-width: 350px; display: flex; align-items: center; gap: 10px; }
+    .toast.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .toast.error { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(40px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(40px) scale(0.9); } }
+  </style>
+</head>
+<body>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-header">
+        <img id="mainLogo" style="display: none;" class="loading" alt="Logo da Empresa" />
+        <h1 id="welcomeText">Bem-vindo de volta</h1>
+        <p>Inicie sessão no seu espaço exclusivo</p>
+      </div>
+
+      <form id="loginForm" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label>Utilizador</label>
+          <input type="text" id="username" placeholder="ex: empresa.silva" required autocomplete="username" onblur="fetchLogo(this.value)" />
+        </div>
+        <div class="form-group">
+          <label>Palavra-passe</label>
+          <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" />
+        </div>
+
+        <button type="submit" class="btn-submit" id="btnSubmit">
+          <span id="btnText">Aceder ao Sistema</span>
+        </button>
+      </form>
+
+      <div class="footer-text">
+        Tecnologia MicroCred &copy; 2026<br>
+        Ambiente Seguro e Isolado
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ==========================================
+    // CONFIGURAÇÕES SUPABASE
+    // ==========================================
+    const SUPABASE_URL = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
+    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    window.onload = () => { 
+      sessionStorage.clear(); 
+    };
+
+    function showToast(msg, type = 'error') {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast ' + type; 
+      
+      const icon = type === 'success' 
+        ? '<svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>' 
+        : '<svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
+      
+      t.innerHTML = icon + '<span>' + msg + '</span>';
+      c.appendChild(t); 
+      setTimeout(() => t.remove(), 3500);
+    }
+
+    // ==========================================
+    // FUNÇÃO: BUSCAR LOGÓTIPO DINAMICAMENTE
+    // ==========================================
+    async function fetchLogo(username) {
+      const logoImg = document.getElementById('mainLogo');
+      const welcomeText = document.getElementById('welcomeText');
+
+      // Se o campo for limpo, esconde a logo de novo
+      if(!username.trim()) {
+         logoImg.style.display = 'none';
+         logoImg.classList.add('loading');
+         welcomeText.textContent = 'Bem-vindo de volta';
+         return;
+      }
+      
+      try {
+        const { data, error } = await sb.from('usuarios_clientes')
+          .select('logo_url, nome_empresa')
+          .eq('usuario', username.trim())
+          .single();
+        
+        logoImg.classList.add('loading');
+        
+        setTimeout(() => {
+          if (data) {
+              welcomeText.textContent = `Olá, ${data.nome_empresa}`;
+              
+              if (data.logo_url) {
+                  logoImg.src = data.logo_url;
+                  logoImg.style.display = 'block';
+              } else {
+                  logoImg.style.display = 'none';
+              }
+          } else {
+              logoImg.style.display = 'none';
+              welcomeText.textContent = 'Bem-vindo de volta';
+          }
+          // Remove a classe loading para a imagem aparecer com efeito fade-in
+          logoImg.classList.remove('loading');
+        }, 300);
+
+      } catch (err) {
+        logoImg.style.display = 'none';
+        welcomeText.textContent = 'Bem-vindo de volta';
+        logoImg.classList.add('loading');
+      }
+    }
+
+    // ==========================================
+    // FUNÇÃO: PROCESSAR O LOGIN
+    // ==========================================
+    async function handleLogin(e) {
+      e.preventDefault();
+      
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const btnSubmit = document.getElementById('btnSubmit');
+      const btnText = document.getElementById('btnText');
+
+      if (!user || !pass) {
+        showToast('Preencha o utilizador e a palavra-passe.', 'error');
+        return;
+      }
+
+      btnSubmit.disabled = true;
+      btnText.textContent = 'A verificar credenciais...';
+
+      try {
+        const { data, error } = await sb
+          .from('usuarios_clientes')
+          .select('*')
+          .eq('usuario', user)
+          .eq('senha', pass)
+          .single();
+
+        if (error || !data) {
+          throw new Error('Utilizador ou palavra-passe incorretos!');
+        }
+
+        if (data.status !== 'ativo') {
+          throw new Error('O seu acesso encontra-se bloqueado. Contacte o suporte.');
+        }
+
+        const hoje = new Date().toISOString().slice(0,10);
+        if (data.vencimento < hoje) {
+          const dataPt = data.vencimento.split('-').reverse().join('/');
+          throw new Error(`A sua assinatura expirou a ${dataPt}. Contacte o suporte para renovar.`);
+        }
+
+        showToast('Acesso autorizado! A preparar o ambiente...', 'success');
+        
+        sessionStorage.setItem('microcred_auth', 'true');
+        sessionStorage.setItem('microcred_empresa_id', data.id);
+        sessionStorage.setItem('microcred_empresa', data.nome_empresa);
+        sessionStorage.setItem('microcred_vencimento', data.vencimento);
+        // Guarda a logo para o painel (passa 'null' como string se não houver logo)
+        sessionStorage.setItem('microcred_logo', data.logo_url || 'null'); 
+
+        setTimeout(() => {
+          window.location.href = 'index.html'; 
+        }, 1200);
+
+      } catch (err) {
+        showToast(err.message, 'error');
+        btnSubmit.disabled = false;
+        btnText.textContent = 'Aceder ao Sistema';
+      }
+    }
+  </script>
+</body>
+</html>

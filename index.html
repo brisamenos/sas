@@ -1,0 +1,2214 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+  <title>MicroCred - Sistema de Gestão</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: #ea580c; --primary-light: #f97316; --primary-dark: #c2410c; --primary-darker: #9a3412;
+      --accent: #fbbf24; --accent-dark: #f59e0b;
+      --bg: #faf7f5; --surface: #ffffff;
+      --text: #1c1917; --text-secondary: #57534e; --text-light: #a8a29e;
+      --border: #e7e5e4; --border-light: #f5f5f4;
+      --success: #16a34a; --success-bg: #dcfce7;
+      --danger: #dc2626; --danger-bg: #fee2e2;
+      --warning: #ea580c; --warning-bg: #fff7ed;
+      --info: #0284c7; --info-bg: #e0f2fe;
+      --radius: 12px; --radius-sm: 8px; --radius-xs: 6px;
+      --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md: 0 4px 12px rgba(0,0,0,.08);
+      --shadow-lg: 0 8px 30px rgba(0,0,0,.1);
+      --sidebar-width: 270px; --header-height: 64px;
+      --transition: all .2s cubic-bezier(.4,0,.2,1);
+    }
+
+    body { font-family: 'Inter', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; min-height: 100vh; -webkit-font-smoothing: antialiased; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #d6d3d1; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #a8a29e; }
+
+    .sidebar { position: fixed; top: 0; left: 0; width: var(--sidebar-width); height: 100vh; background: linear-gradient(180deg, #1c1917 0%, #292524 100%); color: #fff; display: flex; flex-direction: column; z-index: 100; transition: transform .35s cubic-bezier(.4,0,.2,1); overflow: hidden; }
+    .sidebar::before { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(ellipse at top left, rgba(234,88,12,.12) 0%, transparent 60%); pointer-events: none; }
+    
+    .sidebar-header { padding: 30px 15px; border-bottom: 1px solid rgba(255,255,255,.08); display: flex; justify-content: center; align-items: center; position: relative; min-height: 140px; }
+    .sidebar-header .logo { width: 100%; max-width: 240px; height: 110px; display: flex; align-items: center; justify-content: center; }
+    .sidebar-header .logo img { max-width: 100%; max-height: 100%; object-fit: contain; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); transition: transform .3s ease; border-radius: 8px; }
+    .sidebar-header .logo img:hover { transform: scale(1.05); }
+    
+    .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 0; }
+    .nav-section { padding: 16px 20px 6px; font-size: 10px; text-transform: uppercase; letter-spacing: 1.5px; color: rgba(255,255,255,.3); font-weight: 600; }
+    .nav-item { display: flex; align-items: center; gap: 12px; padding: 11px 20px; cursor: pointer; font-size: 13.5px; font-weight: 500; color: rgba(255,255,255,.6); transition: var(--transition); border-left: 3px solid transparent; margin: 1px 0; position: relative; }
+    .nav-item:hover { background: rgba(255,255,255,.06); color: rgba(255,255,255,.9); }
+    .nav-item.active { background: rgba(234,88,12,.12); color: var(--primary-light); border-left-color: var(--primary-light); font-weight: 600; }
+    .nav-item.active::after { content: ''; position: absolute; right: 12px; width: 6px; height: 6px; background: var(--primary-light); border-radius: 50%; }
+
+    .main { margin-left: var(--sidebar-width); min-height: 100vh; }
+    .topbar { height: var(--header-height); background: rgba(255,255,255,.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 28px; position: sticky; top: 0; z-index: 50; }
+    .topbar-left { display: flex; align-items: center; gap: 14px; }
+    .topbar h2 { font-size: 18px; font-weight: 700; letter-spacing: -.3px; }
+    .topbar-right { display: flex; align-items: center; gap: 14px; }
+    .menu-btn { display: none; background: none; border: none; cursor: pointer; color: var(--text); padding: 6px; border-radius: var(--radius-xs); transition: var(--transition); }
+    .menu-btn:hover { background: var(--border-light); }
+    .menu-btn svg { width: 24px; height: 24px; }
+    .conn-badge { font-size: 11px; font-weight: 600; color: var(--success); background: var(--success-bg); padding: 4px 10px; border-radius: 100px; display: flex; align-items: center; gap: 5px; }
+    .conn-badge::before { content: ''; width: 6px; height: 6px; background: var(--success); border-radius: 50%; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+    
+    .content { padding: 28px; max-width: 1400px; }
+    .page-section { display: none; animation: fadeUp .35s ease; }
+    .page-section.active { display: block; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .stat-card { background: var(--surface); border-radius: var(--radius); padding: 22px; box-shadow: var(--shadow); border: 1px solid var(--border); position: relative; overflow: hidden; transition: var(--transition); }
+    .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; border-radius: 0 4px 4px 0; }
+    .stat-card.accent::before { background: linear-gradient(180deg, var(--primary), var(--accent)); }
+    .stat-card.success::before { background: var(--success); }
+    .stat-card.danger::before { background: var(--danger); }
+    .stat-card.info::before { background: var(--info); }
+    .stat-card .label { font-size: 11px; color: var(--text-light); text-transform: uppercase; letter-spacing: .8px; font-weight: 600; margin-bottom: 6px; }
+    .stat-card .value { font-size: 26px; font-weight: 800; color: var(--text); letter-spacing: -.5px; }
+
+    .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 24px; overflow: hidden; transition: var(--transition); }
+    .card-header { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: linear-gradient(180deg, rgba(250,247,245,.5) 0%, rgba(255,255,255,0) 100%); }
+    .card-header h3 { font-size: 15px; font-weight: 700; letter-spacing: -.2px; display: flex; align-items: center; gap: 8px; }
+    .card-header h3::before { content: ''; width: 3px; height: 18px; background: var(--primary); border-radius: 3px; }
+    .card-body { padding: 22px; }
+    .card-body.no-padding { padding: 0; }
+
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    thead { background: #fafaf9; }
+    th { padding: 12px 16px; text-align: left; font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .8px; color: var(--text-light); white-space: nowrap; border-bottom: 2px solid var(--border); }
+    td { padding: 12px 16px; border-top: 1px solid var(--border-light); white-space: nowrap; font-weight: 400; }
+    tbody tr { transition: var(--transition); }
+    tbody tr:hover { background: #fef3c7; }
+    .empty-state { text-align: center; padding: 40px 20px !important; color: var(--text-light); }
+
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+    .form-group label { font-size: 11.5px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .4px; }
+    .form-group input, .form-group select, .form-group textarea { padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13.5px; font-family: inherit; color: var(--text); background: var(--surface); transition: var(--transition); }
+    .form-group input[type="file"] { padding: 7px 10px; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234,88,12,.1); }
+    .form-group input::placeholder { color: var(--text-light); }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    .btn { display: inline-flex; align-items: center; gap: 7px; padding: 9px 18px; border: none; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; transition: var(--transition); white-space: nowrap; position: relative; overflow: hidden; }
+    .btn::after { content: ''; position: absolute; inset: 0; background: rgba(255,255,255,0); transition: var(--transition); }
+    .btn:hover::after { background: rgba(255,255,255,.1); }
+    .btn:active { transform: scale(.96); }
+    .btn-primary { background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%); color: #fff; box-shadow: 0 2px 8px rgba(234,88,12,.3); }
+    .btn-success { background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%); color: #fff; box-shadow: 0 2px 8px rgba(22,163,74,.3); }
+    .btn-danger { background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%); color: #fff; box-shadow: 0 2px 8px rgba(220,38,38,.25); }
+    .btn-info { background: linear-gradient(135deg, #0ea5e9 0%, #38bdf8 100%); color: #fff; box-shadow: 0 2px 8px rgba(14,165,233,.25); }
+    .btn-outline { background: var(--surface); border: 1.5px solid var(--border); color: var(--text-secondary); }
+    .btn-sm { padding: 6px 12px; font-size: 12px; border-radius: var(--radius-xs); }
+    .btn-group { display: flex; gap: 6px; flex-wrap: wrap; }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .badge { display: inline-flex; align-items: center; padding: 3px 10px; border-radius: 100px; font-size: 11px; font-weight: 600; letter-spacing: .2px; }
+    .badge-success { background: var(--success-bg); color: #166534; }
+    .badge-danger { background: var(--danger-bg); color: #991b1b; }
+    .badge-warning { background: var(--warning-bg); color: #9a3412; }
+    .badge-info { background: var(--info-bg); color: #075985; }
+    .badge-neutral { background: #f5f5f4; color: #57534e; }
+
+    .modal-overlay { position: fixed; inset: 0; background: rgba(28,25,23,.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 200; padding: 40px 16px; overflow-y: auto; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: var(--surface); border-radius: calc(var(--radius) * 1.5); width: 100%; max-width: 720px; box-shadow: var(--shadow-lg); animation: modalIn .3s cubic-bezier(.4,0,.2,1); }
+    @keyframes modalIn { from { opacity: 0; transform: translateY(-20px) scale(.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+    .modal-header h3 { font-size: 17px; font-weight: 700; letter-spacing: -.3px; }
+    .modal-close { width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: var(--border-light); border: none; border-radius: 50%; cursor: pointer; color: var(--text-light); font-size: 18px; transition: var(--transition); }
+    .modal-close:hover { background: var(--border); color: var(--text); }
+    .modal-body { padding: 24px; }
+    .modal-footer { padding: 18px 24px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 10px; background: #fafaf9; border-radius: 0 0 calc(var(--radius) * 1.5) calc(var(--radius) * 1.5); }
+
+    .search-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+    .search-bar input, .search-bar select { flex: 1; min-width: 180px; padding: 9px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; transition: var(--transition); background: var(--surface); }
+    .tabs { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 24px; }
+    .tab { padding: 12px 22px; font-size: 13px; font-weight: 600; color: var(--text-light); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; transition: var(--transition); background: none; border-top: 0; border-left: 0; border-right: 0; font-family: inherit; }
+    .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { padding: 14px 20px; border-radius: var(--radius-sm); font-size: 13px; font-weight: 600; color: #fff; box-shadow: var(--shadow-lg); animation: toastIn .3s ease, toastOut .3s ease 3s forwards; max-width: 340px; }
+    .toast.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
+    .toast.error { background: linear-gradient(135deg, #dc2626, #ef4444); }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(30px); } }
+    @keyframes toastOut { to { opacity: 0; transform: translateX(30px); } }
+
+    @media (max-width: 768px) {
+      .sidebar { transform: translateX(-100%); width: 280px; }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .menu-btn { display: flex; }
+      .stats-grid { grid-template-columns: 1fr; }
+      .search-bar { width: 100%; }
+      .search-bar input { min-width: 0; }
+      .modal { margin: 16px; max-width: calc(100% - 32px); }
+      th, td { padding: 10px 12px; font-size: 12px; }
+    }
+    .overlay-bg { display: none; position: fixed; inset: 0; background: rgba(28,25,23,.5); backdrop-filter: blur(2px); z-index: 90; transition: opacity .3s; }
+    .overlay-bg.open { display: block; }
+    
+    .detail-item { padding: 10px 0; border-bottom: 1px solid var(--border-light); }
+    .detail-label { font-size: 11px; text-transform: uppercase; color: var(--text-light); font-weight: 600; margin-bottom: 4px; }
+    .detail-value { font-size: 14px; font-weight: 500; color: var(--text); }
+  </style>
+</head>
+<body>
+
+<div class="toast-container" id="toastContainer"></div>
+<div class="overlay-bg" id="overlayBg" onclick="toggleSidebar()"></div>
+
+<div id="appShell">
+  <nav class="sidebar" id="sidebar">
+    
+    <div class="sidebar-header">
+      <div class="logo">
+        <img id="sidebarLogo" src="https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png" alt="MicroCred Logo" />
+      </div>
+    </div>
+
+    <div class="sidebar-nav">
+      <div class="nav-section">Principal</div>
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"> Dashboard </div>
+      <div class="nav-section">Cadastros</div>
+      <div class="nav-item" data-page="clientes" onclick="navigate('clientes')"> Clientes </div>
+      <div class="nav-item" data-page="avalistas" onclick="navigate('avalistas')"> Avalistas </div>
+      <div class="nav-item" data-page="negocios" onclick="navigate('negocios')"> Micro Negócios </div>
+      <div class="nav-section">Financeiro</div>
+      <div class="nav-item" data-page="avaliacao" onclick="navigate('avaliacao')"> Avaliação Financeira </div>
+      <div class="nav-item" data-page="fluxo" onclick="navigate('fluxo')"> Fluxo de Caixa </div>
+      <div class="nav-section">Operações</div>
+      <div class="nav-item" data-page="operacoes" onclick="navigate('operacoes')"> Operações </div>
+      <div class="nav-item" data-page="parcelas" onclick="navigate('parcelas')"> Parcelas </div>
+      <div class="nav-item" data-page="inadimplencia" onclick="navigate('inadimplencia')"> Inadimplência </div>
+      <div class="nav-item" data-page="renovacoes" onclick="navigate('renovacoes')"> Renovações </div>
+      <div class="nav-section">Relatórios</div>
+      <div class="nav-item" data-page="relatorios" onclick="navigate('relatorios')"> Relatórios </div>
+      
+      <div class="nav-section">Minha Conta</div>
+      <div class="nav-item" data-page="plano" onclick="navigate('plano')"> 
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        Meu Plano & Logo 
+      </div>
+    </div>
+  </nav>
+
+  <div class="main">
+    <header class="topbar">
+      <div class="topbar-left">
+        <button class="menu-btn" onclick="toggleSidebar()">☰</button>
+        <h2 id="pageTitle">Dashboard</h2>
+      </div>
+      <div class="topbar-right">
+        <div class="conn-badge" id="connStatus">Online</div>
+        <span id="userEmailDisplay" style="font-size: 12px; font-weight: 600; color: var(--text-secondary); margin-left: 10px;"></span>
+        <button class="btn btn-outline btn-sm" onclick="logout()" style="margin-left: 10px; border-color: var(--danger); color: var(--danger);">Sair</button>
+      </div>
+    </header>
+
+    <div class="content">
+
+      <div class="page-section" id="page-plano">
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
+          
+          <div class="card" style="border-top: 4px solid var(--primary);">
+            <div class="card-header">
+              <h3>Detalhes da Assinatura</h3>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+                <div>
+                  <p style="color: var(--text-light); font-size: 11px; text-transform: uppercase; font-weight: 700; margin-bottom: 4px;">Plano Atual</p>
+                  <h4 style="font-size: 22px; color: var(--text); margin: 0;">Licença SaaS Pro</h4>
+                </div>
+                <div><span class="badge badge-success" style="font-size: 12px; padding: 6px 12px;">ATIVO</span></div>
+              </div>
+              
+              <div style="background: var(--bg); padding: 20px; border-radius: 12px; margin-bottom: 25px; border: 1px solid var(--border-light);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 12px;">
+                  <span style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Data de Vencimento:</span>
+                  <strong id="planoDataVenc" style="font-size: 15px; color: var(--text);">--/--/----</strong>
+                </div>
+                <div style="display: flex; justify-content: space-between;">
+                  <span style="color: var(--text-secondary); font-size: 14px; font-weight: 500;">Tempo Restante:</span>
+                  <strong id="planoDiasRestantes" style="font-size: 15px;">-- dias</strong>
+                </div>
+              </div>
+              
+              <button class="btn btn-primary" style="width: 100%; justify-content: center; padding: 14px; font-size: 15px;" onclick="showToast('Funcionalidade de renovação automática em breve. Contacte o suporte.', 'info')">
+                <svg style="width:20px;height:20px;margin-right:8px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                Renovar Assinatura
+              </button>
+            </div>
+          </div>
+
+          <div class="card" style="border-top: 4px solid var(--info);">
+            <div class="card-header">
+              <h3>Identidade Visual (Logótipo)</h3>
+            </div>
+            <div class="card-body" style="text-align: center;">
+              <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; line-height: 1.5;">Personalize o sistema com a marca da sua empresa. A sua logo aparecerá no menu lateral e no ecrã de Login.</p>
+              
+              <div style="border: 2px dashed #cbd5e1; padding: 25px; border-radius: 12px; margin-bottom: 20px; background: #fafaf9; cursor: pointer; transition: var(--transition);" onclick="handleLogoClick()" onmouseover="this.style.borderColor='var(--primary)'" onmouseout="this.style.borderColor='#cbd5e1'">
+                <img id="previewLogoPlano" src="https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png" style="max-width: 100%; max-height: 110px; object-fit: contain; margin-bottom: 15px; border-radius: 8px;" />
+                <p style="font-size: 13px; color: var(--primary); font-weight: 600; margin: 0; display: flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                  Clique para alterar ou excluir imagem
+                </p>
+                <input type="file" id="uploadLogoPlano" accept="image/png, image/jpeg" style="display: none;" onchange="previewLogo(event)">
+              </div>
+              
+              <button class="btn btn-info" id="btnSalvarLogoPlano" style="width: 100%; justify-content: center; padding: 14px; font-size: 15px;" onclick="saveLogoPlano()">
+                Atualizar Logótipo
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="page-section active" id="page-dashboard">
+        <div class="stats-grid" id="dashStats"></div>
+        <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
+          <div class="card"><div class="card-header"><h3>Operações por Status</h3></div><div class="card-body" style="height: 320px; position: relative;"><canvas id="dashChartStatus"></canvas></div></div>
+          <div class="card"><div class="card-header"><h3>Visão Financeira</h3></div><div class="card-body" style="height: 320px; position: relative;"><canvas id="dashChartFin"></canvas></div></div>
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Últimas Operações Registradas</h3></div>
+          <div class="card-body no-padding">
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Contrato</th><th>Cliente</th><th>Valor</th><th>Parcelas</th><th>Status</th><th>Data</th></tr></thead>
+                <tbody id="dashOperacoes"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-clientes">
+        <div class="card">
+          <div class="card-header">
+            <h3>Clientes Cadastrados</h3>
+            <div class="search-bar">
+              <input type="text" id="searchClientes" placeholder="Buscar por nome ou CPF..." oninput="loadClientes()" />
+              <button class="btn btn-primary" onclick="openClienteModal()">Novo Cliente</button>
+            </div>
+          </div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Cidade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tblClientes"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-avalistas">
+        <div class="card">
+          <div class="card-header">
+            <h3>Avalistas</h3>
+            <div class="search-bar">
+              <select id="filterAvalistaCliente" onchange="loadAvalistas()"><option value="">Todos os Clientes</option></select>
+              <input type="text" id="searchAvalistas" placeholder="Buscar avalista..." oninput="loadAvalistas()" />
+              <button class="btn btn-primary" onclick="openAvalistaModal()">Novo Avalista</button>
+            </div>
+          </div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Nome</th><th>CPF</th><th>Cliente Vinculado</th><th>Telefone</th><th>Parentesco</th><th>Ações</th></tr></thead><tbody id="tblAvalistas"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-negocios">
+        <div class="card">
+          <div class="card-header">
+            <h3>Micro Negócios</h3>
+            <div class="search-bar">
+              <input type="text" id="searchNegocios" placeholder="Buscar negócio..." oninput="loadNegocios()" />
+              <button class="btn btn-primary" onclick="openNegocioModal()">Novo Negócio</button>
+            </div>
+          </div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Nome Fantasia</th><th>Cliente</th><th>Atividade</th><th>Faturamento</th><th>Lucro</th><th>Ações</th></tr></thead><tbody id="tblNegocios"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-avaliacao">
+        <div class="card">
+          <div class="card-header"><h3>Avaliações Financeiras</h3><button class="btn btn-primary" onclick="openAvaliacaoModal()">Nova Avaliação</button></div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Renda Familiar</th><th>Capacidade Pgto</th><th>Aprovado</th><th>Data</th><th>Ações</th></tr></thead><tbody id="tblAvaliacao"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-fluxo">
+        <div class="card">
+          <div class="card-header"><h3>Fluxo de Caixa</h3><button class="btn btn-primary" onclick="openFluxoModal()">Novo Registro</button></div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Negócio</th><th>Mês Ref.</th><th>Total Receitas</th><th>Total Despesas</th><th>Saldo</th><th>Ações</th></tr></thead><tbody id="tblFluxo"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-operacoes">
+        <div class="card">
+          <div class="card-header">
+            <h3>Operações de Crédito</h3>
+            <div class="search-bar">
+              <input type="text" id="searchOperacoes" placeholder="Buscar contrato, nome ou CPF..." oninput="loadOperacoes()" style="flex:2; min-width: 220px;" />
+              <input type="date" id="filterOpDate" onchange="loadOperacoes()" title="Data de Contratação" />
+              <select id="filterStatusOp" onchange="loadOperacoes()"><option value="">Todos os status</option><option value="em_analise">Em Análise</option><option value="aprovada">Aprovada</option><option value="liberada">Liberada</option><option value="em_andamento">Em Andamento</option><option value="quitada">Quitada</option><option value="inadimplente">Inadimplente</option></select>
+              <button class="btn btn-primary" onclick="openOperacaoModal()">Nova Operação</button>
+            </div>
+          </div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Contrato</th><th>Cliente</th><th>Valor</th><th>Juros</th><th>Parcelas</th><th>Status</th><th>Data</th><th>Ações</th></tr></thead><tbody id="tblOperacoes"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-parcelas">
+        <div class="card">
+          <div class="card-header">
+            <h3>Parcelas</h3>
+            <div class="search-bar">
+              <input type="text" id="filterParcelaBusca" placeholder="Pesquisar por Nome ou CPF do Cliente..." oninput="loadParcelas()" style="flex:2; min-width:250px;" />
+              <select id="filterParcelaStatus" onchange="loadParcelas()"><option value="">Todas as Parcelas</option><option value="pendente">Pendentes</option><option value="paga">Pagas</option><option value="atrasada">Atrasadas</option></select>
+              <input type="date" id="filterParcelaDate" onchange="loadParcelas()" title="Data de Vencimento" />
+            </div>
+          </div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Contrato</th><th>Nº</th><th>Valor</th><th>Vencimento</th><th>Pagamento</th><th>Valor Pago</th><th>Status</th><th>Ações</th></tr></thead><tbody id="tblParcelas"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-inadimplencia">
+        <div class="card">
+          <div class="card-header">
+            <h3>Controle de Inadimplência</h3>
+            <div style="display: flex; gap: 10px;">
+               <button class="btn btn-outline" onclick="printInadimplenciaGeral()"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Gerar PDF Geral</button>
+               <button class="btn btn-primary" onclick="checkInadimplencia()">Atualizar Status</button>
+            </div>
+          </div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>CPF</th><th>Parcelas Atrasadas</th><th>Total Devido</th><th>Ações</th></tr></thead><tbody id="tblInadimplencia"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-renovacoes">
+        <div class="card">
+          <div class="card-header"><h3>Renovações</h3><button class="btn btn-primary" onclick="openRenovacaoModal()">Nova Renovação</button></div>
+          <div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Contrato Original</th><th>Saldo Devedor</th><th>Novo Valor</th><th>Aprovado</th><th>Data</th><th>Ações</th></tr></thead><tbody id="tblRenovacoes"></tbody></table></div></div>
+        </div>
+      </div>
+
+      <div class="page-section" id="page-relatorios">
+        <div class="tabs"><button class="tab active" onclick="switchReportTab(this,'repResumo')">Resumo Geral</button><button class="tab" onclick="switchReportTab(this,'repCarteira')">Carteira</button><button class="tab" onclick="switchReportTab(this,'repExportar')">Exportar Dados</button></div>
+        <div id="repResumo"><div class="stats-grid" id="reportStats"></div><div class="card"><div class="card-header"><h3>Operações por Status (Simples)</h3></div><div class="card-body" id="reportChart"></div></div></div>
+        <div id="repCarteira" style="display:none;"><div class="card"><div class="card-header"><h3>Carteira Ativa</h3></div><div class="card-body no-padding"><div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Contrato</th><th>Valor Original</th><th>Parcelas Pagas</th><th>Saldo Restante</th><th>Status</th></tr></thead><tbody id="tblCarteira"></tbody></table></div></div></div></div>
+        <div id="repExportar" style="display:none;"><div class="card"><div class="card-body"><h3 style="margin-bottom:8px;font-size:16px;">Exportar Dados</h3><p style="color:var(--text-light);margin-bottom:24px;font-size:13px;">Exporte os dados do sistema em formato CSV para análise externa.</p><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;max-width:480px;"><button class="btn btn-outline" onclick="exportCSV('clientes')">Clientes (CSV)</button><button class="btn btn-outline" onclick="exportCSV('operacoes')">Operações (CSV)</button><button class="btn btn-outline" onclick="exportCSV('parcelas')">Parcelas (CSV)</button><button class="btn btn-outline" onclick="exportCSV('inadimplencia')">Inadimplência (CSV)</button></div></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalConfirmDeleteLogo" style="z-index: 9999;">
+  <div class="modal" style="max-width: 420px; text-align: center; padding: 35px 25px;">
+    <svg style="width:50px;height:50px;color:var(--warning);margin-bottom:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    <h3 style="margin-bottom:10px;">Opções de Logótipo</h3>
+    <p style="font-size:13.5px;color:var(--text-secondary);margin-bottom:25px;line-height:1.5;">Você já possui uma logo personalizada.<br>Deseja excluir a atual e voltar à padrão, ou apenas escolher uma nova?</p>
+    
+    <div style="display:flex; gap:10px; flex-direction:column;">
+      <button class="btn btn-danger" style="width:100%; justify-content:center; padding: 12px;" onclick="confirmDeleteLogo()">Sim, Excluir a Logo Atual</button>
+      <button class="btn btn-primary" style="width:100%; justify-content:center; padding: 12px;" onclick="openLogoSelector()">Não, Enviar Nova Logo</button>
+      <button class="btn btn-outline" style="width:100%; justify-content:center; padding: 12px;" onclick="closeModal('modalConfirmDeleteLogo')">Cancelar Ação</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalViewCliente">
+  <div class="modal">
+    <div class="modal-header"><h3 id="viewNome">Detalhes do Cliente</h3><button class="modal-close" onclick="closeModal('modalViewCliente')">&times;</button></div>
+    <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" id="viewClienteBody"></div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalViewCliente')">Fechar</button><button class="btn btn-primary" id="btnViewPrint" onclick=""><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>Gerar PDF / Imprimir</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalCliente">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalClienteTitle">Novo Cliente</h3><button class="modal-close" onclick="closeModal('modalCliente')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="clienteId" />
+      <div class="form-grid">
+        <div class="form-group"><label>Doc Frente (Opcional)</label><input type="file" id="cDocFrente" accept="image/*" /><input type="hidden" id="cDocFrenteUrl" /></div>
+        <div class="form-group"><label>Doc Verso (Opcional)</label><input type="file" id="cDocVerso" accept="image/*" /><input type="hidden" id="cDocVersoUrl" /></div>
+        <div class="form-group"><label>Nome Completo</label><input type="text" id="cNome" /></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="cCpf" maxlength="14" oninput="maskCPF(this)" /></div>
+        <div class="form-group"><label>RG</label><input type="text" id="cRg" /></div>
+        <div class="form-group"><label>Data Nascimento</label><input type="date" id="cNasc" /></div>
+        <div class="form-group"><label>Sexo</label><select id="cSexo"><option value="">Selecione</option><option>Masculino</option><option>Feminino</option><option>Outro</option></select></div>
+        <div class="form-group"><label>Estado Civil</label><select id="cEstCivil"><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></div>
+        <div class="form-group"><label>Escolaridade</label><select id="cEscol"><option value="">Selecione</option><option>Fundamental Incompleto</option><option>Médio Completo</option><option>Superior Completo</option></select></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="cTel" /></div>
+        <div class="form-group"><label>Celular</label><input type="text" id="cCel" /></div>
+        <div class="form-group"><label>E-mail</label><input type="email" id="cEmail" /></div>
+        <div class="form-group"><label>CEP</label><input type="text" id="cCep" /></div>
+        <div class="form-group"><label>Endereço</label><input type="text" id="cEnd" /></div>
+        <div class="form-group"><label>Número</label><input type="text" id="cNum" /></div>
+        <div class="form-group"><label>Complemento</label><input type="text" id="cComp" /></div>
+        <div class="form-group"><label>Bairro</label><input type="text" id="cBairro" /></div>
+        <div class="form-group"><label>Cidade</label><input type="text" id="cCidade" /></div>
+        <div class="form-group"><label>UF</label><input type="text" id="cUf" maxlength="2" /></div>
+        <div class="form-group"><label>Renda Mensal (R$)</label><input type="text" id="cRenda" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Despesa Mensal (R$)</label><input type="text" id="cDespesa" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Status</label><select id="cStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select></div>
+        <div class="form-group full"><label>Observações</label><textarea id="cObs"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalCliente')">Cancelar</button><button class="btn btn-primary" onclick="saveCliente()" id="btnSaveCliente">Salvar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAvalista">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalAvalistaTitle">Novo Avalista</h3><button class="modal-close" onclick="closeModal('modalAvalista')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="avalistaId" />
+      <div class="form-grid">
+        <div class="form-group"><label>Foto de Perfil (Opcional)</label><input type="file" id="aFoto" accept="image/*" /><input type="hidden" id="aFotoUrl" /></div>
+        <div class="form-group"><label>Cliente</label><select id="aCliente"></select></div>
+        <div class="form-group"><label>Nome</label><input type="text" id="aNome" /></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="aCpf" maxlength="14" oninput="maskCPF(this)" /></div>
+        <div class="form-group"><label>RG</label><input type="text" id="aRg" /></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="aTel" /></div>
+        <div class="form-group"><label>Celular</label><input type="text" id="aCel" /></div>
+        <div class="form-group"><label>E-mail</label><input type="email" id="aEmail" /></div>
+        <div class="form-group"><label>Endereço</label><input type="text" id="aEnd" /></div>
+        <div class="form-group"><label>Número</label><input type="text" id="aNum" /></div>
+        <div class="form-group"><label>Bairro</label><input type="text" id="aBairro" /></div>
+        <div class="form-group"><label>Cidade</label><input type="text" id="aCidade" /></div>
+        <div class="form-group"><label>UF</label><input type="text" id="aUf" maxlength="2" /></div>
+        <div class="form-group"><label>CEP</label><input type="text" id="aCep" /></div>
+        <div class="form-group"><label>Renda Mensal (R$)</label><input type="text" id="aRenda" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Parentesco</label><select id="aParent"><option value="">Selecione</option><option>Cônjuge</option><option>Amigo(a)</option><option>Outro</option></select></div>
+        <div class="form-group full"><label>Observações</label><textarea id="aObs"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalAvalista')">Cancelar</button><button class="btn btn-primary" onclick="saveAvalista()" id="btnSaveAvalista">Salvar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalNegocio">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalNegocioTitle">Novo Negócio</h3><button class="modal-close" onclick="closeModal('modalNegocio')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="negocioId" />
+      <div class="form-grid">
+        <div class="form-group"><label>Cliente</label><select id="nCliente"></select></div>
+        <div class="form-group"><label>Nome Fantasia</label><input type="text" id="nNome" /></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="nCpf" maxlength="14" oninput="maskCPF(this)" /></div>
+        <div class="form-group"><label>Atividade</label><input type="text" id="nAtiv" /></div>
+        <div class="form-group"><label>Setor</label><select id="nSetor"><option value="">Selecione</option><option>Comércio</option><option>Serviços</option></select></div>
+        <div class="form-group"><label>Data Início</label><input type="date" id="nDataInicio" onchange="calcTempoAtividade()" /></div>
+        <div class="form-group"><label>Tempo Operação</label><input type="text" id="nTempoCalculado" readonly style="background:var(--border-light);" /></div>
+        <div class="form-group"><label>Endereço</label><input type="text" id="nEnd" /></div>
+        <div class="form-group"><label>Número</label><input type="text" id="nNum" /></div>
+        <div class="form-group"><label>Bairro</label><input type="text" id="nBairro" /></div>
+        <div class="form-group"><label>Cidade</label><input type="text" id="nCidade" /></div>
+        <div class="form-group"><label>UF</label><input type="text" id="nUf" maxlength="2" /></div>
+        <div class="form-group"><label>CEP</label><input type="text" id="nCep" /></div>
+        <div class="form-group"><label>Faturamento (R$)</label><input type="text" id="nFat" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Custo (R$)</label><input type="text" id="nCusto" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Lucro (R$)</label><input type="text" id="nLucro" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Funcionários</label><input type="number" id="nFunc" /></div>
+        <div class="form-group"><label>Tipo Local</label><select id="nTipoLocal"><option value="">Selecione</option><option>Próprio</option><option>Alugado</option></select></div>
+        <div class="form-group full"><label>Observações</label><textarea id="nObs"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalNegocio')">Cancelar</button><button class="btn btn-primary" onclick="saveNegocio()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalAvaliacao">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalAvaliacaoTitle">Avaliação</h3><button class="modal-close" onclick="closeModal('modalAvaliacao')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="avaliacaoId" />
+      <div class="form-grid">
+        <div class="form-group"><label>Cliente</label><select id="avCliente"></select></div>
+        <div class="form-group"><label>Renda Fam. (R$)</label><input type="text" id="avRendaFam" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Outras (R$)</label><input type="text" id="avOutrasRendas" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Desp. Fixas (R$)</label><input type="text" id="avDespFixas" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Desp. Var (R$)</label><input type="text" id="avDespVar" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Prestações (R$)</label><input type="text" id="avPrestacoes" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Patrimônio (R$)</label><input type="text" id="avPatrimonio" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Dívidas (R$)</label><input type="text" id="avDividas" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Capacidade (R$)</label><input type="text" id="avCapacidade" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Avaliador</label><input type="text" id="avAvaliador" /></div>
+        <div class="form-group"><label>Aprovado</label><select id="avAprovado"><option value="false">Não</option><option value="true">Sim</option></select></div>
+        <div class="form-group full"><label>Parecer</label><textarea id="avParecer"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalAvaliacao')">Cancelar</button><button class="btn btn-primary" onclick="saveAvaliacao()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalFluxo">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalFluxoTitle">Fluxo de Caixa</h3><button class="modal-close" onclick="closeModal('modalFluxo')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="fluxoId" />
+      <div class="form-grid">
+        <div class="form-group"><label>Negócio</label><select id="fNegocio"></select></div>
+        <div class="form-group"><label>Mês</label><input type="month" id="fMes" /></div>
+        <div class="form-group"><label>Rec. Vendas</label><input type="text" id="fRecVendas" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Rec. Serviços</label><input type="text" id="fRecServ" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Outras Rec.</label><input type="text" id="fOutrasRec" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Custo Merc.</label><input type="text" id="fCustoMerc" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Custo Mat.</label><input type="text" id="fCustoMat" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Aluguel</label><input type="text" id="fAluguel" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Salários</label><input type="text" id="fSalarios" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Energia</label><input type="text" id="fEnergia" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Água</label><input type="text" id="fAgua" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Telefone</label><input type="text" id="fTelefone" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Transporte</label><input type="text" id="fTransporte" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Outras Desp.</label><input type="text" id="fOutrasDesp" oninput="maskMoney(this)" placeholder="0,00" /></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalFluxo')">Cancelar</button><button class="btn btn-primary" onclick="saveFluxo()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOperacao">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modalOperacaoTitle">Nova Operação</h3><button class="modal-close" onclick="closeModal('modalOperacao')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="operacaoId" />
+      <div class="form-grid">
+        <div class="form-group"><label>Contrato</label><input type="text" id="opContrato" /></div>
+        <div class="form-group"><label>Cliente</label><select id="opCliente" onchange="loadClienteAvalistas()"></select></div>
+        <div class="form-group"><label>Avalista</label><select id="opAvalista"><option value="">Nenhum</option></select></div>
+        <div class="form-group"><label>Negócio</label><select id="opNegocio"><option value="">Nenhum</option></select></div>
+        <div class="form-group"><label>Vlr Solicitado</label><input type="text" id="opValorSolic" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Vlr Aprovado</label><input type="text" id="opValorAprov" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Juros (% am)</label><input type="number" id="opTaxa" step="0.01" value="2.5" /></div>
+        <div class="form-group"><label>Parcelas</label><input type="number" id="opNumParc" value="12" /></div>
+        <div class="form-group"><label>Data Contratação</label><input type="date" id="opDataContr" /></div>
+        <div class="form-group"><label>1º Vencimento</label><input type="date" id="opDataVenc" /></div>
+        <div class="form-group"><label>Finalidade</label><input type="text" id="opFinalidade" /></div>
+        <div class="form-group"><label>Garantia</label><input type="text" id="opGarantia" /></div>
+        <div class="form-group"><label>Status</label><select id="opStatus"><option value="em_analise">Em Análise</option><option value="aprovada">Aprovada</option><option value="liberada">Liberada</option><option value="em_andamento">Em Andamento</option><option value="quitada">Quitada</option></select></div>
+        <div class="form-group full"><label>Observações</label><textarea id="opObs"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalOperacao')">Cancelar</button>
+      <button class="btn btn-success" onclick="saveOperacaoAndGenerateParcelas()" id="btnSaveOpParcelas">Salvar e Gerar Parcelas</button>
+      <button class="btn btn-primary" onclick="saveOperacao()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalPagarParcela">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header"><h3>Pagamento</h3><button class="modal-close" onclick="closeModal('modalPagarParcela')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="ppId" />
+      <div class="form-grid">
+        <div class="form-group"><label>Data</label><input type="date" id="ppData" /></div>
+        <div class="form-group"><label>Valor Pago</label><input type="text" id="ppValor" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Forma Pgto</label><select id="ppForma"><option>Dinheiro</option><option>PIX</option></select></div>
+        <div class="form-group"><label>Desconto</label><input type="text" id="ppDesconto" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group full"><label>Obs</label><textarea id="ppObs"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalPagarParcela')">Cancelar</button><button class="btn btn-success" onclick="pagarParcela()">Confirmar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalRenovacao">
+  <div class="modal" style="max-width:540px;">
+    <div class="modal-header"><h3>Nova Renovação</h3><button class="modal-close" onclick="closeModal('modalRenovacao')">&times;</button></div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group"><label>Operação Original</label><select id="rnOperacao" onchange="loadSaldoDevedor()"></select></div>
+        <div class="form-group"><label>Saldo Devedor</label><input type="text" id="rnSaldo" readonly style="background:var(--border-light);" /></div>
+        <div class="form-group"><label>Novo Valor</label><input type="text" id="rnNovoValor" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <div class="form-group"><label>Aprovado</label><select id="rnAprovado"><option value="false">Não</option><option value="true">Sim</option></select></div>
+        <div class="form-group full"><label>Motivo</label><textarea id="rnMotivo"></textarea></div>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-outline" onclick="closeModal('modalRenovacao')">Cancelar</button><button class="btn btn-primary" onclick="saveRenovacao()">Salvar</button></div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalCobranca">
+  <div class="modal" style="max-width:800px;">
+    <div class="modal-header">
+      <h3>Central de Cobrança - <span id="cobNomeClienteTitle" style="color:var(--primary);"></span></h3>
+      <button class="modal-close" onclick="closeModal('modalCobranca')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="cobClienteId" />
+      <input type="hidden" id="cobTelefone" />
+      
+      <div style="display:flex; gap:24px; flex-wrap:wrap;">
+        <div style="flex:1; min-width:280px;">
+          <h4 style="margin-bottom:12px; font-size:14px; color:var(--primary);">Novo Contato</h4>
+          <div class="form-grid">
+            <div class="form-group"><label>Data</label><input type="date" id="cobData" /></div>
+            <div class="form-group"><label>Canal</label><select id="cobTipo"><option>WhatsApp</option><option>Telefone</option><option>Visita</option><option>E-mail</option></select></div>
+            <div class="form-group full">
+              <label>Mensagem / Relato</label>
+              <textarea id="cobResultado" style="min-height:120px;" placeholder="Descreva como foi o contato ou gere uma mensagem pronta abaixo..."></textarea>
+            </div>
+          </div>
+          <div style="margin-top:15px; display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-info btn-sm" onclick="gerarMensagemCobranca()">
+               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>
+               Gerar Mensagem Pronta
+            </button>
+            <button class="btn btn-success btn-sm" onclick="enviarWhatsApp()">
+               <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg> 
+               Enviar WhatsApp
+            </button>
+          </div>
+        </div>
+        <div style="flex:1; min-width:280px; border-left:1px solid var(--border); padding-left:24px;">
+          <h4 style="margin-bottom:12px; font-size:14px; color:var(--text-secondary);">Histórico de Ações</h4>
+          <div id="listHistorico" style="max-height:300px; overflow-y:auto; padding-right:10px;">
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalCobranca')">Fechar</button>
+      <button class="btn btn-primary" onclick="saveCobranca()">Salvar Registro no Histórico</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // =============================================
+  // SUPABASE CLIENT & STATE
+  // =============================================
+  const SUPABASE_URL = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
+
+  let sb = null;
+  let chartStatusInstance = null;
+  let chartFinInstance = null;
+
+  const EMPRESA_ID = sessionStorage.getItem('microcred_empresa_id');
+  const EMPRESA_NOME = sessionStorage.getItem('microcred_empresa');
+  const DEFAULT_LOGO = 'https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png';
+
+  async function initApp() {
+    if (!SUPABASE_URL || SUPABASE_URL === 'SUA_URL_AQUI') {
+      document.getElementById('appShell').innerHTML = '<div style="max-width:480px;margin:80px auto;text-align:center;padding:20px;"><h2>Credenciais não configuradas</h2></div>';
+      return;
+    }
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    if (sessionStorage.getItem('microcred_auth') !== 'true' || !EMPRESA_ID) {
+      window.location.href = 'login.html'; 
+      return;
+    }
+
+    const emailDisplay = document.getElementById('userEmailDisplay');
+    if (emailDisplay) emailDisplay.textContent = EMPRESA_NOME;
+
+    const userLogo = sessionStorage.getItem('microcred_logo');
+    if(userLogo && userLogo !== 'null') {
+      document.getElementById('sidebarLogo').src = userLogo;
+    }
+
+    navigate('dashboard');
+  }
+
+  function logout() {
+    sessionStorage.clear();
+    window.location.href = 'login.html';
+  }
+
+  // =============================================
+  // NAVIGATION
+  // =============================================
+  const pageTitles = {
+    dashboard: 'Dashboard', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
+    avaliacao: 'Avaliação Financeira', fluxo: 'Fluxo de Caixa', operacoes: 'Operações',
+    parcelas: 'Parcelas', inadimplencia: 'Inadimplência', renovacoes: 'Renovações', relatorios: 'Relatórios',
+    plano: 'Meu Plano'
+  };
+
+  function navigate(page) {
+    document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    const el = document.getElementById('page-' + page);
+    if (el) el.classList.add('active');
+    const nav = document.querySelector(`.nav-item[data-page="${page}"]`);
+    if (nav) nav.classList.add('active');
+    document.getElementById('pageTitle').textContent = pageTitles[page] || page;
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlayBg').classList.remove('open');
+    
+    switch (page) {
+      case 'dashboard': loadDashboard(); break;
+      case 'clientes': loadClientes(); break;
+      case 'avalistas': loadAvalistas(); break;
+      case 'negocios': loadNegocios(); break;
+      case 'avaliacao': loadAvaliacoes(); break;
+      case 'fluxo': loadFluxos(); break;
+      case 'operacoes': loadOperacoes(); break;
+      case 'parcelas': loadParcelas(); break; 
+      case 'inadimplencia': loadInadimplencia(); break;
+      case 'renovacoes': loadRenovacoes(); break;
+      case 'relatorios': loadRelatorios(); break;
+      case 'plano': loadPlano(); break;
+    }
+  }
+
+  function toggleSidebar() {
+    document.getElementById('sidebar').classList.toggle('open');
+    document.getElementById('overlayBg').classList.toggle('open');
+  }
+
+  // =============================================
+  // MEU PLANO E CONFIGURAÇÃO DA LOGO (POPUP INTERATIVA)
+  // =============================================
+  function loadPlano() {
+    const venc = sessionStorage.getItem('microcred_vencimento');
+    if (venc) {
+      const dateObj = new Date(venc + 'T00:00:00');
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+      const diffTime = dateObj - hoje;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      document.getElementById('planoDataVenc').textContent = dateObj.toLocaleDateString('pt-BR');
+      const diasEl = document.getElementById('planoDiasRestantes');
+      
+      if (diffDays < 0) {
+          diasEl.textContent = 'Expirado';
+          diasEl.style.color = 'var(--danger)';
+      } else if (diffDays <= 7) {
+          diasEl.textContent = diffDays + ' dias (Vence em breve!)';
+          diasEl.style.color = 'var(--danger)';
+      } else {
+          diasEl.textContent = diffDays + ' dias';
+          diasEl.style.color = 'var(--success)';
+      }
+    }
+
+    const currentLogo = sessionStorage.getItem('microcred_logo');
+    if (currentLogo && currentLogo !== 'null') {
+       document.getElementById('previewLogoPlano').src = currentLogo;
+    } else {
+       document.getElementById('previewLogoPlano').src = DEFAULT_LOGO;
+    }
+  }
+
+  // Lógica principal do clique na área da imagem
+  function handleLogoClick() {
+    const currentLogo = sessionStorage.getItem('microcred_logo');
+    
+    // Se o cliente já tem uma logo personalizada, abre a pergunta
+    if (currentLogo && currentLogo !== DEFAULT_LOGO && currentLogo !== 'null') {
+      openModal('modalConfirmDeleteLogo');
+    } else {
+      // Se não tiver, abre logo o explorador de ficheiros
+      openLogoSelector();
+    }
+  }
+
+  // Abre a janela para escolher nova foto
+  function openLogoSelector() {
+    closeModal('modalConfirmDeleteLogo');
+    document.getElementById('uploadLogoPlano').click();
+  }
+
+  // Função que exclui a foto após o "Sim" no Popup
+  async function confirmDeleteLogo() {
+    closeModal('modalConfirmDeleteLogo');
+    
+    try {
+      showToast('A excluir logótipo...', 'info');
+
+      // 1. Encontra e apaga do Storage
+      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', EMPRESA_ID).single();
+      if (currentData && currentData.logo_url) {
+        const oldUrl = currentData.logo_url;
+        if (oldUrl.includes('/storage/v1/object/public/imagens/logos/')) {
+          const filePath = oldUrl.split('/public/imagens/')[1];
+          if (filePath) await sb.storage.from('imagens').remove([filePath]);
+        }
+      }
+
+      // 2. Atualiza a tabela do cliente para NULL
+      await sb.from('usuarios_clientes').update({ logo_url: null }).eq('id', EMPRESA_ID);
+
+      // 3. Atualiza a UI e limpa a memória (para o login ficar default também)
+      sessionStorage.setItem('microcred_logo', DEFAULT_LOGO);
+      localStorage.setItem('microcred_saved_logo', DEFAULT_LOGO);
+      document.getElementById('sidebarLogo').src = DEFAULT_LOGO;
+      document.getElementById('previewLogoPlano').src = DEFAULT_LOGO;
+      document.getElementById('uploadLogoPlano').value = '';
+
+      showToast('Logótipo excluído! Padrão restaurado.', 'success');
+    } catch (e) {
+      showToast('Erro ao excluir: ' + e.message, 'error');
+    }
+  }
+
+  // Mostra a miniatura ao selecionar
+  function previewLogo(event) {
+    const file = event.target.files[0];
+    if (file) {
+       const reader = new FileReader();
+       reader.onload = function(e) {
+          document.getElementById('previewLogoPlano').src = e.target.result;
+       }
+       reader.readAsDataURL(file);
+    }
+  }
+
+  // Envia a nova foto para o banco de dados
+  async function saveLogoPlano() {
+    const fileInput = document.getElementById('uploadLogoPlano');
+    const file = fileInput.files[0];
+    
+    if(!file) {
+      showToast('Por favor, clique no espaço tracejado e selecione uma imagem.', 'error');
+      return;
+    }
+
+    const btn = document.getElementById('btnSalvarLogoPlano');
+    const originalText = btn.innerHTML;
+    btn.textContent = 'A enviar novo logótipo...'; 
+    btn.disabled = true;
+
+    try {
+      // (Prevenção extra) Limpa o antigo se estiver a sobrescrever sem excluir antes
+      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', EMPRESA_ID).single();
+      if (currentData && currentData.logo_url && currentData.logo_url.includes('/storage/v1/object/public/imagens/logos/')) {
+        const filePath = currentData.logo_url.split('/public/imagens/')[1];
+        if (filePath) await sb.storage.from('imagens').remove([filePath]);
+      }
+
+      // Faz o upload
+      const url = await uploadFileToSupabase(file, 'logos');
+      
+      // Atualiza o DB
+      const { error: dbError } = await sb.from('usuarios_clientes').update({ logo_url: url }).eq('id', EMPRESA_ID);
+      if (dbError) throw new Error('Erro na Base de Dados: ' + dbError.message);
+      
+      // Aplica na sessão, na interface e guarda para o ecrã de Login
+      sessionStorage.setItem('microcred_logo', url);
+      localStorage.setItem('microcred_saved_logo', url); 
+      document.getElementById('sidebarLogo').src = url;
+      
+      showToast('Logótipo atualizado com sucesso!', 'success');
+      
+    } catch(e) {
+      alert("Atenção: " + e.message);
+      showToast('Falha ao guardar. Verifique o alerta.', 'error');
+    } finally {
+      btn.innerHTML = originalText; 
+      btn.disabled = false;
+    }
+  }
+
+  // =============================================
+  // UTILITIES & MASKS
+  // =============================================
+  function fmt(v) { return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
+  function fmtDate(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'; }
+  function showToast(msg, type = 'info') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast ' + type; t.textContent = msg;
+    c.appendChild(t); setTimeout(() => t.remove(), 3500);
+  }
+  function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  
+  function maskCPF(el) {
+    let v = el.value.replace(/\D/g, '').slice(0, 11);
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d)/, '$1.$2');
+    v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    el.value = v;
+  }
+
+  function maskMoney(el) {
+    let v = el.value.replace(/\D/g, '');
+    if (v === '') { el.value = ''; return; }
+    v = (parseInt(v) / 100).toFixed(2) + '';
+    v = v.replace(".", ",");
+    v = v.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
+    v = v.replace(/(\d)(\d{3}),/g, "$1.$2,");
+    el.value = v;
+  }
+
+  function unmaskMoney(val) {
+    if (!val) return 0;
+    if (typeof val === 'number') return val;
+    return parseFloat(val.toString().replace(/\./g, '').replace(',', '.')) || 0;
+  }
+
+  function toMoneyInput(num) {
+    if (!num && num !== 0) return '';
+    let v = Number(num).toFixed(2);
+    v = v.replace(".", ",");
+    v = v.replace(/(\d)(\d{3})(\d{3}),/g, "$1.$2.$3,");
+    v = v.replace(/(\d)(\d{3}),/g, "$1.$2,");
+    return v;
+  }
+
+  function statusBadge(s) {
+    const map = {
+      ativo: 'success', inativo: 'neutral', bloqueado: 'danger',
+      em_analise: 'info', aprovada: 'success', liberada: 'info',
+      em_andamento: 'warning', quitada: 'success', inadimplente: 'danger',
+      pendente: 'warning', paga: 'success', atrasada: 'danger', resolvido: 'success',
+    };
+    const label = (s || '').replace(/_/g, ' ');
+    return `<span class="badge badge-${map[s] || 'neutral'}">${label.charAt(0).toUpperCase() + label.slice(1)}</span>`;
+  }
+
+  async function uploadFileToSupabase(file, folderName) {
+    if (!file) return null;
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+    const { data, error } = await sb.storage.from('imagens').upload(fileName, file);
+    if (error) throw new Error('Erro ao enviar imagem (Storage): ' + error.message);
+    return sb.storage.from('imagens').getPublicUrl(fileName).data.publicUrl;
+  }
+
+  async function loadClienteOptions(selectId, selectedId) {
+    const { data } = await sb.from('clientes').select('id,nome').eq('empresa_id', EMPRESA_ID).order('nome');
+    document.getElementById(selectId).innerHTML = '<option value="">Selecione um cliente</option>' + (data || []).map(c =>
+      `<option value="${c.id}" ${c.id === selectedId ? 'selected' : ''}>${c.nome}</option>`
+    ).join('');
+  }
+
+  async function loadNegocioOptions(selectId, selectedId) {
+    const { data } = await sb.from('micro_negocios').select('id,nome_fantasia').eq('empresa_id', EMPRESA_ID);
+    document.getElementById(selectId).innerHTML = '<option value="">Selecione</option>' + (data || []).map(n =>
+      `<option value="${n.id}" ${n.id === selectedId ? 'selected' : ''}>${n.nome_fantasia || 'Sem nome'}</option>`
+    ).join('');
+  }
+
+  // =============================================
+  // DASHBOARD E GRÁFICOS ISOLADOS
+  // =============================================
+  async function loadDashboard() {
+    const [cRes, oRes, pRes, iRes] = await Promise.all([
+      sb.from('clientes').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
+      sb.from('operacoes').select('*').eq('empresa_id', EMPRESA_ID),
+      sb.from('parcelas').select('*').eq('empresa_id', EMPRESA_ID).in('status', ['pendente','atrasada','paga']),
+      sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID).eq('status', 'atrasada'),
+    ]);
+    const totalClientes = cRes.count || 0;
+    const ops = oRes.data || [];
+    const parcelasAll = pRes.data || [];
+    
+    const ativas = ops.filter(o => ['liberada', 'em_andamento'].includes(o.status));
+    const totalCarteira = ativas.reduce((s, o) => s + Number(o.valor_aprovado || o.valor_solicitado || 0), 0);
+    const totalAtrasadas = iRes.count || 0;
+    
+    document.getElementById('dashStats').innerHTML = `
+      <div class="stat-card accent"><div class="label">Total Clientes</div><div class="value">${totalClientes}</div></div>
+      <div class="stat-card info"><div class="label">Operações Ativas</div><div class="value">${ativas.length}</div></div>
+      <div class="stat-card success"><div class="label">Carteira Ativa</div><div class="value">${fmt(totalCarteira)}</div></div>
+      <div class="stat-card danger"><div class="label">Parcelas Atrasadas</div><div class="value">${totalAtrasadas}</div></div>
+    `;
+
+    const ctxStatus = document.getElementById('dashChartStatus').getContext('2d');
+    if (chartStatusInstance) chartStatusInstance.destroy();
+    chartStatusInstance = new Chart(ctxStatus, {
+       type: 'doughnut',
+       data: {
+          labels: ['Em Análise', 'Aprovada', 'Liberada', 'Em Andamento', 'Quitada', 'Inadimplente'],
+          datasets: [{
+             data: [
+                ops.filter(o=>o.status==='em_analise').length,
+                ops.filter(o=>o.status==='aprovada').length,
+                ops.filter(o=>o.status==='liberada').length,
+                ops.filter(o=>o.status==='em_andamento').length,
+                ops.filter(o=>o.status==='quitada').length,
+                ops.filter(o=>o.status==='inadimplente').length,
+             ],
+             backgroundColor: ['#0ea5e9', '#16a34a', '#0891b2', '#f59e0b', '#059669', '#dc2626']
+          }]
+       },
+       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+    });
+
+    const valRecebido = parcelasAll.filter(p=>p.status==='paga').reduce((s,p)=>s+Number(p.valor_pago||0),0);
+    const valAtrasado = parcelasAll.filter(p=>p.status==='atrasada').reduce((s,p)=>s+Number(p.valor_total||0),0);
+
+    const ctxFin = document.getElementById('dashChartFin').getContext('2d');
+    if (chartFinInstance) chartFinInstance.destroy();
+    chartFinInstance = new Chart(ctxFin, {
+       type: 'bar',
+       data: {
+          labels: ['Carteira Ativa', 'Total Recebido', 'Em Atraso'],
+          datasets: [{
+             label: 'Valores em R$',
+             data: [totalCarteira, valRecebido, valAtrasado],
+             backgroundColor: ['#f59e0b', '#16a34a', '#dc2626']
+          }]
+       },
+       options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+    });
+
+    const lastOps = ops.slice(-8).reverse();
+    const opIds = lastOps.map(o => o.cliente_id);
+    const { data: clienteNames } = await sb.from('clientes').select('id,nome').eq('empresa_id', EMPRESA_ID).in('id', opIds);
+    const nameMap = {};
+    (clienteNames || []).forEach(c => nameMap[c.id] = c.nome);
+    document.getElementById('dashOperacoes').innerHTML = lastOps.map(o => `
+      <tr><td>${o.numero_contrato || '-'}</td><td>${nameMap[o.cliente_id] || '-'}</td><td>${fmt(o.valor_aprovado || o.valor_solicitado)}</td><td>${o.num_parcelas}x</td><td>${statusBadge(o.status)}</td><td>${fmtDate(o.data_contratacao)}</td></tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma operação registrada</td></tr>';
+  }
+
+  // =============================================
+  // CLIENTES ISOLADOS
+  // =============================================
+  async function loadClientes() {
+    const search = (document.getElementById('searchClientes')?.value || '').trim();
+    let q = sb.from('clientes').select('*').eq('empresa_id', EMPRESA_ID).order('nome');
+    if (search) q = q.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
+    const { data } = await q;
+    
+    document.getElementById('tblClientes').innerHTML = (data||[]).map(c => `
+      <tr>
+        <td><strong>${c.nome}</strong></td><td>${c.cpf}</td><td>${c.celular || '-'}</td><td>${c.cidade || '-'}/${c.uf || '-'}</td><td>${statusBadge(c.status)}</td>
+        <td><div class="btn-group">
+          <button class="btn btn-info btn-sm" onclick="viewCliente('${c.id}')">Ver Detalhes</button>
+          <button class="btn btn-outline btn-sm" onclick="printCliente('${c.id}')">Imprimir</button>
+          <button class="btn btn-outline btn-sm" onclick="editCliente('${c.id}')">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCliente('${c.id}')">Excluir</button>
+        </div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma cliente encontrado</td></tr>';
+  }
+
+  async function viewCliente(id) {
+     const { data: c } = await sb.from('clientes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+     if(!c) return;
+
+     document.getElementById('viewNome').textContent = c.nome;
+     
+     let docsHtml = '';
+     if(c.doc_frente) docsHtml += `<div style="margin-top:10px;"><p style="font-size:12px;color:var(--text-light)">Doc Frente:</p><img src="${c.doc_frente}" style="max-width:100%; border-radius:6px; margin-top:5px; border:1px solid #ccc; max-height:200px;" /></div>`;
+     if(c.doc_verso) docsHtml += `<div style="margin-top:10px;"><p style="font-size:12px;color:var(--text-light)">Doc Verso:</p><img src="${c.doc_verso}" style="max-width:100%; border-radius:6px; margin-top:5px; border:1px solid #ccc; max-height:200px;" /></div>`;
+
+     const html = `
+        <div class="detail-item"><div class="detail-label">CPF</div><div class="detail-value">${c.cpf}</div></div>
+        <div class="detail-item"><div class="detail-label">RG</div><div class="detail-value">${c.rg || '-'}</div></div>
+        <div class="detail-item"><div class="detail-label">Nascimento</div><div class="detail-value">${fmtDate(c.data_nascimento)}</div></div>
+        <div class="detail-item"><div class="detail-label">Telefone / Celular</div><div class="detail-value">${c.celular || c.telefone || '-'}</div></div>
+        <div class="detail-item"><div class="detail-label">Endereço</div><div class="detail-value">${c.endereco || '-'}, ${c.numero || '-'} - ${c.cidade || '-'}/${c.uf || '-'}</div></div>
+        <div class="detail-item"><div class="detail-label">E-mail</div><div class="detail-value">${c.email || '-'}</div></div>
+        <div class="detail-item"><div class="detail-label">Renda Mensal</div><div class="detail-value" style="color:var(--success)">${fmt(c.renda_mensal)}</div></div>
+        <div class="detail-item"><div class="detail-label">Despesa Mensal</div><div class="detail-value" style="color:var(--danger)">${fmt(c.despesa_mensal)}</div></div>
+        <div class="detail-item" style="grid-column: 1 / -1;"><div class="detail-label">Observações</div><div class="detail-value">${c.observacoes || '-'}</div></div>
+        <div style="grid-column: 1 / -1; display:flex; gap:10px;">${docsHtml}</div>
+     `;
+     document.getElementById('viewClienteBody').innerHTML = html;
+     
+     document.getElementById('btnViewPrint').setAttribute('onclick', "printCliente('" + id + "')");
+     
+     openModal('modalViewCliente');
+  }
+
+  async function printCliente(id) {
+    const { data: c } = await sb.from('clientes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+    if (!c) { showToast('Cliente não encontrado', 'error'); return; }
+    
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Ficha do Cliente - ${c.nome}</title>
+          <style>
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #1c1917; line-height: 1.6; }
+            h1 { border-bottom: 2px solid #ea580c; color: #ea580c; padding-bottom: 10px; margin-bottom: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th { text-align: left; padding: 12px; background: #faf7f5; border-bottom: 1px solid #e7e5e4; width: 30%; }
+            td { padding: 12px; border-bottom: 1px solid #e7e5e4; }
+            .doc-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; display: block; }
+          </style>
+        </head>
+        <body>
+          <h1>Ficha de Cadastro: ${c.nome}</h1>
+          <table>
+            <tr><th>CPF</th><td>${c.cpf}</td></tr>
+            <tr><th>RG</th><td>${c.rg || '-'}</td></tr>
+            <tr><th>Data Nasc.</th><td>${fmtDate(c.data_nascimento)}</td></tr>
+            <tr><th>Estado Civil</th><td>${c.estado_civil || '-'}</td></tr>
+            <tr><th>Escolaridade</th><td>${c.escolaridade || '-'}</td></tr>
+            <tr><th>Telefone</th><td>${c.telefone || '-'}</td></tr>
+            <tr><th>Celular</th><td>${c.celular || '-'}</td></tr>
+            <tr><th>E-mail</th><td>${c.email || '-'}</td></tr>
+            <tr><th>Endereço Completo</th><td>${c.endereco || '-'}, ${c.numero || '-'} ${c.complemento ? ' - ' + c.complemento : ''}<br>${c.bairro || '-'} - ${c.cidade || '-'}/${c.uf || '-'} (CEP: ${c.cep || '-'})</td></tr>
+            <tr><th>Renda Mensal</th><td>${fmt(c.renda_mensal)}</td></tr>
+            <tr><th>Despesa Mensal</th><td>${fmt(c.despesa_mensal)}</td></tr>
+            <tr><th>Observações</th><td>${c.observacoes || '-'}</td></tr>
+          </table>
+          ${c.doc_frente ? `<h3>Documento (Frente)</h3><img src="${c.doc_frente}" class="doc-img"/>` : ''}
+          ${c.doc_verso ? `<h3>Documento (Verso)</h3><img src="${c.doc_verso}" class="doc-img"/>` : ''}
+          <script>setTimeout(() => { window.print(); window.close(); }, 1500);<\/script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
+  function openClienteModal(c) {
+    document.getElementById('modalClienteTitle').textContent = c ? 'Editar Cliente' : 'Novo Cliente';
+    document.getElementById('clienteId').value = c ? c.id : '';
+    document.getElementById('cDocFrente').value = '';
+    document.getElementById('cDocVerso').value = '';
+    document.getElementById('cDocFrenteUrl').value = c?.doc_frente || '';
+    document.getElementById('cDocVersoUrl').value = c?.doc_verso || '';
+
+    document.getElementById('cNome').value = c?.nome || '';
+    document.getElementById('cCpf').value = c?.cpf || '';
+    document.getElementById('cRg').value = c?.rg || '';
+    document.getElementById('cNasc').value = c?.data_nascimento || '';
+    document.getElementById('cSexo').value = c?.sexo || '';
+    document.getElementById('cEstCivil').value = c?.estado_civil || '';
+    document.getElementById('cEscol').value = c?.escolaridade || '';
+    document.getElementById('cTel').value = c?.telefone || '';
+    document.getElementById('cCel').value = c?.celular || '';
+    document.getElementById('cEmail').value = c?.email || '';
+    document.getElementById('cCep').value = c?.cep || '';
+    document.getElementById('cEnd').value = c?.endereco || '';
+    document.getElementById('cNum').value = c?.numero || '';
+    document.getElementById('cComp').value = c?.complemento || '';
+    document.getElementById('cBairro').value = c?.bairro || '';
+    document.getElementById('cCidade').value = c?.cidade || '';
+    document.getElementById('cUf').value = c?.uf || '';
+    
+    document.getElementById('cRenda').value = toMoneyInput(c?.renda_mensal);
+    document.getElementById('cDespesa').value = toMoneyInput(c?.despesa_mensal);
+    
+    document.getElementById('cStatus').value = c?.status || 'ativo';
+    document.getElementById('cObs').value = c?.observacoes || '';
+    openModal('modalCliente');
+  }
+
+  async function editCliente(id) {
+    const { data } = await sb.from('clientes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+    if (data) openClienteModal(data);
+  }
+
+  async function saveCliente() {
+    const id = document.getElementById('clienteId').value;
+    const btnSave = document.getElementById('btnSaveCliente');
+    
+    if (!document.getElementById('cNome').value || !document.getElementById('cCpf').value) {
+      showToast('Nome e CPF obrigatórios', 'error'); return;
+    }
+
+    btnSave.textContent = 'Salvando...'; btnSave.disabled = true;
+
+    try {
+      let urlFrente = document.getElementById('cDocFrenteUrl').value;
+      let urlVerso = document.getElementById('cDocVersoUrl').value;
+      const fileFrente = document.getElementById('cDocFrente').files[0];
+      if (fileFrente) urlFrente = await uploadFileToSupabase(fileFrente, 'clientes');
+      const fileVerso = document.getElementById('cDocVerso').files[0];
+      if (fileVerso) urlVerso = await uploadFileToSupabase(fileVerso, 'clientes');
+
+      const obj = {
+        empresa_id: EMPRESA_ID,
+        nome: document.getElementById('cNome').value,
+        cpf: document.getElementById('cCpf').value,
+        rg: document.getElementById('cRg').value,
+        data_nascimento: document.getElementById('cNasc').value || null,
+        sexo: document.getElementById('cSexo').value,
+        estado_civil: document.getElementById('cEstCivil').value,
+        escolaridade: document.getElementById('cEscol').value,
+        telefone: document.getElementById('cTel').value,
+        celular: document.getElementById('cCel').value,
+        email: document.getElementById('cEmail').value,
+        cep: document.getElementById('cCep').value,
+        endereco: document.getElementById('cEnd').value,
+        numero: document.getElementById('cNum').value,
+        complemento: document.getElementById('cComp').value,
+        bairro: document.getElementById('cBairro').value,
+        cidade: document.getElementById('cCidade').value,
+        uf: document.getElementById('cUf').value,
+        renda_mensal: unmaskMoney(document.getElementById('cRenda').value),
+        despesa_mensal: unmaskMoney(document.getElementById('cDespesa').value),
+        status: document.getElementById('cStatus').value,
+        observacoes: document.getElementById('cObs').value,
+        doc_frente: urlFrente,
+        doc_verso: urlVerso,
+      };
+
+      const { error } = id ? await sb.from('clientes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : await sb.from('clientes').insert(obj);
+      if (error) throw error;
+      
+      showToast(id ? 'Atualizado!' : 'Cadastrado!', 'success');
+      closeModal('modalCliente'); loadClientes();
+    } catch (e) { showToast('Erro: ' + e.message, 'error'); } 
+    finally { btnSave.textContent = 'Salvar'; btnSave.disabled = false; }
+  }
+
+  async function deleteCliente(id) {
+    if (!confirm('Deseja realmente excluir este cliente?')) return;
+    await sb.from('clientes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadClientes();
+  }
+
+  // =============================================
+  // AVALISTAS ISOLADOS
+  // =============================================
+  async function loadAvalistas() {
+    const search = (document.getElementById('searchAvalistas')?.value || '').trim();
+    let q = sb.from('avalistas').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('nome');
+    if (search) q = q.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
+    const { data } = await q;
+    document.getElementById('tblAvalistas').innerHTML = (data || []).map(a => `
+      <tr>
+        <td>
+          <div style="display:flex; align-items:center; gap:10px;">
+            ${a.foto_perfil ? `<img src="${a.foto_perfil}" style="width:28px; height:28px; border-radius:50%; object-fit:cover;" />` : ''}
+            <strong>${a.nome}</strong>
+          </div>
+        </td>
+        <td>${a.cpf}</td><td>${a.cliente?.nome || '-'}</td><td>${a.celular || a.telefone || '-'}</td><td>${a.parentesco || '-'}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvalista('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvalista('${a.id}')">Excluir</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum avalista</td></tr>';
+  }
+
+  async function openAvalistaModal(a) {
+    document.getElementById('modalAvalistaTitle').textContent = a ? 'Editar Avalista' : 'Novo Avalista';
+    await loadClienteOptions('aCliente', a?.cliente_id);
+    document.getElementById('avalistaId').value = a?.id || '';
+    document.getElementById('aFoto').value = '';
+    document.getElementById('aFotoUrl').value = a?.foto_perfil || ''; 
+    document.getElementById('aNome').value = a?.nome || '';
+    document.getElementById('aCpf').value = a?.cpf || '';
+    document.getElementById('aRg').value = a?.rg || '';
+    document.getElementById('aTel').value = a?.telefone || '';
+    document.getElementById('aCel').value = a?.celular || '';
+    document.getElementById('aEmail').value = a?.email || '';
+    document.getElementById('aEnd').value = a?.endereco || '';
+    document.getElementById('aNum').value = a?.numero || '';
+    document.getElementById('aBairro').value = a?.bairro || '';
+    document.getElementById('aCidade').value = a?.cidade || '';
+    document.getElementById('aUf').value = a?.uf || '';
+    document.getElementById('aCep').value = a?.cep || '';
+    document.getElementById('aRenda').value = toMoneyInput(a?.renda_mensal);
+    document.getElementById('aParent').value = a?.parentesco || '';
+    document.getElementById('aObs').value = a?.observacoes || '';
+    openModal('modalAvalista');
+  }
+
+  async function editAvalista(id) {
+    const { data } = await sb.from('avalistas').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+    if (data) openAvalistaModal(data);
+  }
+
+  async function saveAvalista() {
+    const id = document.getElementById('avalistaId').value;
+    const btnSave = document.getElementById('btnSaveAvalista');
+    if (!document.getElementById('aNome').value) return showToast('Nome obrigatório', 'error');
+
+    btnSave.textContent = 'Salvando...'; btnSave.disabled = true;
+    try {
+      let fotoUrl = document.getElementById('aFotoUrl').value;
+      const fileFoto = document.getElementById('aFoto').files[0];
+      if (fileFoto) fotoUrl = await uploadFileToSupabase(fileFoto, 'avalistas');
+
+      const obj = {
+        empresa_id: EMPRESA_ID,
+        cliente_id: document.getElementById('aCliente').value || null,
+        nome: document.getElementById('aNome').value,
+        cpf: document.getElementById('aCpf').value,
+        rg: document.getElementById('aRg').value,
+        telefone: document.getElementById('aTel').value,
+        celular: document.getElementById('aCel').value,
+        email: document.getElementById('aEmail').value,
+        endereco: document.getElementById('aEnd').value,
+        numero: document.getElementById('aNum').value,
+        bairro: document.getElementById('aBairro').value,
+        cidade: document.getElementById('aCidade').value,
+        uf: document.getElementById('aUf').value,
+        cep: document.getElementById('aCep').value,
+        renda_mensal: unmaskMoney(document.getElementById('aRenda').value),
+        parentesco: document.getElementById('aParent').value,
+        observacoes: document.getElementById('aObs').value,
+        foto_perfil: fotoUrl,
+      };
+
+      await (id ? sb.from('avalistas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avalistas').insert(obj));
+      closeModal('modalAvalista'); loadAvalistas();
+    } catch (e) { showToast('Erro', 'error'); } finally { btnSave.textContent = 'Salvar'; btnSave.disabled = false; }
+  }
+
+  async function deleteAvalista(id) {
+    if (!confirm('Excluir?')) return;
+    await sb.from('avalistas').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadAvalistas();
+  }
+
+  // =============================================
+  // MICRO NEGOCIOS ISOLADOS
+  // =============================================
+  async function loadNegocios() {
+    const search = (document.getElementById('searchNegocios')?.value || '').trim();
+    let q = sb.from('micro_negocios').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('nome_fantasia');
+    if (search) q = q.ilike('nome_fantasia', `%${search}%`);
+    const { data } = await q;
+    document.getElementById('tblNegocios').innerHTML = (data || []).map(n => `
+      <tr>
+        <td><strong>${n.nome_fantasia || '-'}</strong></td><td>${n.cliente?.nome || '-'}</td><td>${n.atividade || '-'}</td><td>${fmt(n.faturamento_mensal)}</td><td>${fmt(n.lucro_mensal)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editNegocio('${n.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteNegocio('${n.id}')">Excluir</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum negócio</td></tr>';
+  }
+
+  function calcTempoAtividade() {
+    const inputData = document.getElementById('nDataInicio').value;
+    const calcOutput = document.getElementById('nTempoCalculado');
+    if (!inputData) { calcOutput.value = ''; return; }
+    const dataInicio = new Date(inputData), hoje = new Date();
+    if (dataInicio > hoje) { calcOutput.value = 'Data no futuro'; return; }
+    let anos = hoje.getFullYear() - dataInicio.getFullYear();
+    let meses = hoje.getMonth() - dataInicio.getMonth();
+    let dias = hoje.getDate() - dataInicio.getDate();
+    if (dias < 0) { meses--; const ultimoMes = new Date(hoje.getFullYear(), hoje.getMonth(), 0); dias += ultimoMes.getDate(); }
+    if (meses < 0) { anos--; meses += 12; }
+    const partes = [];
+    if (anos > 0) partes.push(`${anos} ano${anos > 1 ? 's' : ''}`);
+    if (meses > 0) partes.push(`${meses} mês${meses > 1 ? 'es' : ''}`);
+    if (dias > 0) partes.push(`${dias} dia${dias > 1 ? 's' : ''}`);
+    calcOutput.value = partes.length > 0 ? partes.join(', ') : 'Menos de 1 dia';
+  }
+
+  async function openNegocioModal(n) {
+    document.getElementById('modalNegocioTitle').textContent = n ? 'Editar Negócio' : 'Novo Micro Negócio';
+    await loadClienteOptions('nCliente', n?.cliente_id);
+    document.getElementById('negocioId').value = n?.id || '';
+    document.getElementById('nNome').value = n?.nome_fantasia || '';
+    document.getElementById('nCpf').value = n?.cpf || ''; 
+    document.getElementById('nAtiv').value = n?.atividade || '';
+    document.getElementById('nSetor').value = n?.setor || '';
+    document.getElementById('nDataInicio').value = n?.data_inicio || '';
+    calcTempoAtividade();
+    document.getElementById('nEnd').value = n?.endereco_comercial || '';
+    document.getElementById('nNum').value = n?.numero || '';
+    document.getElementById('nBairro').value = n?.bairro || '';
+    document.getElementById('nCidade').value = n?.cidade || '';
+    document.getElementById('nUf').value = n?.uf || '';
+    document.getElementById('nCep').value = n?.cep || '';
+    document.getElementById('nFat').value = toMoneyInput(n?.faturamento_mensal);
+    document.getElementById('nCusto').value = toMoneyInput(n?.custo_mensal);
+    document.getElementById('nLucro').value = toMoneyInput(n?.lucro_mensal);
+    document.getElementById('nFunc').value = n?.num_funcionarios || '';
+    document.getElementById('nTipoLocal').value = n?.tipo_local || '';
+    document.getElementById('nObs').value = n?.observacoes || '';
+    openModal('modalNegocio');
+  }
+
+  async function editNegocio(id) {
+    const { data } = await sb.from('micro_negocios').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+    if (data) openNegocioModal(data);
+  }
+
+  async function saveNegocio() {
+    const id = document.getElementById('negocioId').value;
+    const obj = {
+      empresa_id: EMPRESA_ID,
+      cliente_id: document.getElementById('nCliente').value || null,
+      nome_fantasia: document.getElementById('nNome').value,
+      cpf: document.getElementById('nCpf').value, 
+      atividade: document.getElementById('nAtiv').value,
+      setor: document.getElementById('nSetor').value,
+      data_inicio: document.getElementById('nDataInicio').value || null, 
+      endereco_comercial: document.getElementById('nEnd').value,
+      numero: document.getElementById('nNum').value,
+      bairro: document.getElementById('nBairro').value,
+      cidade: document.getElementById('nCidade').value,
+      uf: document.getElementById('nUf').value,
+      cep: document.getElementById('nCep').value,
+      faturamento_mensal: unmaskMoney(document.getElementById('nFat').value),
+      custo_mensal: unmaskMoney(document.getElementById('nCusto').value),
+      lucro_mensal: unmaskMoney(document.getElementById('nLucro').value),
+      num_funcionarios: parseInt(document.getElementById('nFunc').value) || 0,
+      tipo_local: document.getElementById('nTipoLocal').value,
+      observacoes: document.getElementById('nObs').value,
+    };
+    await (id ? sb.from('micro_negocios').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('micro_negocios').insert(obj));
+    closeModal('modalNegocio'); loadNegocios();
+  }
+
+  async function deleteNegocio(id) {
+    if (!confirm('Excluir?')) return;
+    await sb.from('micro_negocios').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadNegocios();
+  }
+
+  // =============================================
+  // AVALIACAO FINANCEIRA ISOLADA
+  // =============================================
+  async function loadAvaliacoes() {
+    const { data } = await sb.from('avaliacao_financeira').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false });
+    document.getElementById('tblAvaliacao').innerHTML = (data || []).map(a => `
+      <tr>
+        <td>${a.cliente?.nome || '-'}</td><td>${fmt(a.renda_familiar)}</td><td>${fmt(a.capacidade_pagamento)}</td>
+        <td>${a.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td>
+        <td>${fmtDate(a.data_avaliacao)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvaliacao('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvaliacao('${a.id}')">Excluir</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma avaliação</td></tr>';
+  }
+
+  async function openAvaliacaoModal(a) {
+    document.getElementById('modalAvaliacaoTitle').textContent = a ? 'Editar Avaliação' : 'Nova Avaliação';
+    await loadClienteOptions('avCliente', a?.cliente_id);
+    document.getElementById('avaliacaoId').value = a?.id || '';
+    document.getElementById('avRendaFam').value = toMoneyInput(a?.renda_familiar);
+    document.getElementById('avOutrasRendas').value = toMoneyInput(a?.outras_rendas);
+    document.getElementById('avDespFixas').value = toMoneyInput(a?.despesas_fixas);
+    document.getElementById('avDespVar').value = toMoneyInput(a?.despesas_variaveis);
+    document.getElementById('avPrestacoes').value = toMoneyInput(a?.prestacoes_existentes);
+    document.getElementById('avPatrimonio').value = toMoneyInput(a?.patrimonio_estimado);
+    document.getElementById('avDividas').value = toMoneyInput(a?.dividas_existentes);
+    document.getElementById('avCapacidade').value = toMoneyInput(a?.capacidade_pagamento);
+    document.getElementById('avAvaliador').value = a?.avaliador || '';
+    document.getElementById('avAprovado').value = a?.aprovado ? 'true' : 'false';
+    document.getElementById('avParecer').value = a?.parecer || '';
+    openModal('modalAvaliacao');
+  }
+
+  async function editAvaliacao(id) {
+    const { data } = await sb.from('avaliacao_financeira').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+    if (data) openAvaliacaoModal(data);
+  }
+
+  async function saveAvaliacao() {
+    const obj = {
+      empresa_id: EMPRESA_ID,
+      cliente_id: document.getElementById('avCliente').value || null,
+      renda_familiar: unmaskMoney(document.getElementById('avRendaFam').value),
+      outras_rendas: unmaskMoney(document.getElementById('avOutrasRendas').value),
+      despesas_fixas: unmaskMoney(document.getElementById('avDespFixas').value),
+      despesas_variaveis: unmaskMoney(document.getElementById('avDespVar').value),
+      prestacoes_existentes: unmaskMoney(document.getElementById('avPrestacoes').value),
+      patrimonio_estimado: unmaskMoney(document.getElementById('avPatrimonio').value),
+      dividas_existentes: unmaskMoney(document.getElementById('avDividas').value),
+      capacidade_pagamento: unmaskMoney(document.getElementById('avCapacidade').value),
+      avaliador: document.getElementById('avAvaliador').value,
+      aprovado: document.getElementById('avAprovado').value === 'true',
+      parecer: document.getElementById('avParecer').value,
+    };
+    const id = document.getElementById('avaliacaoId').value;
+    await (id ? sb.from('avaliacao_financeira').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avaliacao_financeira').insert(obj));
+    closeModal('modalAvaliacao'); loadAvaliacoes();
+  }
+
+  async function deleteAvaliacao(id) {
+    if (!confirm('Excluir?')) return;
+    await sb.from('avaliacao_financeira').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadAvaliacoes();
+  }
+
+  // =============================================
+  // FLUXO DE CAIXA ISOLADO
+  // =============================================
+  async function loadFluxos() {
+    const { data } = await sb.from('fluxo_caixa').select('*,negocio:micro_negocios(nome_fantasia)').eq('empresa_id', EMPRESA_ID).order('mes_referencia', { ascending: false });
+    document.getElementById('tblFluxo').innerHTML = (data || []).map(f => `
+      <tr>
+        <td>${f.negocio?.nome_fantasia || '-'}</td><td>${f.mes_referencia}</td><td>${fmt(f.total_receitas)}</td><td>${fmt(f.total_despesas)}</td>
+        <td style="font-weight:700;color:${f.saldo >= 0 ? 'var(--success)' : 'var(--danger)'}">${fmt(f.saldo)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editFluxo('${f.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteFluxo('${f.id}')">Excluir</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum fluxo</td></tr>';
+  }
+
+  async function openFluxoModal(f) {
+    document.getElementById('modalFluxoTitle').textContent = f ? 'Editar Fluxo' : 'Novo Fluxo de Caixa';
+    await loadNegocioOptions('fNegocio', f?.micro_negocio_id);
+    document.getElementById('fluxoId').value = f?.id || '';
+    document.getElementById('fMes').value = f?.mes_referencia || '';
+    document.getElementById('fRecVendas').value = toMoneyInput(f?.receita_vendas);
+    document.getElementById('fRecServ').value = toMoneyInput(f?.receita_servicos);
+    document.getElementById('fOutrasRec').value = toMoneyInput(f?.outras_receitas);
+    document.getElementById('fCustoMerc').value = toMoneyInput(f?.custo_mercadorias);
+    document.getElementById('fCustoMat').value = toMoneyInput(f?.custo_materiais);
+    document.getElementById('fAluguel').value = toMoneyInput(f?.despesa_aluguel);
+    document.getElementById('fSalarios').value = toMoneyInput(f?.despesa_salarios);
+    document.getElementById('fEnergia').value = toMoneyInput(f?.despesa_energia);
+    document.getElementById('fAgua').value = toMoneyInput(f?.despesa_agua);
+    document.getElementById('fTelefone').value = toMoneyInput(f?.despesa_telefone);
+    document.getElementById('fTransporte').value = toMoneyInput(f?.despesa_transporte);
+    document.getElementById('fOutrasDesp').value = toMoneyInput(f?.outras_despesas);
+    openModal('modalFluxo');
+  }
+
+  async function editFluxo(id) {
+    const { data } = await sb.from('fluxo_caixa').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+    if (data) openFluxoModal(data);
+  }
+
+  async function saveFluxo() {
+    const rv = unmaskMoney(document.getElementById('fRecVendas').value);
+    const rs = unmaskMoney(document.getElementById('fRecServ').value);
+    const ro = unmaskMoney(document.getElementById('fOutrasRec').value);
+    const cm = unmaskMoney(document.getElementById('fCustoMerc').value);
+    const cmat = unmaskMoney(document.getElementById('fCustoMat').value);
+    const da = unmaskMoney(document.getElementById('fAluguel').value);
+    const ds = unmaskMoney(document.getElementById('fSalarios').value);
+    const de = unmaskMoney(document.getElementById('fEnergia').value);
+    const dag = unmaskMoney(document.getElementById('fAgua').value);
+    const dt = unmaskMoney(document.getElementById('fTelefone').value);
+    const dtr = unmaskMoney(document.getElementById('fTransporte').value);
+    const dout = unmaskMoney(document.getElementById('fOutrasDesp').value);
+    
+    const totalR = rv + rs + ro;
+    const totalD = cm + cmat + da + ds + de + dag + dt + dtr + dout;
+    
+    const obj = {
+      empresa_id: EMPRESA_ID,
+      micro_negocio_id: document.getElementById('fNegocio').value || null,
+      mes_referencia: document.getElementById('fMes').value,
+      receita_vendas: rv, receita_servicos: rs, outras_receitas: ro,
+      custo_mercadorias: cm, custo_materiais: cmat,
+      despesa_aluguel: da, despesa_salarios: ds, despesa_energia: de,
+      despesa_agua: dag, despesa_telefone: dt, despesa_transporte: dtr,
+      outras_despesas: dout,
+      total_receitas: totalR, total_despesas: totalD, saldo: totalR - totalD,
+    };
+    const id = document.getElementById('fluxoId').value;
+    await (id ? sb.from('fluxo_caixa').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('fluxo_caixa').insert(obj));
+    closeModal('modalFluxo'); loadFluxos();
+  }
+
+  async function deleteFluxo(id) {
+    if (!confirm('Excluir?')) return;
+    await sb.from('fluxo_caixa').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadFluxos();
+  }
+
+  // =============================================
+  // OPERACOES ISOLADAS
+  // =============================================
+  async function loadOperacoes() {
+    const searchStr = (document.getElementById('searchOperacoes')?.value || '').trim().toLowerCase();
+    const status = document.getElementById('filterStatusOp')?.value;
+    const dateFilter = document.getElementById('filterOpDate')?.value;
+
+    let q = sb.from('operacoes').select('*,cliente:clientes(nome,cpf)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false });
+    if (status) q = q.eq('status', status);
+    if (dateFilter) q = q.eq('data_contratacao', dateFilter);
+    
+    let { data } = await q;
+
+    if (searchStr) {
+       data = (data || []).filter(o => 
+          (o.numero_contrato && o.numero_contrato.toLowerCase().includes(searchStr)) ||
+          (o.cliente?.nome && o.cliente.nome.toLowerCase().includes(searchStr)) ||
+          (o.cliente?.cpf && o.cliente.cpf.includes(searchStr))
+       );
+    }
+
+    document.getElementById('tblOperacoes').innerHTML = (data || []).map(o => `
+      <tr>
+        <td><strong>${o.numero_contrato || '-'}</strong></td><td>${o.cliente?.nome || '-'}</td><td>${fmt(o.valor_aprovado || o.valor_solicitado)}</td><td>${o.taxa_juros}%</td><td>${o.num_parcelas}x</td><td>${statusBadge(o.status)}</td><td>${fmtDate(o.data_contratacao)}</td>
+        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editOperacao('${o.id}')">Editar</button><button class="btn btn-success btn-sm" onclick="gerarParcelas('${o.id}')">Parcelas</button><button class="btn btn-danger btn-sm" onclick="deleteOperacao('${o.id}')">Excluir</button></div></td>
+      </tr>
+    `).join('') || '<tr><td colspan="8" class="empty-state">Nenhuma operação encontrada</td></tr>';
+  }
+
+  async function openOperacaoModal(o) {
+    document.getElementById('modalOperacaoTitle').textContent = o ? 'Editar Operação' : 'Nova Operação';
+    await loadClienteOptions('opCliente', o?.cliente_id);
+    document.getElementById('operacaoId').value = o?.id || '';
+    document.getElementById('opContrato').value = o?.numero_contrato || '';
+    document.getElementById('opValorSolic').value = toMoneyInput(o?.valor_solicitado);
+    document.getElementById('opValorAprov').value = toMoneyInput(o?.valor_aprovado);
+    document.getElementById('opTaxa').value = o?.taxa_juros ?? 2.5;
+    document.getElementById('opNumParc').value = o?.num_parcelas || 12;
+    document.getElementById('opDataContr').value = o?.data_contratacao || new Date().toISOString().slice(0,10);
+    document.getElementById('opDataVenc').value = o?.data_primeiro_vencimento || '';
+    document.getElementById('opFinalidade').value = o?.finalidade || '';
+    document.getElementById('opGarantia').value = o?.garantia || '';
+    document.getElementById('opStatus').value = o?.status || 'em_analise';
+    document.getElementById('opObs').value = o?.observacoes || '';
+    document.getElementById('btnSaveOpParcelas').style.display = o ? 'none' : 'inline-flex';
+    if (o?.cliente_id) await loadClienteAvalistas();
+    openModal('modalOperacao');
+  }
+
+  async function loadClienteAvalistas() {
+    const cid = document.getElementById('opCliente').value;
+    if (!cid) return;
+    const [aRes, nRes] = await Promise.all([
+      sb.from('avalistas').select('id,nome').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID),
+      sb.from('micro_negocios').select('id,nome_fantasia').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID),
+    ]);
+    document.getElementById('opAvalista').innerHTML = '<option value="">Nenhum</option>' + (aRes.data || []).map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
+    document.getElementById('opNegocio').innerHTML = '<option value="">Nenhum</option>' + (nRes.data || []).map(n => `<option value="${n.id}">${n.nome_fantasia}</option>`).join('');
+  }
+
+  async function saveOperacao() {
+    const id = document.getElementById('operacaoId').value;
+    const vAprov = unmaskMoney(document.getElementById('opValorAprov').value);
+    const vSolic = unmaskMoney(document.getElementById('opValorSolic').value);
+    const valor = vAprov || vSolic || 0;
+    const taxa = parseFloat(document.getElementById('opTaxa').value) || 0;
+    const nparc = parseInt(document.getElementById('opNumParc').value) || 1;
+    const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc;
+    
+    const obj = {
+      empresa_id: EMPRESA_ID,
+      numero_contrato: document.getElementById('opContrato').value,
+      cliente_id: document.getElementById('opCliente').value || null,
+      avalista_id: document.getElementById('opAvalista').value || null,
+      micro_negocio_id: document.getElementById('opNegocio').value || null,
+      valor_solicitado: vSolic, valor_aprovado: vAprov,
+      taxa_juros: taxa, num_parcelas: nparc,
+      valor_parcela: Math.round(pmt * 100) / 100,
+      data_contratacao: document.getElementById('opDataContr').value || null,
+      data_primeiro_vencimento: document.getElementById('opDataVenc').value || null,
+      finalidade: document.getElementById('opFinalidade').value,
+      garantia: document.getElementById('opGarantia').value,
+      status: document.getElementById('opStatus').value,
+      observacoes: document.getElementById('opObs').value,
+    };
+    await (id ? sb.from('operacoes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('operacoes').insert(obj));
+    closeModal('modalOperacao'); loadOperacoes();
+  }
+
+  async function saveOperacaoAndGenerateParcelas() {
+    const vAprov = unmaskMoney(document.getElementById('opValorAprov').value);
+    const vSolic = unmaskMoney(document.getElementById('opValorSolic').value);
+    const valor = vAprov || vSolic || 0;
+    const taxa = parseFloat(document.getElementById('opTaxa').value) || 0;
+    const nparc = parseInt(document.getElementById('opNumParc').value) || 1;
+    const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc;
+    
+    const obj = {
+      empresa_id: EMPRESA_ID,
+      numero_contrato: document.getElementById('opContrato').value,
+      cliente_id: document.getElementById('opCliente').value || null,
+      avalista_id: document.getElementById('opAvalista').value || null,
+      micro_negocio_id: document.getElementById('opNegocio').value || null,
+      valor_solicitado: vSolic, valor_aprovado: vAprov,
+      taxa_juros: taxa, num_parcelas: nparc,
+      valor_parcela: Math.round(pmt * 100) / 100,
+      data_contratacao: document.getElementById('opDataContr').value || null,
+      data_primeiro_vencimento: document.getElementById('opDataVenc').value || null,
+      finalidade: document.getElementById('opFinalidade').value,
+      garantia: document.getElementById('opGarantia').value,
+      status: 'em_andamento',
+      observacoes: document.getElementById('opObs').value,
+    };
+    const { data: inserted, error } = await sb.from('operacoes').insert(obj).select().single();
+    if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+    await generateParcelsForOp(inserted);
+    showToast('Operação salva e parcelas geradas!', 'success');
+    closeModal('modalOperacao'); loadOperacoes();
+  }
+
+  async function generateParcelsForOp(op) {
+    const valor = op.valor_aprovado || op.valor_solicitado;
+    const taxa = op.taxa_juros / 100;
+    const n = op.num_parcelas;
+    const pmt = taxa > 0 ? (valor * taxa * Math.pow(1 + taxa, n)) / (Math.pow(1 + taxa, n) - 1) : valor / n;
+    let saldo = valor;
+    const baseDate = new Date(op.data_primeiro_vencimento || op.data_contratacao);
+    const parcelas = [];
+    for (let i = 1; i <= n; i++) {
+      const vencDate = new Date(baseDate);
+      vencDate.setMonth(vencDate.getMonth() + (i - 1));
+      const juros = saldo * taxa;
+      const principal = pmt - juros;
+      saldo -= principal;
+      parcelas.push({
+        empresa_id: EMPRESA_ID,
+        operacao_id: op.id, numero_parcela: i,
+        valor_principal: Math.round(principal * 100) / 100,
+        valor_juros: Math.round(juros * 100) / 100,
+        valor_total: Math.round(pmt * 100) / 100,
+        data_vencimento: vencDate.toISOString().slice(0, 10),
+        status: 'pendente',
+      });
+    }
+    await sb.from('parcelas').insert(parcelas);
+  }
+
+  async function gerarParcelas(opId) {
+    if (!confirm('Gerar parcelas? Parcelas existentes serão mantidas.')) return;
+    const { data: op } = await sb.from('operacoes').select('*').eq('id', opId).eq('empresa_id', EMPRESA_ID).single();
+    if (!op) return;
+    const { count } = await sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID);
+    if (count > 0) { showToast('Já existem parcelas para esta operação', 'error'); return; }
+    await generateParcelsForOp(op);
+    showToast('Parcelas geradas!', 'success');
+  }
+
+  async function deleteOperacao(id) {
+    if (!confirm('Excluir operação e parcelas?')) return;
+    await sb.from('parcelas').delete().eq('operacao_id', id).eq('empresa_id', EMPRESA_ID);
+    await sb.from('operacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID);
+    loadOperacoes();
+  }
+
+  // =============================================
+  // PARCELAS ISOLADAS
+  // =============================================
+  async function loadParcelas() {
+    const searchStr = (document.getElementById('filterParcelaBusca')?.value || '').trim().toLowerCase();
+    
+    if (!searchStr) {
+       document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state" style="padding: 60px 20px !important;">Pesquise pelo Nome ou CPF para visualizar as parcelas do cliente.</td></tr>';
+       return;
+    }
+
+    const status = document.getElementById('filterParcelaStatus')?.value;
+    const date = document.getElementById('filterParcelaDate')?.value;
+    
+    let q = sb.from('parcelas').select('*,operacao:operacoes(numero_contrato, cliente:clientes(nome,cpf))').eq('empresa_id', EMPRESA_ID).order('data_vencimento');
+    if (status) q = q.eq('status', status);
+    if (date) q = q.eq('data_vencimento', date);
+    
+    let { data } = await q;
+
+    const today = new Date().toISOString().slice(0, 10);
+    const overdue = (data || []).filter(p => p.status === 'pendente' && p.data_vencimento < today);
+    for (const p of overdue) {
+      await sb.from('parcelas').update({ status: 'atrasada' }).eq('id', p.id).eq('empresa_id', EMPRESA_ID);
+      p.status = 'atrasada';
+    }
+
+    data = (data||[]).filter(p => {
+       const nome = (p.operacao?.cliente?.nome || '').toLowerCase();
+       const cpf = (p.operacao?.cliente?.cpf || '');
+       return nome.includes(searchStr) || cpf.includes(searchStr);
+    });
+
+    if (data.length === 0) {
+       document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>';
+       return;
+    }
+
+    document.getElementById('tblParcelas').innerHTML = data.map(p => `
+      <tr>
+        <td><strong>${p.operacao?.cliente?.nome || '-'}</strong></td>
+        <td>${p.operacao?.numero_contrato || '-'}</td><td>${p.numero_parcela}</td>
+        <td>${fmt(p.valor_total)}</td><td>${fmtDate(p.data_vencimento)}</td>
+        <td>${fmtDate(p.data_pagamento)}</td><td>${p.valor_pago ? fmt(p.valor_pago) : '-'}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td>${p.status !== 'paga' ? `<button class="btn btn-success btn-sm" onclick="openPagarParcela('${p.id}', ${p.valor_total})">Pagar</button>` : ''}</td>
+      </tr>
+    `).join('');
+  }
+
+  function openPagarParcela(id, valor) {
+    document.getElementById('ppId').value = id;
+    document.getElementById('ppData').value = new Date().toISOString().slice(0, 10);
+    document.getElementById('ppValor').value = toMoneyInput(valor);
+    document.getElementById('ppDesconto').value = toMoneyInput(0);
+    document.getElementById('ppObs').value = '';
+    openModal('modalPagarParcela');
+  }
+
+  async function pagarParcela() {
+    const id = document.getElementById('ppId').value;
+    const obj = {
+      data_pagamento: document.getElementById('ppData').value,
+      valor_pago: unmaskMoney(document.getElementById('ppValor').value),
+      forma_pagamento: document.getElementById('ppForma').value,
+      valor_desconto: unmaskMoney(document.getElementById('ppDesconto').value),
+      observacoes: document.getElementById('ppObs').value,
+      status: 'paga',
+    };
+    await sb.from('parcelas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID);
+    closeModal('modalPagarParcela'); loadParcelas();
+  }
+
+  // =============================================
+  // INADIMPLENCIA E COBRANCA ISOLADAS
+  // =============================================
+  let inadCacheAgrupado = {};
+
+  async function checkInadimplencia() {
+    const { data: atrasadas } = await sb.from('parcelas').select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)').eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID);
+    for (const p of (atrasadas || [])) {
+      const dias = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000);
+      const multa = p.valor_total * (p.operacao?.taxa_multa || 2) / 100;
+      const mora = p.valor_total * (p.operacao?.taxa_mora_dia || 0.0333) / 100 * dias;
+      const total = p.valor_total + multa + mora;
+      const { data: existente } = await sb.from('inadimplencia').select('id').eq('parcela_id', p.id).eq('status', 'pendente').eq('empresa_id', EMPRESA_ID);
+      
+      if (existente && existente.length > 0) {
+        await sb.from('inadimplencia').update({
+          dias_atraso: dias, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100,
+        }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID);
+      } else {
+        await sb.from('inadimplencia').insert({
+          empresa_id: EMPRESA_ID,
+          operacao_id: p.operacao?.id, parcela_id: p.id, cliente_id: p.operacao?.cliente_id,
+          dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100,
+          valor_total_devido: Math.round(total*100)/100, status: 'pendente',
+        });
+      }
+    }
+    showToast('Inadimplência atualizada!', 'success');
+    loadInadimplencia();
+  }
+
+  async function loadInadimplencia() {
+    const { data } = await sb.from('inadimplencia').select('*, cliente:clientes(*), operacao:operacoes(numero_contrato), parcela:parcelas(numero_parcela, data_vencimento)')
+      .eq('status', 'pendente').eq('empresa_id', EMPRESA_ID).order('dias_atraso', { ascending: false });
+
+    inadCacheAgrupado = {};
+    (data || []).forEach(i => {
+       if(!inadCacheAgrupado[i.cliente_id]) {
+          inadCacheAgrupado[i.cliente_id] = { cliente: i.cliente, total: 0, itens: [] };
+       }
+       inadCacheAgrupado[i.cliente_id].total += i.valor_total_devido;
+       inadCacheAgrupado[i.cliente_id].itens.push(i);
+    });
+
+    let html = '';
+    for(let cid in inadCacheAgrupado) {
+       const g = inadCacheAgrupado[cid];
+       html += `
+          <tr style="background:var(--danger-bg); font-weight:600;">
+             <td>${g.cliente?.nome || '-'}</td>
+             <td>${g.cliente?.cpf || '-'}</td>
+             <td>${g.itens.length} parcela(s) em aberto</td>
+             <td style="color:var(--danger)">${fmt(g.total)}</td>
+             <td>
+                <div class="btn-group">
+                   <button class="btn btn-outline btn-sm" onclick="toggleDetInad('${cid}')">Ver Parcelas</button>
+                   <button class="btn btn-primary btn-sm" onclick="openCobrancaCliente('${cid}')">Cobrar / WhatsApp</button>
+                </div>
+             </td>
+          </tr>
+          <tr id="inad-det-${cid}" style="display:none;">
+             <td colspan="5" style="padding:0;">
+                <table style="background:#fff; border-left:4px solid var(--danger);">
+                   <thead><tr><th>Contrato</th><th>Parcela</th><th>Vencimento</th><th>Dias Atraso</th><th>Valor Atualizado</th><th>Ações</th></tr></thead>
+                   <tbody>
+                      ${g.itens.map(i => `
+                         <tr>
+                            <td>${i.operacao?.numero_contrato}</td>
+                            <td>Nº ${i.parcela?.numero_parcela}</td>
+                            <td>${fmtDate(i.parcela?.data_vencimento)}</td>
+                            <td>${i.dias_atraso}</td>
+                            <td style="font-weight:600;">${fmt(i.valor_total_devido)}</td>
+                            <td><button class="btn btn-success btn-sm" onclick="resolverInadimplencia('${i.id}')">Marcar Resolvido</button></td>
+                         </tr>
+                      `).join('')}
+                   </tbody>
+                </table>
+             </td>
+          </tr>
+       `;
+    }
+    document.getElementById('tblInadimplencia').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum registro de inadimplência</td></tr>';
+  }
+
+  function toggleDetInad(cid) {
+     const el = document.getElementById(`inad-det-${cid}`);
+     el.style.display = el.style.display === 'none' ? 'table-row' : 'none';
+  }
+
+  async function resolverInadimplencia(id) {
+    if (!confirm('Marcar como resolvido?')) return;
+    await sb.from('inadimplencia').update({ status: 'resolvido' }).eq('id', id).eq('empresa_id', EMPRESA_ID);
+    loadInadimplencia();
+  }
+
+  function printInadimplenciaGeral() {
+    if (Object.keys(inadCacheAgrupado).length === 0) {
+      showToast('Nenhum registro de inadimplência para imprimir.', 'info');
+      return;
+    }
+    let htmlContent = '';
+    let totalGeral = 0;
+    for (let cid in inadCacheAgrupado) {
+      const g = inadCacheAgrupado[cid];
+      totalGeral += g.total;
+      const c = g.cliente;
+      htmlContent += `
+        <div class="client-section">
+          <h3>${c.nome} (CPF: ${c.cpf})</h3>
+          <p><strong>Telefone:</strong> ${c.celular || c.telefone || '-'}</p>
+          <table>
+            <thead>
+              <tr><th>Contrato</th><th>Parcela</th><th>Vencimento</th><th>Dias Atraso</th><th>Valor Atualizado</th></tr>
+            </thead>
+            <tbody>
+              ${g.itens.map(i => `
+                <tr>
+                  <td>${i.operacao?.numero_contrato || '-'}</td>
+                  <td>Nº ${i.parcela?.numero_parcela || '-'}</td>
+                  <td>${fmtDate(i.parcela?.data_vencimento)}</td>
+                  <td>${i.dias_atraso} dias</td>
+                  <td style="font-weight: bold;">${fmt(i.valor_total_devido)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <p class="client-total">Total do Cliente: ${fmt(g.total)}</p>
+        </div>
+      `;
+    }
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+      <html>
+        <head><title>Relatório Geral de Inadimplência</title><style>
+            body { font-family: 'Inter', sans-serif; padding: 40px; color: #1c1917; line-height: 1.6; }
+            .header { border-bottom: 2px solid #dc2626; padding-bottom: 10px; margin-bottom: 30px; }
+            .header h1 { color: #dc2626; margin: 0; }
+            .client-section { margin-bottom: 30px; page-break-inside: avoid; background: #faf7f5; padding: 15px; border-radius: 8px; border: 1px solid #e7e5e4; }
+            .client-section h3 { margin-top: 0; margin-bottom: 10px; color: #ea580c; border-bottom: 1px solid #e7e5e4; padding-bottom: 5px; font-size: 16px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 10px; margin-bottom: 10px; background: #fff; }
+            th { text-align: left; padding: 8px; background: #fee2e2; border-bottom: 2px solid #dc2626; color: #991b1b; font-size: 12px; }
+            td { padding: 8px; border-bottom: 1px solid #e7e5e4; font-size: 13px; }
+            .client-total { font-weight: bold; text-align: right; color: #dc2626; margin-top: 10px; font-size: 15px; }
+            .grand-total { font-size: 20px; font-weight: bold; text-align: right; margin-top: 30px; color: #991b1b; padding-top: 15px; border-top: 3px solid #dc2626; }
+          </style></head>
+        <body>
+          <div class="header"><h1>MicroCred - Relatório Geral de Inadimplência</h1><p><strong>Data de Emissão:</strong> ${new Date().toLocaleDateString('pt-BR')}</p></div>
+          ${htmlContent}
+          <div class="grand-total">TOTAL GERAL EM ATRASO NA CARTEIRA: ${fmt(totalGeral)}</div>
+          <script>setTimeout(() => { window.print(); window.close(); }, 1000);<\/script>
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+  }
+
+  async function openCobrancaCliente(cid) {
+     const g = inadCacheAgrupado[cid];
+     document.getElementById('cobClienteId').value = cid;
+     document.getElementById('cobTelefone').value = g.cliente.celular || g.cliente.telefone || '';
+     document.getElementById('cobNomeClienteTitle').textContent = g.cliente.nome;
+     document.getElementById('cobData').value = new Date().toISOString().slice(0, 10);
+     document.getElementById('cobTipo').value = 'WhatsApp';
+     document.getElementById('cobResultado').value = '';
+     
+     await carregarHistoricoCobranca(cid);
+     openModal('modalCobranca');
+  }
+
+  function gerarMensagemCobranca() {
+     const cid = document.getElementById('cobClienteId').value;
+     const g = inadCacheAgrupado[cid];
+     if(!g) return;
+     const firstName = g.cliente.nome.split(' ')[0];
+     const msg = `Olá ${firstName}, tudo bem? \n\nAqui é da MicroCred. Identificamos que consta ${g.itens.length} parcela(s) em atraso no nosso sistema, totalizando ${fmt(g.total)}.\n\nPor favor, entre em contato conosco para regularizarmos a sua situação e evitar maiores juros. \nObrigado!`;
+     document.getElementById('cobResultado').value = msg;
+  }
+
+  function enviarWhatsApp() {
+     const phone = document.getElementById('cobTelefone').value;
+     if(!phone) { showToast('O cliente não possui um telefone cadastrado', 'error'); return; }
+     
+     let cleanPhone = phone.replace(/\D/g, '');
+     if (cleanPhone.length === 10 || cleanPhone.length === 11) cleanPhone = '55' + cleanPhone;
+
+     const msg = document.getElementById('cobResultado').value;
+     if(!msg) { showToast('Gere ou escreva uma mensagem primeiro!', 'error'); return; }
+
+     window.open(`https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(msg)}`, '_blank');
+  }
+
+  async function saveCobranca() {
+     const cid = document.getElementById('cobClienteId').value;
+     const obj = {
+        empresa_id: EMPRESA_ID,
+        cliente_id: cid,
+        data_registro: document.getElementById('cobData').value,
+        tipo: document.getElementById('cobTipo').value,
+        mensagem: document.getElementById('cobResultado').value
+     };
+     
+     if(!obj.mensagem) return showToast('Preencha a mensagem', 'error');
+
+     const { error } = await sb.from('historico_cobrancas').insert(obj);
+     if(error) { showToast('Erro ao salvar no Histórico', 'error'); return; }
+
+     const g = inadCacheAgrupado[cid];
+     const ids = g.itens.map(i => i.id);
+     await sb.from('inadimplencia').update({ data_contato: obj.data_registro }).in('id', ids).eq('empresa_id', EMPRESA_ID);
+
+     showToast('Registro de cobrança salvo no Histórico!', 'success');
+     document.getElementById('cobResultado').value = '';
+     carregarHistoricoCobranca(cid);
+  }
+
+  async function carregarHistoricoCobranca(cid) {
+     const { data } = await sb.from('historico_cobrancas').select('*').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false });
+     document.getElementById('listHistorico').innerHTML = (data||[]).map(h => `
+        <div style="background:#f5f5f4; padding:12px; border-radius:6px; margin-bottom:10px; border-left:3px solid var(--info);">
+           <div style="font-size:11px; color:var(--text-light); margin-bottom:4px; font-weight:600;">
+              ${fmtDate(h.data_registro)} - Via ${h.tipo}
+           </div>
+           <div style="font-size:12px; white-space:pre-wrap; line-height:1.4;">${h.mensagem}</div>
+        </div>
+     `).join('') || '<p style="color:var(--text-light);font-size:13px;">Nenhum histórico registrado.</p>';
+  }
+
+  // =============================================
+  // RENOVACOES ISOLADAS
+  // =============================================
+  async function loadRenovacoes() {
+    const { data } = await sb.from('renovacoes').select('*,cliente:clientes(nome),op_orig:operacoes!operacao_original_id(numero_contrato)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false });
+    document.getElementById('tblRenovacoes').innerHTML = (data || []).map(r => `
+      <tr>
+        <td>${r.cliente?.nome || '-'}</td><td>${r.op_orig?.numero_contrato || '-'}</td><td>${fmt(r.saldo_devedor)}</td><td>${fmt(r.valor_novo_emprestimo)}</td>
+        <td>${r.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td>
+        <td>${fmtDate(r.data_renovacao)}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteRenovacao('${r.id}')">Excluir</button></td>
+      </tr>
+    `).join('') || '<tr><td colspan="7" class="empty-state">Nenhuma renovação encontrada</td></tr>';
+  }
+
+  async function openRenovacaoModal() {
+    const { data: ops } = await sb.from('operacoes').select('id,numero_contrato,cliente_id').in('status', ['em_andamento', 'liberada']).eq('empresa_id', EMPRESA_ID);
+    document.getElementById('rnOperacao').innerHTML = '<option value="">Selecione</option>' + (ops || []).map(o => `<option value="${o.id}" data-cid="${o.cliente_id}">${o.numero_contrato}</option>`).join('');
+    document.getElementById('rnSaldo').value = '';
+    document.getElementById('rnNovoValor').value = '';
+    document.getElementById('rnAprovado').value = 'false';
+    document.getElementById('rnMotivo').value = '';
+    openModal('modalRenovacao');
+  }
+
+  async function loadSaldoDevedor() {
+    const opId = document.getElementById('rnOperacao').value;
+    if (!opId) return;
+    const { data: parcelas } = await sb.from('parcelas').select('valor_total,valor_pago,status').eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID);
+    const saldo = (parcelas || []).filter(p => p.status !== 'paga').reduce((s, p) => s + Number(p.valor_total || 0), 0);
+    document.getElementById('rnSaldo').value = toMoneyInput(Math.round(saldo * 100) / 100);
+  }
+
+  async function saveRenovacao() {
+    const opId = document.getElementById('rnOperacao').value;
+    const sel = document.getElementById('rnOperacao');
+    const cid = sel.options[sel.selectedIndex]?.dataset?.cid;
+    const obj = {
+      empresa_id: EMPRESA_ID,
+      operacao_original_id: opId || null, cliente_id: cid || null,
+      saldo_devedor: unmaskMoney(document.getElementById('rnSaldo').value),
+      valor_novo_emprestimo: unmaskMoney(document.getElementById('rnNovoValor').value),
+      aprovado: document.getElementById('rnAprovado').value === 'true',
+      motivo: document.getElementById('rnMotivo').value,
+    };
+    const { error } = await sb.from('renovacoes').insert(obj);
+    if (error) { showToast('Erro: ' + error.message, 'error'); return; }
+    showToast('Renovação registrada!', 'success');
+    closeModal('modalRenovacao');
+    loadRenovacoes();
+  }
+
+  async function deleteRenovacao(id) {
+    if (!confirm('Excluir renovação?')) return;
+    await sb.from('renovacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID);
+    showToast('Excluída', 'success');
+    loadRenovacoes();
+  }
+
+  // =============================================
+  // RELATORIOS E EXPORTAR ISOLADOS
+  // =============================================
+  function switchReportTab(btn, tabId) {
+    document.querySelectorAll('#page-relatorios .tab').forEach(t => t.classList.remove('active'));
+    btn.classList.add('active');
+    ['repResumo', 'repCarteira', 'repExportar'].forEach(id => {
+      document.getElementById(id).style.display = id === tabId ? 'block' : 'none';
+    });
+    if (tabId === 'repCarteira') loadCarteira();
+  }
+
+  async function loadRelatorios() {
+    const [oRes, pRes] = await Promise.all([
+      sb.from('operacoes').select('*').eq('empresa_id', EMPRESA_ID),
+      sb.from('parcelas').select('*').eq('empresa_id', EMPRESA_ID),
+    ]);
+    const ops = oRes.data || [];
+    const parcs = pRes.data || [];
+    const totalDesembolsado = ops.filter(o => ['liberada', 'em_andamento', 'quitada'].includes(o.status)).reduce((s, o) => s + Number(o.valor_aprovado || o.valor_solicitado || 0), 0);
+    const totalRecebido = parcs.filter(p => p.status === 'paga').reduce((s, p) => s + Number(p.valor_pago || 0), 0);
+    const totalAtrasado = parcs.filter(p => p.status === 'atrasada').reduce((s, p) => s + Number(p.valor_total || 0), 0);
+    const taxaInadimplencia = ops.length > 0 ? (ops.filter(o => o.status === 'inadimplente').length / ops.length * 100).toFixed(1) : 0;
+    
+    document.getElementById('reportStats').innerHTML = `
+      <div class="stat-card accent"><div class="label">Total Desembolsado</div><div class="value">${fmt(totalDesembolsado)}</div></div>
+      <div class="stat-card success"><div class="label">Total Recebido</div><div class="value">${fmt(totalRecebido)}</div></div>
+      <div class="stat-card danger"><div class="label">Total em Atraso</div><div class="value">${fmt(totalAtrasado)}</div></div>
+      <div class="stat-card info"><div class="label">Taxa Inadimplência</div><div class="value">${taxaInadimplencia}%</div></div>
+    `;
+    
+    const statusCount = {};
+    ops.forEach(o => { statusCount[o.status] = (statusCount[o.status] || 0) + 1; });
+    const colors = { em_analise: '#0284c7', aprovada: '#16a34a', liberada: '#0891b2', em_andamento: '#ea580c', quitada: '#059669', inadimplente: '#dc2626' };
+    const maxCount = Math.max(...Object.values(statusCount), 1);
+    
+    document.getElementById('reportChart').innerHTML = `
+      <div style="display:flex;gap:12px;align-items:end;height:200px;padding:20px 0;">
+        ${Object.entries(statusCount).map(([s, c]) => `
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;">
+            <span style="font-size:14px;font-weight:800;">${c}</span>
+            <div style="width:100%;max-width:60px;height:${(c / maxCount) * 150}px;background:${colors[s] || '#a8a29e'};border-radius:8px 8px 0 0;transition:height .5s ease;"></div>
+            <span style="font-size:10px;color:var(--text-light);text-align:center;">${s.replace(/_/g, ' ')}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  async function loadCarteira() {
+    const { data: ops } = await sb.from('operacoes').select('*,cliente:clientes(nome)').in('status', ['em_andamento', 'liberada']).eq('empresa_id', EMPRESA_ID);
+    const rows = [];
+    for (const o of (ops || [])) {
+      const { data: parcs } = await sb.from('parcelas').select('*').eq('operacao_id', o.id).eq('empresa_id', EMPRESA_ID);
+      const pagas = (parcs || []).filter(p => p.status === 'paga').length;
+      const saldo = (parcs || []).filter(p => p.status !== 'paga').reduce((s, p) => s + Number(p.valor_total || 0), 0);
+      rows.push({ ...o, pagas, total: (parcs || []).length, saldo });
+    }
+    document.getElementById('tblCarteira').innerHTML = rows.map(r => `
+      <tr><td>${r.cliente?.nome || '-'}</td><td>${r.numero_contrato || '-'}</td><td>${fmt(r.valor_aprovado || r.valor_solicitado)}</td><td>${r.pagas}/${r.total}</td><td>${fmt(r.saldo)}</td><td>${statusBadge(r.status)}</td></tr>
+    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma operação ativa</td></tr>';
+  }
+
+  async function exportCSV(table) {
+    const { data, error } = await sb.from(table).select('*').eq('empresa_id', EMPRESA_ID);
+    if (error || !data || data.length === 0) { showToast('Sem dados para exportar', 'error'); return; }
+    const headers = Object.keys(data[0]);
+    const csv = [
+      headers.join(';'),
+      ...data.map(row => headers.map(h => {
+        let val = row[h] ?? '';
+        if (typeof val === 'string' && (val.includes(';') || val.includes('"') || val.includes('\n'))) {
+          val = '"' + val.replace(/"/g, '""') + '"';
+        }
+        return val;
+      }).join(';'))
+    ].join('\n');
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${table}_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`${table} exportado com sucesso!`, 'success');
+  }
+
+  initApp();
+</script>
+</body>
+</html>
