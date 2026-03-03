@@ -116,13 +116,13 @@
     .badge-neutral { background: #e2e8f0; color: #475569; }
 
     /* ETIQUETAS INTERATIVAS (KORBAN STYLE) */
-    .badge-btn { cursor: pointer; transition: all 0.2s ease; user-select: none; border: 1px solid transparent; }
+    .badge-btn { cursor: pointer; transition: all 0.2s ease; user-select: none; border: 1px solid transparent; padding: 6px 14px; font-size: 11.5px; }
     .badge-btn:hover { filter: brightness(0.95); transform: translateY(-1px); box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
     .badge-btn:active { transform: scale(0.94); }
     .badge-neutral.badge-btn { background: #f1f5f9; color: #94a3b8; border-color: #e2e8f0; }
     .badge-neutral.badge-btn:hover { background: #e2e8f0; color: #64748b; border-color: #cbd5e1; }
     .badge-success.badge-btn { border-color: rgba(16,185,129,0.3); }
-    .badge-danger.badge-btn { border-color: rgba(239,68,68,0.3); }
+    .badge-danger.badge-btn { border-color: rgba(239,68,68,0.3); background: #fef2f2; color: #dc2626; }
 
     /* BARRA DE PESQUISA */
     .search-bar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
@@ -514,8 +514,11 @@
                   <option value="resolvido">Apenas Resolvidos</option>
                   <option value="">Todos os Registos</option>
                </select>
-               <button class="btn btn-outline" onclick="printInadimplenciaGeral()">Gerar PDF Geral</button>
-               <button class="btn btn-primary" onclick="checkInadimplencia()">Atualizar Sistema</button>
+               <button class="btn btn-outline" onclick="printInadimplenciaGeral()">Gerar PDF</button>
+               <button class="btn btn-primary" onclick="checkInadimplencia(event)">
+                  <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                  Atualizar Sistema
+               </button>
             </div>
           </div>
           <div class="card-body no-padding">
@@ -1094,7 +1097,11 @@
       case 'fluxo': loadFluxos(); break;
       case 'operacoes': loadOperacoes(); break;
       case 'parcelas': loadParcelas(); break; 
-      case 'inadimplencia': loadInadimplencia(); break;
+      case 'inadimplencia': 
+          // Atualiza a inadimplência automaticamente ao abrir a página!
+          document.getElementById('tblInadimplencia').innerHTML = '<tr><td colspan="5" class="empty-state">A sincronizar dados...</td></tr>';
+          checkInadimplencia(null); 
+          break;
       case 'renovacoes': loadRenovacoes(); break;
       case 'relatorios': loadRelatorios(); break;
       case 'plano': loadPlano(); break;
@@ -1220,7 +1227,6 @@
       btn.innerHTML = originalText; btn.disabled = false;
     }
   }
-
 
   // =============================================
   // UTILITIES & MASKS
@@ -2108,6 +2114,153 @@
     await sb.from('parcelas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID); 
     closeModal('modalPagarParcela'); loadParcelas(); 
   }
+
+  // =============================================
+  // INADIMPLÊNCIA (AUTOMATIZADA E COM ETIQUETAS KORBAN)
+  // =============================================
+  let inadCacheAgrupado = {};
+
+  async function checkInadimplencia(event) { 
+    const btn = event?.currentTarget;
+    if(btn) { btn.textContent = 'A sincronizar...'; btn.disabled = true; }
+
+    try {
+        const today = new Date().toISOString().slice(0, 10);
+
+        // 1. Busca TODAS as parcelas que estão pendentes, mas já passaram da data de vencimento
+        const { data: pendentes } = await sb.from('parcelas')
+            .select('id')
+            .eq('status', 'pendente')
+            .eq('empresa_id', EMPRESA_ID)
+            .lt('data_vencimento', today);
+
+        // Se existirem parcelas vencidas, atualiza-as para 'atrasada' na hora
+        if (pendentes && pendentes.length > 0) {
+            const ids = pendentes.map(p => p.id);
+            await sb.from('parcelas').update({ status: 'atrasada' }).in('id', ids).eq('empresa_id', EMPRESA_ID);
+        }
+
+        // 2. Agora procura as parcelas atrasadas e calcula a inadimplência
+        const { data: atrasadas } = await sb.from('parcelas')
+            .select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)')
+            .eq('status', 'atrasada')
+            .eq('empresa_id', EMPRESA_ID); 
+            
+        for (const p of (atrasadas || [])) { 
+            const dias = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); 
+            const multa = p.valor_total * (p.operacao?.taxa_multa || 2) / 100; 
+            const mora = p.valor_total * (p.operacao?.taxa_mora_dia || 0.0333) / 100 * dias; 
+            const total = p.valor_total + multa + mora; 
+            
+            const { data: existente } = await sb.from('inadimplencia').select('id, status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID); 
+            
+            if (existente && existente.length > 0) { 
+                // Atualiza os juros apenas se ainda estiver "pendente" de cobrança
+                if (existente[0].status === 'pendente') {
+                    await sb.from('inadimplencia').update({ dias_atraso: dias, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100 }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); 
+                }
+            } else { 
+                await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id, parcela_id: p.id, cliente_id: p.operacao?.cliente_id, dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, status: 'pendente' }); 
+            } 
+        } 
+
+        // 3. Verifica se alguma parcela que estava na inadimplência foi paga e marca como 'resolvido' automaticamente
+        const { data: pagas } = await sb.from('parcelas').select('id').eq('status', 'paga').eq('empresa_id', EMPRESA_ID);
+        if (pagas && pagas.length > 0) {
+            const idsPagas = pagas.map(p => p.id);
+            await sb.from('inadimplencia').update({ status: 'resolvido' }).in('parcela_id', idsPagas).eq('status', 'pendente').eq('empresa_id', EMPRESA_ID);
+        }
+
+        if(btn) showToast('Sistema de Inadimplência Sincronizado!', 'success'); 
+        await loadInadimplencia();
+
+    } catch (e) {
+        showToast('Erro ao sincronizar: ' + e.message, 'error');
+    } finally {
+        if(btn) { btn.innerHTML = '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Atualizar Sistema'; btn.disabled = false; }
+    }
+  }
+
+  async function loadInadimplencia() { 
+    const statusFilter = document.getElementById('filterInadStatus')?.value;
+    let q = sb.from('inadimplencia').select('*, cliente:clientes(*), operacao:operacoes(numero_contrato), parcela:parcelas(numero_parcela, data_vencimento)').eq('empresa_id', EMPRESA_ID).order('dias_atraso', { ascending: false }); 
+    
+    if (statusFilter) {
+        q = q.eq('status', statusFilter);
+    }
+    
+    const { data } = await q; 
+
+    inadCacheAgrupado = {}; 
+    (data || []).forEach(i => { 
+        const cli = i.cliente || { nome: 'Cliente Removido', cpf: '---', celular: '', telefone: '' };
+        if(!inadCacheAgrupado[i.cliente_id]) { 
+            inadCacheAgrupado[i.cliente_id] = { cliente: cli, total: 0, itens: [] }; 
+        } 
+        
+        inadCacheAgrupado[i.cliente_id].total += i.valor_total_devido; 
+        inadCacheAgrupado[i.cliente_id].itens.push(i); 
+    }); 
+
+    let html = ''; 
+    for(let cid in inadCacheAgrupado) { 
+        const g = inadCacheAgrupado[cid]; 
+        const pendentesCount = g.itens.filter(i => i.status === 'pendente').length;
+        
+        html += `
+            <tr style="background: ${pendentesCount > 0 ? 'var(--warning-bg)' : 'var(--success-bg)'}; font-weight:600;">
+                <td>${g.cliente.nome}</td>
+                <td>${g.cliente.cpf}</td>
+                <td>${g.itens.length} registo(s)</td>
+                <td style="color: ${pendentesCount > 0 ? 'var(--warning-text)' : 'var(--success-text)'}">${fmt(g.total)}</td>
+                <td>
+                    <div class="btn-group">
+                        <button class="btn btn-outline btn-sm" onclick="toggleDetInad('${cid}')">Ver Detalhes</button>
+                        <button class="btn btn-primary btn-sm" onclick="openCobrancaCliente('${cid}')">Cobrar</button>
+                    </div>
+                </td>
+            </tr>
+            <tr id="inad-det-${cid}" style="display:none;">
+                <td colspan="5" style="padding:0;">
+                    <table style="background:#fff; border-left:4px solid ${pendentesCount > 0 ? 'var(--warning)' : 'var(--success)'}; margin: 0;">
+                        <thead><tr><th>Contrato</th><th>Parcela</th><th>Vencimento</th><th>Dias Atraso</th><th>Valor Atualizado</th><th>Etiquetas de Situação</th></tr></thead>
+                        <tbody>
+                            ${g.itens.map(i => `
+                                <tr>
+                                    <td>${i.operacao?.numero_contrato || '-'}</td>
+                                    <td>Nº ${i.parcela?.numero_parcela || '-'}</td>
+                                    <td>${fmtDate(i.parcela?.data_vencimento)}</td>
+                                    <td>${i.dias_atraso}</td>
+                                    <td style="font-weight:600;">${fmt(i.valor_total_devido)}</td>
+                                    <td>
+                                        <div style="display: flex; gap: 8px;">
+                                            <span onclick="alterarStatusInad('${i.id}', 'pendente')" class="badge badge-btn ${i.status === 'pendente' ? 'badge-danger' : 'badge-neutral'}" title="Marcar como Pendente">Pendente</span>
+                                            <span onclick="alterarStatusInad('${i.id}', 'resolvido')" class="badge badge-btn ${i.status === 'resolvido' ? 'badge-success' : 'badge-neutral'}" title="Marcar como Resolvido">Resolvido</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </td>
+            </tr>`; 
+    } 
+    document.getElementById('tblInadimplencia').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum registo baseado no filtro atual.</td></tr>'; 
+  } 
+  
+  function toggleDetInad(cid) { const el = document.getElementById(`inad-det-${cid}`); el.style.display = el.style.display === 'none' ? 'table-row' : 'none'; } 
+  
+  async function alterarStatusInad(id, novoStatus) { 
+      await sb.from('inadimplencia').update({ status: novoStatus }).eq('id', id).eq('empresa_id', EMPRESA_ID); 
+      loadInadimplencia(); 
+  }
+
+  function printInadimplenciaGeral() { if (Object.keys(inadCacheAgrupado).length === 0) { showToast('Nenhum dado', 'info'); return; } let h = ''; let t = 0; for (let c in inadCacheAgrupado) { const g = inadCacheAgrupado[c]; t += g.total; h += `<div><h3>${g.cliente.nome}</h3><table><tr><th>Parcela</th><th>Venc</th><th>Dias</th><th>Total</th></tr>${g.itens.map(i=>`<tr><td>${i.parcela?.numero_parcela}</td><td>${fmtDate(i.parcela?.data_vencimento)}</td><td>${i.dias_atraso}</td><td>${fmt(i.valor_total_devido)}</td></tr>`).join('')}</table></div>`; } const w = window.open('','_blank'); w.document.write(`<html><head><style>body{font-family:sans-serif;} table{width:100%; border-collapse:collapse;} th,td{border:1px solid #ccc; padding:8px;}</style></head><body><h1>Relatório de Inadimplência</h1>${h}<h2>Total Geral (Filtro Atual): ${fmt(t)}</h2></body></html>`); w.document.close(); setTimeout(()=>w.print(),1000); }
+  async function openCobrancaCliente(cid) { const g = inadCacheAgrupado[cid]; document.getElementById('cobClienteId').value = cid; document.getElementById('cobTelefone').value = g.cliente.celular || g.cliente.telefone || ''; document.getElementById('cobNomeClienteTitle').textContent = g.cliente.nome; document.getElementById('cobData').value = new Date().toISOString().slice(0, 10); document.getElementById('cobTipo').value = 'WhatsApp'; document.getElementById('cobResultado').value = ''; await carregarHistoricoCobranca(cid); openModal('modalCobranca'); }
+  function gerarMensagemCobranca() { const cid = document.getElementById('cobClienteId').value; const g = inadCacheAgrupado[cid]; if(!g) return; const n = g.cliente.nome.split(' ')[0]; document.getElementById('cobResultado').value = `Olá ${n}, tudo bem? Identificamos que consta um atraso no nosso sistema no valor total de ${fmt(g.total)}. Por favor, entre em contato para regularizarmos a situação.`; }
+  function enviarWhatsApp() { let p = document.getElementById('cobTelefone').value.replace(/\D/g, ''); if (p.length === 10 || p.length === 11) p = '55' + p; const m = document.getElementById('cobResultado').value; if(!m) return; window.open(`https://api.whatsapp.com/send?phone=${p}&text=${encodeURIComponent(m)}`, '_blank'); }
+  async function saveCobranca() { const cid = document.getElementById('cobClienteId').value; const obj = { empresa_id: EMPRESA_ID, cliente_id: cid, data_registro: document.getElementById('cobData').value, tipo: document.getElementById('cobTipo').value, mensagem: document.getElementById('cobResultado').value }; if(!obj.mensagem) return; await sb.from('historico_cobrancas').insert(obj); const g = inadCacheAgrupado[cid]; const ids = g.itens.map(i => i.id); await sb.from('inadimplencia').update({ data_contato: obj.data_registro }).in('id', ids).eq('empresa_id', EMPRESA_ID); showToast('Salvo!', 'success'); document.getElementById('cobResultado').value = ''; carregarHistoricoCobranca(cid); }
+  async function carregarHistoricoCobranca(cid) { const { data } = await sb.from('historico_cobrancas').select('*').eq('cliente_id', cid).eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); document.getElementById('listHistorico').innerHTML = (data||[]).map(h => `<div style="background:#f1f5f9; padding:10px; border-radius:6px; margin-bottom:8px;"><strong>${fmtDate(h.data_registro)} - ${h.tipo}</strong><br>${h.mensagem}</div>`).join('') || 'Nenhum histórico.'; }
 
   // =============================================
   // RENOVACOES
