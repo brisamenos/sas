@@ -21,7 +21,7 @@
     
     .navbar { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
     .navbar h1 { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; margin: 0; }
-    .navbar-actions { display: flex; gap: 10px; }
+    .navbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
     
     .container { max-width: 1300px; margin: 30px auto 0; padding: 0 20px; }
     
@@ -76,7 +76,7 @@
     .btn-icon.restore { color: var(--purple); background: rgba(139,92,246,0.05); border-color: rgba(139,92,246,0.2); }
     .btn-icon.restore:hover { color: #fff; border-color: var(--purple); background: var(--purple); }
 
-    /* Table (Preparada para Mobile) */
+    /* Table */
     .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
     table { width: 100%; border-collapse: collapse; min-width: 950px; }
     th { padding: 15px 20px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; border-bottom: 2px solid var(--border); letter-spacing: 0.5px; white-space: nowrap; }
@@ -121,8 +121,8 @@
     @media (max-width: 768px) {
       .navbar { padding: 15px 20px; flex-direction: column; gap: 15px; }
       .navbar h1 { font-size: 18px; }
-      .navbar-actions { width: 100%; display: flex; gap: 10px; }
-      .navbar-actions button { flex: 1; justify-content: center; }
+      .navbar-actions { width: 100%; display: flex; gap: 8px; flex-wrap: wrap; }
+      .navbar-actions button { flex: 1; min-width: 130px; justify-content: center; font-size: 12px; padding: 10px; }
       
       .container { padding: 0 15px; margin-top: 20px; }
       .stats-grid { grid-template-columns: 1fr; gap: 10px; }
@@ -167,6 +167,11 @@
     </h1>
     
     <div class="navbar-actions">
+      <button class="btn btn-purple" style="padding: 8px 14px;" onclick="openModalRestoreGlobal()">
+        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+        Restaurar Global
+      </button>
+
       <button class="btn btn-success" style="padding: 8px 14px;" id="btnBackupGlobal" onclick="gerarBackupGlobal()">
         <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
         Backup Global
@@ -302,7 +307,7 @@
       <div style="width: 50px; height: 50px; background: rgba(139,92,246,0.1); color: var(--purple); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
         <svg style="width:26px;height:26px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
       </div>
-      <h3 style="text-align: center;">Injetar Backup (Restaurar)</h3>
+      <h3 style="text-align: center;">Injetar Backup (Individual)</h3>
       <p style="text-align: center;">Restaurar dados para a empresa <strong id="rstNomeEmpresa" style="color:var(--purple);"></strong>.</p>
     </div>
     
@@ -321,6 +326,33 @@
     <div style="display: flex; gap: 10px; flex-direction: column;">
       <button class="btn btn-purple" style="padding: 14px;" id="btnExecutarRestore" onclick="executarRestoreIndividual()">Iniciar Restauração</button>
       <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalRestoreIndividual')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalRestoreGlobal">
+  <div class="modal">
+    <div class="modal-header">
+      <div style="width: 50px; height: 50px; background: rgba(139,92,246,0.1); color: var(--purple); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+        <svg style="width:26px;height:26px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+      </div>
+      <h3 style="text-align: center;">Injetar Backup Global</h3>
+      <p style="text-align: center;">Restaurar dados para <strong>todas as empresas</strong> simultaneamente.</p>
+    </div>
+    
+    <div class="form-group file-input-wrapper">
+      <input type="file" id="rstGlobalFileInput" accept=".json" />
+    </div>
+    
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+      <span style="font-size: 11px; color: var(--danger); line-height: 1.4; display: block;">
+        <strong>ATENÇÃO MÁXIMA:</strong> Esta ação irá sobrescrever registos com o mesmo ID em todo o sistema. Certifique-se de que o ficheiro é um <em>Full_System_Dump</em> válido gerado anteriormente.
+      </span>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-direction: column;">
+      <button class="btn btn-purple" style="padding: 14px;" id="btnExecutarRestoreGlobal" onclick="executarRestoreGlobal()">Iniciar Restauração Global</button>
+      <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalRestoreGlobal')">Cancelar</button>
     </div>
   </div>
 </div>
@@ -355,7 +387,7 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const DEFAULT_LOGO = 'https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png';
 
-  // Array de tabelas do sistema (usado tanto para backup geral como para restauração)
+  // O utilizador_cliente DEVE ser a primeira tabela a ser inserida no Backup Global
   const TABELAS_SISTEMA = [
     'usuarios_clientes', 
     'clientes', 
@@ -370,8 +402,8 @@
     'inadimplencia'
   ];
 
-  // Apenas tabelas de dados (sem o utilizador principal) para o loop de restauro individual
-  const TABELAS_ORDEM = TABELAS_SISTEMA.slice(1);
+  // Tabelas apenas de dados para restauro individual (exclui o admin)
+  const TABELAS_ORDEM_INDIVIDUAL = TABELAS_SISTEMA.slice(1);
 
   // ==========================================
   // UTILITÁRIOS
@@ -503,7 +535,7 @@
   }
 
   // ==========================================
-  // BACKUP GLOBAL (NOVO - EXPORTA TUDO)
+  // BACKUP GLOBAL (EXPORTAR E IMPORTAR)
   // ==========================================
   async function gerarBackupGlobal() {
     const btn = document.getElementById('btnBackupGlobal');
@@ -554,6 +586,62 @@
     }
   }
 
+  function openModalRestoreGlobal() {
+    document.getElementById('rstGlobalFileInput').value = '';
+    openModal('modalRestoreGlobal');
+  }
+
+  async function executarRestoreGlobal() {
+    const fileInput = document.getElementById('rstGlobalFileInput');
+    const btn = document.getElementById('btnExecutarRestoreGlobal');
+
+    if (!fileInput.files.length) {
+      showToast('Selecione o ficheiro de Backup Global JSON.', 'warning'); return;
+    }
+
+    if (!confirm('PERIGO: Esta ação injetará/sobrescreverá dados de TODAS as empresas do sistema. Tem a certeza que deseja prosseguir?')) {
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'A Injetar Dados Globais...';
+
+    try {
+      const file = fileInput.files[0];
+      const text = await file.text();
+      const backup = JSON.parse(text);
+
+      if (!backup.dados || backup.meta?.tipo !== 'Full_System_Dump') {
+        throw new Error('O ficheiro selecionado NÃO é um Backup Global (Full_System_Dump) válido!');
+      }
+
+      let injetados = 0;
+
+      // Restaura todas as tabelas (incluindo usuários) pela ordem correta
+      for (const tabela of TABELAS_SISTEMA) {
+        const linhas = backup.dados[tabela];
+        if (linhas && linhas.length > 0) {
+          const { error } = await sb.from(tabela).upsert(linhas);
+          if (error) {
+            console.error(`Erro ao injetar na tabela ${tabela}:`, error);
+          } else {
+            injetados += linhas.length;
+          }
+        }
+      }
+
+      showToast(`Restauração Global concluída! ${injetados} registos atualizados em todo o sistema.`, 'success');
+      closeModal('modalRestoreGlobal');
+
+    } catch (err) {
+      showToast(err.message, 'error');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Iniciar Restauração Global';
+      carregarClientes();
+    }
+  }
+
   // ==========================================
   // BACKUP INDIVIDUAL (EXPORTAR 1 EMPRESA)
   // ==========================================
@@ -571,10 +659,10 @@
       const { data: contaInfo } = await sb.from('usuarios_clientes').select('*').eq('id', id).single();
       backupObj.dados['conta_acesso'] = contaInfo;
 
-      const promises = TABELAS_ORDEM.map(tabela => sb.from(tabela).select('*').eq('empresa_id', id));
+      const promises = TABELAS_ORDEM_INDIVIDUAL.map(tabela => sb.from(tabela).select('*').eq('empresa_id', id));
       const results = await Promise.all(promises);
 
-      TABELAS_ORDEM.forEach((tabela, index) => {
+      TABELAS_ORDEM_INDIVIDUAL.forEach((tabela, index) => {
          backupObj.dados[tabela] = results[index].data || [];
       });
 
@@ -600,7 +688,7 @@
 
 
   // ==========================================
-  // IMPORTAR BACKUP (RESTAURAR 1 EMPRESA)
+  // IMPORTAR BACKUP INDIVIDUAL (RESTAURAR 1 EMPRESA)
   // ==========================================
   function openModalRestore(id, nome) {
     document.getElementById('rstClienteId').value = id;
@@ -636,7 +724,7 @@
 
       let injetados = 0;
 
-      for (const tabela of TABELAS_ORDEM) {
+      for (const tabela of TABELAS_ORDEM_INDIVIDUAL) {
         const linhas = backup.dados[tabela];
         if (linhas && linhas.length > 0) {
           const { error } = await sb.from(tabela).upsert(linhas);
@@ -652,7 +740,7 @@
          await sb.from('usuarios_clientes').upsert(backup.dados.conta_acesso);
       }
 
-      showToast(`Restauração efetuada com sucesso!`, 'success');
+      showToast(`${injetados} registos restaurados com sucesso!`, 'success');
       closeModal('modalRestoreIndividual');
 
     } catch (err) {
