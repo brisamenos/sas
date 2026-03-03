@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MicroCred - Backup Geral do Sistema</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    
+    :root {
+      --bg: #09090b; --surface: #18181b; --surface-border: #27272a;
+      --primary: #10b981; /* Verde Segurança */
+      --primary-hover: #059669;
+      --text: #fafafa; --text-dim: #a1a1aa;
+      --danger: #ef4444; --warning: #f59e0b;
+      --radius: 12px; --transition: all 0.3s ease;
+    }
+
+    body { 
+      font-family: 'Inter', sans-serif; 
+      background: radial-gradient(circle at top center, #18181b 0%, #09090b 100%); 
+      color: var(--text); 
+      min-height: 100vh; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center; 
+      padding: 20px;
+    }
+    
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: var(--radius);
+      padding: 40px;
+      width: 100%;
+      max-width: 500px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+      background: linear-gradient(90deg, transparent, var(--primary), transparent);
+    }
+
+    .header-icon {
+      width: 64px; height: 64px; 
+      background: rgba(16, 185, 129, 0.1); 
+      color: var(--primary);
+      border-radius: 16px; 
+      display: flex; align-items: center; justify-content: center; 
+      margin: 0 auto 20px;
+    }
+
+    h1 { font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 10px; letter-spacing: -0.5px; }
+    p.subtitle { text-align: center; color: var(--text-dim); font-size: 14px; margin-bottom: 30px; line-height: 1.5; }
+
+    .form-group { margin-bottom: 20px; display: flex; flex-direction: column; gap: 8px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; }
+    .form-group input { 
+      padding: 14px; border-radius: 8px; border: 1px solid var(--surface-border); 
+      background: #09090b; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 14px; 
+      transition: var(--transition); outline: none; width: 100%; 
+    }
+    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15); }
+
+    .btn { 
+      width: 100%; padding: 16px; border-radius: 8px; border: none; 
+      font-weight: 700; font-size: 15px; cursor: pointer; transition: var(--transition); 
+      display: flex; align-items: center; justify-content: center; gap: 10px; 
+    }
+    .btn-primary { background: var(--primary); color: #000; box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3); }
+    .btn-primary:hover { background: var(--primary-hover); transform: translateY(-2px); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+    /* Console de Log (Estilo Terminal) */
+    .console-box {
+      background: #000; border: 1px solid var(--surface-border); border-radius: 8px;
+      padding: 15px; margin-top: 25px; height: 180px; overflow-y: auto;
+      font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #a1a1aa;
+      display: flex; flex-direction: column; gap: 6px; display: none;
+    }
+    .log-line { margin: 0; }
+    .log-info { color: #3b82f6; }
+    .log-success { color: var(--primary); }
+    .log-error { color: var(--danger); }
+    .log-warning { color: var(--warning); }
+
+    /* Animação de Loading no botão */
+    .spinner { width: 18px; height: 18px; border: 3px solid rgba(0,0,0,0.3); border-radius: 50%; border-top-color: #000; animation: spin 1s ease-in-out infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    #backupPanel { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="card" id="loginPanel">
+  <div class="header-icon">
+    <svg style="width:32px;height:32px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+  </div>
+  <h1>Cofre de Segurança</h1>
+  <p class="subtitle">Acesso restrito para extração de dados globais (SaaS).</p>
+
+  <div class="form-group">
+    <label>Chave de Acesso (Admin)</label>
+    <input type="password" id="admPass" placeholder="••••••••" onkeypress="if(event.key === 'Enter') login()">
+  </div>
+  <button class="btn btn-primary" onclick="login()">Autenticar Acesso</button>
+</div>
+
+<div class="card" id="backupPanel">
+  <div class="header-icon" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+    <svg style="width:32px;height:32px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+  </div>
+  <h1>Extrator Global de Dados</h1>
+  <p class="subtitle">Esta ferramenta compila <strong>todas as tabelas</strong> de <strong>todas as empresas</strong> num único ficheiro JSON criptografado.</p>
+
+  <button class="btn btn-primary" id="btnIniciar" onclick="iniciarBackup()">
+    <div class="spinner" id="spinner"></div>
+    <span id="btnText">Iniciar Backup Geral (Full Dump)</span>
+  </button>
+
+  <div class="console-box" id="consoleBox">
+    <p class="log-line">Sistema pronto. Aguardando comando...</p>
+  </div>
+
+  <button class="btn" style="background: transparent; color: var(--text-dim); margin-top: 15px; font-size: 13px;" onclick="location.reload()">Sair / Travar Cofre</button>
+</div>
+
+<script>
+  // ==========================================
+  // CONFIGURAÇÕES SUPABASE
+  // ==========================================
+  const SUPABASE_URL = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  // Lista de todas as tabelas do seu sistema que serão extraídas
+  const TABELAS_SISTEMA = [
+    'usuarios_clientes', // A tabela com os inquilinos (Super Admin)
+    'clientes', 
+    'avalistas', 
+    'micro_negocios', 
+    'operacoes', 
+    'parcelas', 
+    'avaliacao_financeira', 
+    'fluxo_caixa', 
+    'renovacoes', 
+    'historico_cobrancas', 
+    'inadimplencia'
+  ];
+
+  // Função Simples de Autenticação
+  function login() {
+    const pass = document.getElementById('admPass').value;
+    
+    // Altere a senha se necessário (coloquei 123456 como padrão)
+    if(pass === '123456') { 
+      document.getElementById('loginPanel').style.display = 'none';
+      document.getElementById('backupPanel').style.display = 'block';
+    } else {
+      alert('Acesso negado. Senha incorreta.');
+    }
+  }
+
+  // Função para escrever na "Tela preta" de Log
+  function log(msg, type = '') {
+    const consoleBox = document.getElementById('consoleBox');
+    consoleBox.style.display = 'flex';
+    
+    const time = new Date().toLocaleTimeString('pt-PT');
+    const p = document.createElement('p');
+    p.className = `log-line ${type}`;
+    p.textContent = `[${time}] > ${msg}`;
+    
+    consoleBox.appendChild(p);
+    consoleBox.scrollTop = consoleBox.scrollHeight; // Rola para o final automaticamente
+  }
+
+  // Função Principal: INICIAR O BACKUP MASSIVO
+  async function iniciarBackup() {
+    const btn = document.getElementById('btnIniciar');
+    const btnText = document.getElementById('btnText');
+    const spinner = document.getElementById('spinner');
+
+    btn.disabled = true;
+    btnText.textContent = 'A extrair dados...';
+    spinner.style.display = 'block';
+
+    log('Autenticação verificada. Iniciando rotina de Backup Geral...', 'log-info');
+    
+    let backupTotal = {
+      meta: {
+        tipo: 'Full_System_Dump',
+        data_extracao: new Date().toISOString(),
+        total_tabelas: TABELAS_SISTEMA.length
+      },
+      dados: {}
+    };
+
+    try {
+      // Loop pelas tabelas para baixar cada uma delas
+      for (let i = 0; i < TABELAS_SISTEMA.length; i++) {
+        const tabela = TABELAS_SISTEMA[i];
+        log(`A consultar tabela: ${tabela}...`);
+        
+        // Faz a busca sem filtro (traz TODOS OS CLIENTES de TODAS AS EMPRESAS)
+        // Usamos .limit(15000) para garantir que puxa bastante volume caso haja limite padrão.
+        const { data, error } = await sb.from(tabela).select('*').limit(15000);
+        
+        if (error) {
+          log(`Erro na tabela ${tabela}: ${error.message}`, 'log-error');
+          backupTotal.dados[tabela] = { erro: error.message };
+        } else {
+          const count = data ? data.length : 0;
+          log(`Sucesso! Encontrados ${count} registros em ${tabela}.`, 'log-success');
+          backupTotal.dados[tabela] = data;
+        }
+      }
+
+      log('Compilando pacote JSON...', 'log-info');
+
+      // Gera o ficheiro de download
+      const jsonString = JSON.stringify(backupTotal, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `SaaS_BackupGeral_${new Date().toISOString().slice(0,10)}.json`;
+      
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      log('Backup Global concluído com sucesso! Download iniciado.', 'log-success');
+      btnText.textContent = 'Backup Transferido';
+      btn.classList.add('btn-success');
+      
+    } catch (e) {
+      log(`FALHA CRÍTICA: ${e.message}`, 'log-error');
+      btnText.textContent = 'Erro no Backup';
+    } finally {
+      spinner.style.display = 'none';
+      setTimeout(() => {
+        btn.disabled = false;
+        btnText.textContent = 'Iniciar Novo Backup Geral';
+        btn.classList.remove('btn-success');
+      }, 5000);
+    }
+  }
+</script>
+</body>
+</html>
