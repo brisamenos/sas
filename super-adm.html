@@ -42,6 +42,7 @@
     /* Forms */
     .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end; }
     .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group.full { grid-column: 1 / -1; }
     .form-group label { font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
     .form-group input { padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15,23,42,0.6); color: var(--text); font-family: inherit; font-size: 14px; transition: var(--transition); outline: none; width: 100%; }
     .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15); background: var(--bg); }
@@ -67,6 +68,7 @@
     .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-secondary); transition: var(--transition); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
     .btn-icon:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border); transform: scale(1.05); }
     
+    .btn-icon.edit:hover { color: var(--info); border-color: var(--info); background: rgba(59,130,246,0.1); }
     .btn-icon.pic:hover { color: #ec4899; border-color: #ec4899; background: rgba(236,72,153,0.1); }
     .btn-icon.renew:hover { color: var(--info); border-color: var(--info); background: rgba(59,130,246,0.1); }
     .btn-icon.lock:hover { color: var(--warning); border-color: var(--warning); background: rgba(245,158,11,0.1); }
@@ -78,7 +80,7 @@
 
     /* Table */
     .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    table { width: 100%; border-collapse: collapse; min-width: 950px; }
+    table { width: 100%; border-collapse: collapse; min-width: 1050px; }
     th { padding: 15px 20px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; border-bottom: 2px solid var(--border); letter-spacing: 0.5px; white-space: nowrap; }
     td { padding: 15px 20px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; transition: var(--transition); white-space: nowrap; }
     tbody tr:hover td { background: rgba(255,255,255,0.02); }
@@ -251,6 +253,64 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="modalCopiarCredenciais">
+  <div class="modal" style="max-width: 400px; text-align: center;">
+    <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); color: var(--success); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
+      <svg style="width:26px;height:26px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+    </div>
+    <h3 style="margin-bottom: 5px;">Sucesso!</h3>
+    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">As credenciais da empresa <strong id="copyNomeEmpresa" style="color: #fff;"></strong> foram salvas.</p>
+    
+    <div style="background: rgba(0,0,0,0.2); border: 1px dashed var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: left;">
+      <div style="margin-bottom: 10px;">
+        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Link de Acesso:</span>
+        <div style="font-size: 13px; color: var(--info); font-family: monospace; margin-top: 2px;" id="copyLink">...</div>
+      </div>
+      <div style="margin-bottom: 10px;">
+        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Login:</span>
+        <div style="font-size: 14px; color: #fff; font-weight: bold; margin-top: 2px;" id="copyLogin"></div>
+      </div>
+      <div>
+        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Senha:</span>
+        <div style="font-size: 14px; color: #fff; font-weight: bold; margin-top: 2px;" id="copySenha"></div>
+      </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-direction: column;">
+      <button class="btn btn-success" style="padding: 14px;" onclick="copiarCredenciaisTexto()">Copiar para Enviar</button>
+      <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalCopiarCredenciais')">Fechar Janela</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalEditarEmpresa">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Editar Dados da Empresa</h3>
+      <p>Atualize o nome, login ou senha de acesso deste inquilino.</p>
+    </div>
+    <input type="hidden" id="editEmpId" />
+    <div class="form-grid">
+      <div class="form-group full">
+        <label>Nome da Empresa</label>
+        <input type="text" id="editEmpNome" />
+      </div>
+      <div class="form-group full">
+        <label>Login de Acesso</label>
+        <input type="text" id="editEmpLogin" />
+      </div>
+      <div class="form-group full">
+        <label>Senha de Acesso</label>
+        <input type="text" id="editEmpSenha" />
+      </div>
+    </div>
+    <div style="display: flex; gap: 10px; margin-top: 25px;">
+      <button class="btn btn-outline" style="flex: 1; padding: 12px;" onclick="closeModal('modalEditarEmpresa')">Cancelar</button>
+      <button class="btn btn-primary" style="flex: 1; padding: 12px;" id="btnSalvarEdicaoEmpresa" onclick="salvarEdicaoEmpresa()">Salvar Alterações</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="modalLogoAdmin">
   <div class="modal">
     <div class="modal-header">
@@ -387,7 +447,6 @@
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const DEFAULT_LOGO = 'https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png';
 
-  // O utilizador_cliente DEVE ser a primeira tabela a ser inserida no Backup Global
   const TABELAS_SISTEMA = [
     'usuarios_clientes', 
     'clientes', 
@@ -402,7 +461,6 @@
     'inadimplencia'
   ];
 
-  // Tabelas apenas de dados para restauro individual (exclui o admin)
   const TABELAS_ORDEM_INDIVIDUAL = TABELAS_SISTEMA.slice(1);
 
   // ==========================================
@@ -441,17 +499,22 @@
   // GESTÃO DE CLIENTES (CRIAR E LER)
   // ==========================================
   async function salvarCliente() {
-    const obj = {
-      nome_empresa: document.getElementById('cEmpresa').value,
-      usuario: document.getElementById('cLogin').value,
-      senha: document.getElementById('cSenha').value,
-      vencimento: document.getElementById('cVenc').value,
-      status: 'ativo'
-    };
+    const nomeEmpresa = document.getElementById('cEmpresa').value;
+    const usuario = document.getElementById('cLogin').value;
+    const senha = document.getElementById('cSenha').value;
+    const vencimento = document.getElementById('cVenc').value;
 
-    if(!obj.nome_empresa || !obj.usuario || !obj.senha || !obj.vencimento) {
+    if(!nomeEmpresa || !usuario || !senha || !vencimento) {
       showToast('Preencha todos os campos do formulário.', 'warning'); return;
     }
+
+    const obj = {
+      nome_empresa: nomeEmpresa,
+      usuario: usuario,
+      senha: senha,
+      vencimento: vencimento,
+      status: 'ativo'
+    };
 
     const { error } = await sb.from('usuarios_clientes').insert([obj]);
     if(error) { 
@@ -460,12 +523,17 @@
       showToast('Novo inquilino criado com sucesso!', 'success'); 
       limparCampos(); 
       carregarClientes(); 
+      
+      // Abre o modal para copiar credenciais
+      mostrarModalCopiar(nomeEmpresa, usuario, senha);
     }
   }
 
   function limparCampos() {
-    document.getElementById('cEmpresa').value = ''; document.getElementById('cLogin').value = '';
-    document.getElementById('cSenha').value = ''; document.getElementById('cVenc').value = '';
+    document.getElementById('cEmpresa').value = ''; 
+    document.getElementById('cLogin').value = '';
+    document.getElementById('cSenha').value = ''; 
+    document.getElementById('cVenc').value = '';
   }
 
   async function carregarClientes() {
@@ -487,6 +555,7 @@
       else if (c.status === 'ativo') stats.ativos++;
 
       // SVGs dos ícones
+      const iconEdit = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
       const iconPic = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
       const iconDate = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
       const iconLock = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
@@ -511,6 +580,7 @@
           <td><span class="badge ${corBadge}">${textStatus}</span></td>
           <td style="text-align: center;">
             <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
+              <button class="btn btn-icon edit" title="Editar Dados da Empresa" onclick="openModalEditarEmpresa('${c.id}', '${c.nome_empresa}', '${c.usuario}', '${c.senha}')">${iconEdit}</button>
               <button class="btn btn-icon pic" title="Alterar Logo" onclick="openModalLogo('${c.id}', '${c.logo_url || ''}')">${iconPic}</button>
               <button class="btn btn-icon renew" title="Renovar Assinatura" onclick="openModalRenovar('${c.id}', '${c.nome_empresa}', '${c.vencimento}')">${iconDate}</button>
               ${btnLock}
@@ -533,6 +603,82 @@
     showToast(`Status alterado para ${novoStatus}.`, 'success');
     carregarClientes();
   }
+
+  // ==========================================
+  // EDITAR EMPRESA (NOME, LOGIN, SENHA) E COPIAR
+  // ==========================================
+  function openModalEditarEmpresa(id, nome, usuario, senha) {
+    document.getElementById('editEmpId').value = id;
+    document.getElementById('editEmpNome').value = nome;
+    document.getElementById('editEmpLogin').value = usuario;
+    document.getElementById('editEmpSenha').value = senha;
+    openModal('modalEditarEmpresa');
+  }
+
+  async function salvarEdicaoEmpresa() {
+    const id = document.getElementById('editEmpId').value;
+    const nome = document.getElementById('editEmpNome').value.trim();
+    const usuario = document.getElementById('editEmpLogin').value.trim();
+    const senha = document.getElementById('editEmpSenha').value.trim();
+    const btn = document.getElementById('btnSalvarEdicaoEmpresa');
+
+    if(!nome || !usuario || !senha) {
+      showToast('Preencha todos os campos obrigatórios.', 'warning');
+      return;
+    }
+
+    btn.textContent = 'A Guardar...'; btn.disabled = true;
+
+    try {
+      const { error } = await sb.from('usuarios_clientes')
+        .update({ nome_empresa: nome, usuario: usuario, senha: senha })
+        .eq('id', id);
+      
+      if(error) throw error;
+
+      showToast('Dados da empresa atualizados com sucesso!', 'success');
+      closeModal('modalEditarEmpresa');
+      carregarClientes();
+      
+      // Abre o modal de copiar credenciais
+      mostrarModalCopiar(nome, usuario, senha);
+
+    } catch(e) {
+      showToast('Erro ao atualizar: ' + e.message, 'error');
+    } finally {
+      btn.textContent = 'Salvar Alterações'; btn.disabled = false;
+    }
+  }
+
+  // FUNÇÕES DE COPIAR CREDENCIAIS
+  function mostrarModalCopiar(nome, usuario, senha) {
+    document.getElementById('copyNomeEmpresa').textContent = nome;
+    document.getElementById('copyLogin').textContent = usuario;
+    document.getElementById('copySenha').textContent = senha;
+    
+    // Calcula automaticamente o link do sistema (substitui o ficheiro atual por login.html)
+    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf("/")) + "/login.html";
+    document.getElementById('copyLink').textContent = baseUrl;
+
+    openModal('modalCopiarCredenciais');
+  }
+
+  function copiarCredenciaisTexto() {
+    const nome = document.getElementById('copyNomeEmpresa').textContent;
+    const login = document.getElementById('copyLogin').textContent;
+    const senha = document.getElementById('copySenha').textContent;
+    const link = document.getElementById('copyLink').textContent;
+
+    const texto = `Olá!\nAqui estão os dados de acesso ao sistema ${nome}:\n\n🔗 Link: ${link}\n👤 Login: ${login}\n🔑 Senha: ${senha}\n\nGuarde estas informações em segurança.`;
+
+    navigator.clipboard.writeText(texto).then(() => {
+      showToast('Credenciais copiadas com sucesso!', 'success');
+      closeModal('modalCopiarCredenciais');
+    }).catch(err => {
+      showToast('Erro ao copiar. O seu navegador pode ter bloqueado.', 'error');
+    });
+  }
+
 
   // ==========================================
   // BACKUP GLOBAL (EXPORTAR E IMPORTAR)
@@ -617,7 +763,6 @@
 
       let injetados = 0;
 
-      // Restaura todas as tabelas (incluindo usuários) pela ordem correta
       for (const tabela of TABELAS_SISTEMA) {
         const linhas = backup.dados[tabela];
         if (linhas && linhas.length > 0) {
@@ -630,7 +775,7 @@
         }
       }
 
-      showToast(`Restauração Global concluída! ${injetados} registos atualizados em todo o sistema.`, 'success');
+      showToast(`Restauração Global concluída! ${injetados} registos atualizados.`, 'success');
       closeModal('modalRestoreGlobal');
 
     } catch (err) {
@@ -685,7 +830,6 @@
       showToast(`Erro ao gerar backup: ${e.message}`, 'error');
     }
   }
-
 
   // ==========================================
   // IMPORTAR BACKUP INDIVIDUAL (RESTAURAR 1 EMPRESA)
@@ -752,7 +896,6 @@
     }
   }
 
-
   // ==========================================
   // RENOVAÇÃO DE ASSINATURA
   // ==========================================
@@ -800,7 +943,6 @@
     atualizarVencimento(id, novaDataStr);
   }
 
-
   // ==========================================
   // EXCLUSÃO SEGURA DE CLIENTE
   // ==========================================
@@ -835,7 +977,6 @@
       btn.textContent = "Sim, Excluir Definitivamente"; btn.disabled = false;
     }
   }
-
 
   // ==========================================
   // GESTÃO DA LOGO DA TELA DE LOGIN
