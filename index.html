@@ -802,7 +802,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalNegocio')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveNegocio()">Salvar Negócio</button>
+      <button class="btn btn-primary" onclick="saveNegocio()" id="btnSaveNegocio">Salvar Negócio</button>
     </div>
   </div>
 </div>
@@ -848,7 +848,7 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalOperacao')">Cancelar</button>
       <button class="btn btn-success" onclick="saveOperacaoAndGenerateParcelas()" id="btnSaveOpParcelas">Salvar e Gerar Parcelas</button>
-      <button class="btn btn-primary" onclick="saveOperacao()">Apenas Salvar</button>
+      <button class="btn btn-primary" onclick="saveOperacao()" id="btnSaveOperacao">Apenas Salvar</button>
     </div>
   </div>
 </div>
@@ -873,7 +873,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalPagarParcela')">Cancelar</button>
-      <button class="btn btn-success" style="width: 100%;" onclick="pagarParcela()">Confirmar Recebimento</button>
+      <button class="btn btn-success" style="width: 100%;" onclick="pagarParcela()" id="btnConfirmPagarParcela">Confirmar Recebimento</button>
     </div>
   </div>
 </div>
@@ -912,7 +912,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalAvaliacao')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveAvaliacao()">Salvar Avaliação</button>
+      <button class="btn btn-primary" onclick="saveAvaliacao()" id="btnSaveAvaliacao">Salvar Avaliação</button>
     </div>
   </div>
 </div>
@@ -949,7 +949,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalFluxo')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveFluxo()">Salvar Fluxo</button>
+      <button class="btn btn-primary" onclick="saveFluxo()" id="btnSaveFluxo">Salvar Fluxo</button>
     </div>
   </div>
 </div>
@@ -973,7 +973,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalRenovacao')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveRenovacao()">Salvar Renovação</button>
+      <button class="btn btn-primary" onclick="saveRenovacao()" id="btnSaveRenovacao">Salvar Renovação</button>
     </div>
   </div>
 </div>
@@ -1009,7 +1009,6 @@
     </div>
   </div>
 </div>
-
 
 <script>
   // =============================================
@@ -1081,11 +1080,8 @@
     
     document.getElementById('pageTitle').textContent = pageTitles[page] || page;
     
-    // Fecha sidebar no mobile
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlayBg').classList.remove('open');
-    
-    // Rola para o topo ao trocar de página
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
     switch (page) {
@@ -1098,7 +1094,6 @@
       case 'operacoes': loadOperacoes(); break;
       case 'parcelas': loadParcelas(); break; 
       case 'inadimplencia': 
-          // Atualiza a inadimplência automaticamente ao abrir a página!
           document.getElementById('tblInadimplencia').innerHTML = '<tr><td colspan="5" class="empty-state">A sincronizar dados...</td></tr>';
           checkInadimplencia(null); 
           break;
@@ -1111,121 +1106,6 @@
   function toggleSidebar() {
     document.getElementById('sidebar').classList.toggle('open');
     document.getElementById('overlayBg').classList.toggle('open');
-  }
-
-  // =============================================
-  // MEU PLANO E CONFIGURAÇÃO DA LOGO
-  // =============================================
-  function loadPlano() {
-    const venc = sessionStorage.getItem('microcred_vencimento');
-    if (venc) {
-      const dateObj = new Date(venc + 'T00:00:00');
-      const hoje = new Date();
-      hoje.setHours(0,0,0,0);
-      const diffTime = dateObj - hoje;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
-      document.getElementById('planoDataVenc').textContent = dateObj.toLocaleDateString('pt-BR');
-      const diasEl = document.getElementById('planoDiasRestantes');
-      
-      if (diffDays < 0) {
-          diasEl.textContent = 'Expirado';
-          diasEl.style.color = 'var(--danger)';
-      } else if (diffDays <= 7) {
-          diasEl.textContent = diffDays + ' dias (Vence em breve!)';
-          diasEl.style.color = 'var(--danger)';
-      } else {
-          diasEl.textContent = diffDays + ' dias';
-          diasEl.style.color = 'var(--success-text)';
-      }
-    }
-
-    const currentLogo = sessionStorage.getItem('microcred_logo');
-    if (currentLogo && currentLogo !== 'null') {
-       document.getElementById('previewLogoPlano').src = currentLogo;
-    } else {
-       document.getElementById('previewLogoPlano').src = DEFAULT_LOGO;
-    }
-  }
-
-  function handleLogoClick() {
-    const currentLogo = sessionStorage.getItem('microcred_logo');
-    if (currentLogo && currentLogo !== DEFAULT_LOGO && currentLogo !== 'null') {
-      openModal('modalConfirmDeleteLogo');
-    } else {
-      openLogoSelector();
-    }
-  }
-
-  function openLogoSelector() {
-    closeModal('modalConfirmDeleteLogo');
-    document.getElementById('uploadLogoPlano').click();
-  }
-
-  async function confirmDeleteLogo() {
-    closeModal('modalConfirmDeleteLogo');
-    try {
-      showToast('A excluir logótipo...', 'info');
-      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', EMPRESA_ID).single();
-      if (currentData && currentData.logo_url) {
-        const oldUrl = currentData.logo_url;
-        if (oldUrl.includes('/storage/v1/object/public/imagens/logos/')) {
-          const filePath = oldUrl.split('/public/imagens/')[1];
-          if (filePath) await sb.storage.from('imagens').remove([filePath]);
-        }
-      }
-      await sb.from('usuarios_clientes').update({ logo_url: null }).eq('id', EMPRESA_ID);
-
-      sessionStorage.setItem('microcred_logo', DEFAULT_LOGO);
-      localStorage.setItem('microcred_saved_logo', DEFAULT_LOGO); 
-      document.getElementById('sidebarLogo').src = DEFAULT_LOGO;
-      document.getElementById('previewLogoPlano').src = DEFAULT_LOGO;
-      document.getElementById('uploadLogoPlano').value = '';
-
-      showToast('Logótipo excluído! Padrão restaurado.', 'success');
-    } catch (e) { showToast('Erro ao excluir: ' + e.message, 'error'); }
-  }
-
-  function previewLogo(event) {
-    const file = event.target.files[0];
-    if (file) {
-       const reader = new FileReader();
-       reader.onload = function(e) { document.getElementById('previewLogoPlano').src = e.target.result; }
-       reader.readAsDataURL(file);
-    }
-  }
-
-  async function saveLogoPlano() {
-    const fileInput = document.getElementById('uploadLogoPlano');
-    const file = fileInput.files[0];
-    if(!file) { showToast('Por favor, clique no espaço e selecione uma imagem.', 'error'); return; }
-
-    const btn = document.getElementById('btnSalvarLogoPlano');
-    const originalText = btn.innerHTML;
-    btn.textContent = 'Enviando...'; btn.disabled = true;
-
-    try {
-      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', EMPRESA_ID).single();
-      if (currentData && currentData.logo_url && currentData.logo_url.includes('/storage/v1/object/public/imagens/logos/')) {
-        const filePath = currentData.logo_url.split('/public/imagens/')[1];
-        if (filePath) await sb.storage.from('imagens').remove([filePath]);
-      }
-      
-      const url = await uploadFileToSupabase(file, 'logos');
-      const { error: dbError } = await sb.from('usuarios_clientes').update({ logo_url: url }).eq('id', EMPRESA_ID);
-      if (dbError) throw new Error(dbError.message);
-      
-      sessionStorage.setItem('microcred_logo', url);
-      localStorage.setItem('microcred_saved_logo', url);
-      document.getElementById('sidebarLogo').src = url;
-      document.getElementById('previewLogoPlano').src = url; 
-      
-      showToast('Logótipo atualizado com sucesso!', 'success');
-    } catch(e) {
-      showToast('Falha ao guardar: ' + e.message, 'error');
-    } finally {
-      btn.innerHTML = originalText; btn.disabled = false;
-    }
   }
 
   // =============================================
@@ -1290,7 +1170,7 @@
     if (!file) return null;
     const fileExt = file.name.split('.').pop();
     const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-    const { data, error } = await sb.storage.from('imagens').upload(fileName, file);
+    const { error } = await sb.storage.from('imagens').upload(fileName, file);
     if (error) throw new Error(error.message);
     return sb.storage.from('imagens').getPublicUrl(fileName).data.publicUrl;
   }
@@ -1307,6 +1187,84 @@
     document.getElementById(selectId).innerHTML = '<option value="">Selecione</option>' + (data || []).map(n =>
       `<option value="${n.id}" ${n.id === selectedId ? 'selected' : ''}>${n.nome_fantasia || 'Sem nome'}</option>`
     ).join('');
+  }
+
+  // =============================================
+  // MEU PLANO E CONFIGURAÇÃO DA LOGO
+  // =============================================
+  function loadPlano() {
+    const venc = sessionStorage.getItem('microcred_vencimento');
+    if (venc) {
+      const dateObj = new Date(venc + 'T00:00:00');
+      const hoje = new Date();
+      hoje.setHours(0,0,0,0);
+      const diffTime = dateObj - hoje;
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
+      document.getElementById('planoDataVenc').textContent = dateObj.toLocaleDateString('pt-BR');
+      const diasEl = document.getElementById('planoDiasRestantes');
+      
+      if (diffDays < 0) {
+          diasEl.textContent = 'Expirado'; diasEl.style.color = 'var(--danger)';
+      } else if (diffDays <= 7) {
+          diasEl.textContent = diffDays + ' dias (Vence em breve!)'; diasEl.style.color = 'var(--danger)';
+      } else {
+          diasEl.textContent = diffDays + ' dias'; diasEl.style.color = 'var(--success-text)';
+      }
+    }
+    const currentLogo = sessionStorage.getItem('microcred_logo');
+    document.getElementById('previewLogoPlano').src = (currentLogo && currentLogo !== 'null') ? currentLogo : DEFAULT_LOGO;
+  }
+
+  function handleLogoClick() {
+    const currentLogo = sessionStorage.getItem('microcred_logo');
+    if (currentLogo && currentLogo !== DEFAULT_LOGO && currentLogo !== 'null') openModal('modalConfirmDeleteLogo');
+    else openLogoSelector();
+  }
+
+  function openLogoSelector() { closeModal('modalConfirmDeleteLogo'); document.getElementById('uploadLogoPlano').click(); }
+
+  async function confirmDeleteLogo() {
+    closeModal('modalConfirmDeleteLogo');
+    try {
+      showToast('A excluir logótipo...', 'info');
+      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', EMPRESA_ID).single();
+      if (currentData && currentData.logo_url && currentData.logo_url.includes('/storage/v1/object/public/imagens/logos/')) {
+          const filePath = currentData.logo_url.split('/public/imagens/')[1];
+          if (filePath) await sb.storage.from('imagens').remove([filePath]);
+      }
+      await sb.from('usuarios_clientes').update({ logo_url: null }).eq('id', EMPRESA_ID);
+      sessionStorage.setItem('microcred_logo', DEFAULT_LOGO);
+      localStorage.setItem('microcred_saved_logo', DEFAULT_LOGO); 
+      document.getElementById('sidebarLogo').src = DEFAULT_LOGO;
+      document.getElementById('previewLogoPlano').src = DEFAULT_LOGO;
+      document.getElementById('uploadLogoPlano').value = '';
+      showToast('Logótipo excluído! Padrão restaurado.', 'success');
+    } catch (e) { showToast('Erro ao excluir: ' + e.message, 'error'); }
+  }
+
+  function previewLogo(event) {
+    const file = event.target.files[0];
+    if (file) { const r = new FileReader(); r.onload = function(e) { document.getElementById('previewLogoPlano').src = e.target.result; }; r.readAsDataURL(file); }
+  }
+
+  async function saveLogoPlano() {
+    const file = document.getElementById('uploadLogoPlano').files[0];
+    if(!file) return showToast('Selecione uma imagem primeiro.', 'error');
+    const btn = document.getElementById('btnSalvarLogoPlano');
+    btn.textContent = 'Enviando...'; btn.disabled = true;
+    try {
+      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', EMPRESA_ID).single();
+      if (currentData && currentData.logo_url && currentData.logo_url.includes('/storage/v1/object/public/imagens/logos/')) {
+          const filePath = currentData.logo_url.split('/public/imagens/')[1];
+          if (filePath) await sb.storage.from('imagens').remove([filePath]);
+      }
+      const url = await uploadFileToSupabase(file, 'logos');
+      await sb.from('usuarios_clientes').update({ logo_url: url }).eq('id', EMPRESA_ID);
+      sessionStorage.setItem('microcred_logo', url); localStorage.setItem('microcred_saved_logo', url);
+      document.getElementById('sidebarLogo').src = url; document.getElementById('previewLogoPlano').src = url; 
+      showToast('Logótipo atualizado com sucesso!', 'success');
+    } catch(e) { showToast('Falha: ' + e.message, 'error'); } finally { btn.textContent = 'Atualizar Logótipo'; btn.disabled = false; }
   }
 
   // =============================================
@@ -1411,7 +1369,6 @@
      if(!c) return;
 
      document.getElementById('viewNome').textContent = c.nome;
-     
      let docsHtml = '';
      if(c.doc_frente) docsHtml += `<div style="margin-top:10px;"><p style="font-size:12px;color:var(--text-light)">Doc Frente:</p><img src="${c.doc_frente}" style="max-width:100%; border-radius:6px; margin-top:5px; border:1px solid #ccc; max-height:200px;" /></div>`;
      if(c.doc_verso) docsHtml += `<div style="margin-top:10px;"><p style="font-size:12px;color:var(--text-light)">Doc Verso:</p><img src="${c.doc_verso}" style="max-width:100%; border-radius:6px; margin-top:5px; border:1px solid #ccc; max-height:200px;" /></div>`;
@@ -1439,472 +1396,146 @@
     const printWindow = window.open('', '_blank');
     printWindow.document.write(`
       <html>
-        <head>
-          <title>Ficha do Cliente - ${c.nome}</title>
-          <style>
-            body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; line-height: 1.6; }
-            h1 { border-bottom: 2px solid #ea580c; color: #ea580c; padding-bottom: 10px; margin-bottom: 20px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; width: 30%; }
-            td { padding: 12px; border-bottom: 1px solid #e2e8f0; }
-            .doc-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; display: block; }
-          </style>
-        </head>
+        <head><title>Ficha - ${c.nome}</title><style>body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; line-height: 1.6; } h1 { border-bottom: 2px solid #ea580c; color: #ea580c; padding-bottom: 10px; margin-bottom: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 20px; } th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; width: 30%; } td { padding: 12px; border-bottom: 1px solid #e2e8f0; } .doc-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; display: block; }</style></head>
         <body>
           <h1>Ficha de Cadastro: ${c.nome}</h1>
           <table>
-            <tr><th>CPF</th><td>${c.cpf}</td></tr>
-            <tr><th>RG</th><td>${c.rg || '-'}</td></tr>
-            <tr><th>Data Nasc.</th><td>${fmtDate(c.data_nascimento)}</td></tr>
-            <tr><th>Estado Civil</th><td>${c.estado_civil || '-'}</td></tr>
-            <tr><th>Escolaridade</th><td>${c.escolaridade || '-'}</td></tr>
-            <tr><th>Telefone</th><td>${c.telefone || '-'}</td></tr>
-            <tr><th>Celular</th><td>${c.celular || '-'}</td></tr>
+            <tr><th>CPF</th><td>${c.cpf}</td></tr><tr><th>RG</th><td>${c.rg || '-'}</td></tr><tr><th>Data Nasc.</th><td>${fmtDate(c.data_nascimento)}</td></tr>
+            <tr><th>Estado Civil</th><td>${c.estado_civil || '-'}</td></tr><tr><th>Escolaridade</th><td>${c.escolaridade || '-'}</td></tr>
+            <tr><th>Telefone</th><td>${c.telefone || '-'}</td></tr><tr><th>Celular</th><td>${c.celular || '-'}</td></tr>
             <tr><th>E-mail</th><td>${c.email || '-'}</td></tr>
             <tr><th>Endereço</th><td>${c.endereco || '-'}, ${c.numero || '-'} ${c.complemento ? ' - ' + c.complemento : ''}<br>${c.bairro || '-'} - ${c.cidade || '-'}/${c.uf || '-'} (CEP: ${c.cep || '-'})</td></tr>
-            <tr><th>Renda Mensal</th><td>${fmt(c.renda_mensal)}</td></tr>
-            <tr><th>Despesa Mensal</th><td>${fmt(c.despesa_mensal)}</td></tr>
-            <tr><th>Observações</th><td>${c.observacoes || '-'}</td></tr>
+            <tr><th>Renda Mensal</th><td>${fmt(c.renda_mensal)}</td></tr><tr><th>Despesa Mensal</th><td>${fmt(c.despesa_mensal)}</td></tr><tr><th>Observações</th><td>${c.observacoes || '-'}</td></tr>
           </table>
           ${c.doc_frente ? `<h3>Doc (Frente)</h3><img src="${c.doc_frente}" class="doc-img"/>` : ''}
           ${c.doc_verso ? `<h3>Doc (Verso)</h3><img src="${c.doc_verso}" class="doc-img"/>` : ''}
           <script>setTimeout(() => { window.print(); window.close(); }, 1000);<\/script>
         </body>
-      </html>
-    `);
+      </html>`);
     printWindow.document.close();
   }
 
   function openClienteModal(c) {
     document.getElementById('modalClienteTitle').textContent = c ? 'Editar Cliente' : 'Novo Cliente';
     document.getElementById('clienteId').value = c ? c.id : '';
-    document.getElementById('cDocFrente').value = '';
-    document.getElementById('cDocVerso').value = '';
-    document.getElementById('cDocFrenteUrl').value = c?.doc_frente || '';
-    document.getElementById('cDocVersoUrl').value = c?.doc_verso || '';
+    document.getElementById('cDocFrente').value = ''; document.getElementById('cDocVerso').value = '';
+    document.getElementById('cDocFrenteUrl').value = c?.doc_frente || ''; document.getElementById('cDocVersoUrl').value = c?.doc_verso || '';
 
-    document.getElementById('cNome').value = c?.nome || '';
-    document.getElementById('cCpf').value = c?.cpf || '';
-    document.getElementById('cRg').value = c?.rg || '';
-    document.getElementById('cNasc').value = c?.data_nascimento || '';
-    document.getElementById('cSexo').value = c?.sexo || '';
-    document.getElementById('cEstCivil').value = c?.estado_civil || '';
-    document.getElementById('cEscol').value = c?.escolaridade || '';
-    document.getElementById('cTel').value = c?.telefone || '';
-    document.getElementById('cCel').value = c?.celular || '';
-    document.getElementById('cEmail').value = c?.email || '';
-    document.getElementById('cCep').value = c?.cep || '';
-    document.getElementById('cEnd').value = c?.endereco || '';
-    document.getElementById('cNum').value = c?.numero || '';
-    document.getElementById('cComp').value = c?.complemento || '';
-    document.getElementById('cBairro').value = c?.bairro || '';
-    document.getElementById('cCidade').value = c?.cidade || '';
-    document.getElementById('cUf').value = c?.uf || '';
-    
-    document.getElementById('cRenda').value = toMoneyInput(c?.renda_mensal);
-    document.getElementById('cDespesa').value = toMoneyInput(c?.despesa_mensal);
-    
-    document.getElementById('cStatus').value = c?.status || 'ativo';
-    document.getElementById('cObs').value = c?.observacoes || '';
+    document.getElementById('cNome').value = c?.nome || ''; document.getElementById('cCpf').value = c?.cpf || ''; document.getElementById('cRg').value = c?.rg || '';
+    document.getElementById('cNasc').value = c?.data_nascimento || ''; document.getElementById('cSexo').value = c?.sexo || ''; document.getElementById('cEstCivil').value = c?.estado_civil || '';
+    document.getElementById('cEscol').value = c?.escolaridade || ''; document.getElementById('cTel').value = c?.telefone || ''; document.getElementById('cCel').value = c?.celular || '';
+    document.getElementById('cEmail').value = c?.email || ''; document.getElementById('cCep').value = c?.cep || ''; document.getElementById('cEnd').value = c?.endereco || '';
+    document.getElementById('cNum').value = c?.numero || ''; document.getElementById('cComp').value = c?.complemento || ''; document.getElementById('cBairro').value = c?.bairro || '';
+    document.getElementById('cCidade').value = c?.cidade || ''; document.getElementById('cUf').value = c?.uf || ''; 
+    document.getElementById('cRenda').value = toMoneyInput(c?.renda_mensal); document.getElementById('cDespesa').value = toMoneyInput(c?.despesa_mensal);
+    document.getElementById('cStatus').value = c?.status || 'ativo'; document.getElementById('cObs').value = c?.observacoes || '';
     openModal('modalCliente');
   }
 
-  async function editCliente(id) {
-    const { data } = await sb.from('clientes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
-    if (data) openClienteModal(data);
-  }
+  async function editCliente(id) { const { data } = await sb.from('clientes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openClienteModal(data); }
 
   async function saveCliente() {
     const id = document.getElementById('clienteId').value;
     const btnSave = document.getElementById('btnSaveCliente');
-    
-    if (!document.getElementById('cNome').value || !document.getElementById('cCpf').value) {
-      showToast('Nome e CPF são obrigatórios.', 'warning'); return;
-    }
-
+    if (!document.getElementById('cNome').value || !document.getElementById('cCpf').value) return showToast('Nome e CPF são obrigatórios.', 'warning');
     btnSave.textContent = 'A Guardar...'; btnSave.disabled = true;
 
     try {
-      let urlFrente = document.getElementById('cDocFrenteUrl').value;
-      let urlVerso = document.getElementById('cDocVersoUrl').value;
-      const fileFrente = document.getElementById('cDocFrente').files[0];
-      if (fileFrente) urlFrente = await uploadFileToSupabase(fileFrente, 'clientes');
-      const fileVerso = document.getElementById('cDocVerso').files[0];
-      if (fileVerso) urlVerso = await uploadFileToSupabase(fileVerso, 'clientes');
+      let urlFrente = document.getElementById('cDocFrenteUrl').value; let urlVerso = document.getElementById('cDocVersoUrl').value;
+      const fileFrente = document.getElementById('cDocFrente').files[0]; if (fileFrente) urlFrente = await uploadFileToSupabase(fileFrente, 'clientes');
+      const fileVerso = document.getElementById('cDocVerso').files[0]; if (fileVerso) urlVerso = await uploadFileToSupabase(fileVerso, 'clientes');
 
       const obj = {
-        empresa_id: EMPRESA_ID,
-        nome: document.getElementById('cNome').value,
-        cpf: document.getElementById('cCpf').value,
-        rg: document.getElementById('cRg').value,
-        data_nascimento: document.getElementById('cNasc').value || null,
-        sexo: document.getElementById('cSexo').value,
-        estado_civil: document.getElementById('cEstCivil').value,
-        escolaridade: document.getElementById('cEscol').value,
-        telefone: document.getElementById('cTel').value,
-        celular: document.getElementById('cCel').value,
-        email: document.getElementById('cEmail').value,
-        cep: document.getElementById('cCep').value,
-        endereco: document.getElementById('cEnd').value,
-        numero: document.getElementById('cNum').value,
-        complemento: document.getElementById('cComp').value,
-        bairro: document.getElementById('cBairro').value,
-        cidade: document.getElementById('cCidade').value,
-        uf: document.getElementById('cUf').value,
-        renda_mensal: unmaskMoney(document.getElementById('cRenda').value),
-        despesa_mensal: unmaskMoney(document.getElementById('cDespesa').value),
-        status: document.getElementById('cStatus').value,
-        observacoes: document.getElementById('cObs').value,
-        doc_frente: urlFrente,
-        doc_verso: urlVerso,
+        empresa_id: EMPRESA_ID, nome: document.getElementById('cNome').value, cpf: document.getElementById('cCpf').value, rg: document.getElementById('cRg').value,
+        data_nascimento: document.getElementById('cNasc').value || null, sexo: document.getElementById('cSexo').value, estado_civil: document.getElementById('cEstCivil').value,
+        escolaridade: document.getElementById('cEscol').value, telefone: document.getElementById('cTel').value, celular: document.getElementById('cCel').value,
+        email: document.getElementById('cEmail').value, cep: document.getElementById('cCep').value, endereco: document.getElementById('cEnd').value, numero: document.getElementById('cNum').value,
+        complemento: document.getElementById('cComp').value, bairro: document.getElementById('cBairro').value, cidade: document.getElementById('cCidade').value, uf: document.getElementById('cUf').value,
+        renda_mensal: unmaskMoney(document.getElementById('cRenda').value), despesa_mensal: unmaskMoney(document.getElementById('cDespesa').value),
+        status: document.getElementById('cStatus').value, observacoes: document.getElementById('cObs').value, doc_frente: urlFrente, doc_verso: urlVerso,
       };
 
       const { error } = id ? await sb.from('clientes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : await sb.from('clientes').insert(obj);
       if (error) throw error;
-      
       showToast(id ? 'Cliente atualizado!' : 'Cliente registado com sucesso!', 'success');
       closeModal('modalCliente'); loadClientes();
-    } catch (e) { showToast('Erro: ' + e.message, 'error'); } 
-    finally { btnSave.textContent = 'Salvar Cliente'; btnSave.disabled = false; }
+    } catch (e) { showToast('Erro: ' + e.message, 'error'); } finally { btnSave.textContent = 'Salvar Cliente'; btnSave.disabled = false; }
   }
 
-  async function deleteCliente(id) {
-    if (!confirm('Deseja realmente excluir este cliente e todos os seus registos?')) return;
-    await sb.from('clientes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); 
-    showToast('Cliente apagado.', 'success');
-    loadClientes();
-  }
+  async function deleteCliente(id) { if (!confirm('Deseja realmente excluir este cliente e todos os seus registos?')) return; await sb.from('clientes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); showToast('Cliente apagado.', 'success'); loadClientes(); }
 
   // =============================================
-  // AVALISTAS
+  // AVALISTAS E MICRO NEGÓCIOS
   // =============================================
   async function loadAvalistas() {
     const search = (document.getElementById('searchAvalistas')?.value || '').trim();
     let q = sb.from('avalistas').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('nome');
     if (search) q = q.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
     const { data } = await q;
-    document.getElementById('tblAvalistas').innerHTML = (data || []).map(a => `
-      <tr>
-        <td>
-          <div style="display:flex; align-items:center; gap:10px;">
-            ${a.foto_perfil ? `<img src="${a.foto_perfil}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ccc;" />` : ''}
-            <strong>${a.nome}</strong>
-          </div>
-        </td>
-        <td>${a.cpf}</td><td>${a.cliente?.nome || '-'}</td><td>${a.celular || a.telefone || '-'}</td><td>${a.parentesco || '-'}</td>
-        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvalista('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvalista('${a.id}')">Apagar</button></div></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum avalista registado</td></tr>';
+    document.getElementById('tblAvalistas').innerHTML = (data || []).map(a => `<tr><td><div style="display:flex; align-items:center; gap:10px;">${a.foto_perfil ? `<img src="${a.foto_perfil}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ccc;" />` : ''}<strong>${a.nome}</strong></div></td><td>${a.cpf}</td><td>${a.cliente?.nome || '-'}</td><td>${a.celular || a.telefone || '-'}</td><td>${a.parentesco || '-'}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvalista('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvalista('${a.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum avalista registado</td></tr>';
   }
-
-  async function openAvalistaModal(a) {
-    document.getElementById('modalAvalistaTitle').textContent = a ? 'Editar Avalista' : 'Novo Avalista';
-    await loadClienteOptions('aCliente', a?.cliente_id);
-    document.getElementById('avalistaId').value = a?.id || '';
-    document.getElementById('aFoto').value = '';
-    document.getElementById('aFotoUrl').value = a?.foto_perfil || ''; 
-    document.getElementById('aNome').value = a?.nome || '';
-    document.getElementById('aCpf').value = a?.cpf || '';
-    document.getElementById('aRg').value = a?.rg || '';
-    document.getElementById('aTel').value = a?.telefone || '';
-    document.getElementById('aCel').value = a?.celular || '';
-    document.getElementById('aEmail').value = a?.email || '';
-    document.getElementById('aEnd').value = a?.endereco || '';
-    document.getElementById('aNum').value = a?.numero || '';
-    document.getElementById('aBairro').value = a?.bairro || '';
-    document.getElementById('aCidade').value = a?.cidade || '';
-    document.getElementById('aUf').value = a?.uf || '';
-    document.getElementById('aCep').value = a?.cep || '';
-    document.getElementById('aRenda').value = toMoneyInput(a?.renda_mensal);
-    document.getElementById('aParent').value = a?.parentesco || '';
-    document.getElementById('aObs').value = a?.observacoes || '';
-    openModal('modalAvalista');
-  }
-
+  async function openAvalistaModal(a) { document.getElementById('modalAvalistaTitle').textContent = a ? 'Editar Avalista' : 'Novo Avalista'; await loadClienteOptions('aCliente', a?.cliente_id); document.getElementById('avalistaId').value = a?.id || ''; document.getElementById('aFoto').value = ''; document.getElementById('aFotoUrl').value = a?.foto_perfil || ''; document.getElementById('aNome').value = a?.nome || ''; document.getElementById('aCpf').value = a?.cpf || ''; document.getElementById('aRg').value = a?.rg || ''; document.getElementById('aTel').value = a?.telefone || ''; document.getElementById('aCel').value = a?.celular || ''; document.getElementById('aEmail').value = a?.email || ''; document.getElementById('aEnd').value = a?.endereco || ''; document.getElementById('aNum').value = a?.numero || ''; document.getElementById('aBairro').value = a?.bairro || ''; document.getElementById('aCidade').value = a?.cidade || ''; document.getElementById('aUf').value = a?.uf || ''; document.getElementById('aCep').value = a?.cep || ''; document.getElementById('aRenda').value = toMoneyInput(a?.renda_mensal); document.getElementById('aParent').value = a?.parentesco || ''; document.getElementById('aObs').value = a?.observacoes || ''; openModal('modalAvalista'); }
   async function editAvalista(id) { const { data } = await sb.from('avalistas').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openAvalistaModal(data); }
-  
-  async function saveAvalista() {
-    const id = document.getElementById('avalistaId').value;
-    const btnSave = document.getElementById('btnSaveAvalista');
-    if (!document.getElementById('aNome').value) return showToast('Nome obrigatório', 'error');
-    btnSave.textContent = 'A Guardar...'; btnSave.disabled = true;
-    try {
-      let fotoUrl = document.getElementById('aFotoUrl').value;
-      const fileFoto = document.getElementById('aFoto').files[0];
-      if (fileFoto) fotoUrl = await uploadFileToSupabase(fileFoto, 'avalistas');
-      const obj = { 
-        empresa_id: EMPRESA_ID, 
-        cliente_id: document.getElementById('aCliente').value || null, 
-        nome: document.getElementById('aNome').value, 
-        cpf: document.getElementById('aCpf').value, 
-        rg: document.getElementById('aRg').value, 
-        telefone: document.getElementById('aTel').value, 
-        celular: document.getElementById('aCel').value, 
-        email: document.getElementById('aEmail').value, 
-        endereco: document.getElementById('aEnd').value, 
-        numero: document.getElementById('aNum').value, 
-        bairro: document.getElementById('aBairro').value, 
-        cidade: document.getElementById('aCidade').value, 
-        uf: document.getElementById('aUf').value, 
-        cep: document.getElementById('aCep').value, 
-        renda_mensal: unmaskMoney(document.getElementById('aRenda').value), 
-        parentesco: document.getElementById('aParent').value, 
-        observacoes: document.getElementById('aObs').value, 
-        foto_perfil: fotoUrl, 
-      };
-      await (id ? sb.from('avalistas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avalistas').insert(obj));
-      closeModal('modalAvalista'); loadAvalistas();
-    } catch (e) { showToast('Erro', 'error'); } finally { btnSave.textContent = 'Salvar'; btnSave.disabled = false; }
-  }
-  
+  async function saveAvalista() { const id = document.getElementById('avalistaId').value; const btnSave = document.getElementById('btnSaveAvalista'); if (!document.getElementById('aNome').value) return showToast('Nome obrigatório', 'error'); btnSave.textContent = 'A Guardar...'; btnSave.disabled = true; try { let fotoUrl = document.getElementById('aFotoUrl').value; const fileFoto = document.getElementById('aFoto').files[0]; if (fileFoto) fotoUrl = await uploadFileToSupabase(fileFoto, 'avalistas'); const obj = { empresa_id: EMPRESA_ID, cliente_id: document.getElementById('aCliente').value || null, nome: document.getElementById('aNome').value, cpf: document.getElementById('aCpf').value, rg: document.getElementById('aRg').value, telefone: document.getElementById('aTel').value, celular: document.getElementById('aCel').value, email: document.getElementById('aEmail').value, endereco: document.getElementById('aEnd').value, numero: document.getElementById('aNum').value, bairro: document.getElementById('aBairro').value, cidade: document.getElementById('aCidade').value, uf: document.getElementById('aUf').value, cep: document.getElementById('aCep').value, renda_mensal: unmaskMoney(document.getElementById('aRenda').value), parentesco: document.getElementById('aParent').value, observacoes: document.getElementById('aObs').value, foto_perfil: fotoUrl, }; await (id ? sb.from('avalistas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avalistas').insert(obj)); closeModal('modalAvalista'); loadAvalistas(); } catch (e) { showToast('Erro', 'error'); } finally { btnSave.textContent = 'Salvar Avalista'; btnSave.disabled = false; } }
   async function deleteAvalista(id) { if (!confirm('Apagar avalista?')) return; await sb.from('avalistas').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadAvalistas(); }
 
-  // =============================================
-  // MICRO NEGÓCIOS
-  // =============================================
-  async function loadNegocios() {
-    const search = (document.getElementById('searchNegocios')?.value || '').trim();
-    let q = sb.from('micro_negocios').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('nome_fantasia');
-    if (search) q = q.ilike('nome_fantasia', `%${search}%`);
-    const { data } = await q;
-    document.getElementById('tblNegocios').innerHTML = (data || []).map(n => `
-      <tr>
-        <td><strong>${n.nome_fantasia || '-'}</strong></td>
-        <td>${n.cliente?.nome || '-'}</td>
-        <td>${n.atividade || '-'}</td>
-        <td>${fmt(n.faturamento_mensal)}</td>
-        <td>${fmt(n.lucro_mensal)}</td>
-        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editNegocio('${n.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteNegocio('${n.id}')">Excluir</button></div></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum negócio registado</td></tr>';
-  }
-  
-  function calcTempoAtividade() {
-    const inputData = document.getElementById('nDataInicio').value; const calcOutput = document.getElementById('nTempoCalculado');
-    if (!inputData) { calcOutput.value = ''; return; }
-    const dataInicio = new Date(inputData), hoje = new Date();
-    if (dataInicio > hoje) { calcOutput.value = 'Data no futuro'; return; }
-    let anos = hoje.getFullYear() - dataInicio.getFullYear(); let meses = hoje.getMonth() - dataInicio.getMonth(); let dias = hoje.getDate() - dataInicio.getDate();
-    if (dias < 0) { meses--; const ultimoMes = new Date(hoje.getFullYear(), hoje.getMonth(), 0); dias += ultimoMes.getDate(); }
-    if (meses < 0) { anos--; meses += 12; }
-    const partes = []; if (anos > 0) partes.push(`${anos} ano${anos > 1 ? 's' : ''}`); if (meses > 0) partes.push(`${meses} mês${meses > 1 ? 'es' : ''}`); if (dias > 0) partes.push(`${dias} dia${dias > 1 ? 's' : ''}`);
-    calcOutput.value = partes.length > 0 ? partes.join(', ') : 'Menos de 1 dia';
-  }
-  
-  async function openNegocioModal(n) { 
-    document.getElementById('modalNegocioTitle').textContent = n ? 'Editar Negócio' : 'Novo Negócio'; 
-    await loadClienteOptions('nCliente', n?.cliente_id); 
-    document.getElementById('negocioId').value = n?.id || ''; 
-    document.getElementById('nNome').value = n?.nome_fantasia || ''; 
-    document.getElementById('nCpf').value = n?.cpf || ''; 
-    document.getElementById('nAtiv').value = n?.atividade || ''; 
-    document.getElementById('nSetor').value = n?.setor || ''; 
-    document.getElementById('nDataInicio').value = n?.data_inicio || ''; calcTempoAtividade(); 
-    document.getElementById('nEnd').value = n?.endereco_comercial || ''; 
-    document.getElementById('nNum').value = n?.numero || ''; 
-    document.getElementById('nBairro').value = n?.bairro || ''; 
-    document.getElementById('nCidade').value = n?.cidade || ''; 
-    document.getElementById('nUf').value = n?.uf || ''; 
-    document.getElementById('nCep').value = n?.cep || ''; 
-    document.getElementById('nFat').value = toMoneyInput(n?.faturamento_mensal); 
-    document.getElementById('nCusto').value = toMoneyInput(n?.custo_mensal); 
-    document.getElementById('nLucro').value = toMoneyInput(n?.lucro_mensal); 
-    document.getElementById('nFunc').value = n?.num_funcionarios || ''; 
-    document.getElementById('nTipoLocal').value = n?.tipo_local || ''; 
-    document.getElementById('nObs').value = n?.observacoes || ''; 
-    openModal('modalNegocio'); 
-  }
-  
+  async function loadNegocios() { const search = (document.getElementById('searchNegocios')?.value || '').trim(); let q = sb.from('micro_negocios').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('nome_fantasia'); if (search) q = q.ilike('nome_fantasia', `%${search}%`); const { data } = await q; document.getElementById('tblNegocios').innerHTML = (data || []).map(n => `<tr><td><strong>${n.nome_fantasia || '-'}</strong></td><td>${n.cliente?.nome || '-'}</td><td>${n.atividade || '-'}</td><td>${fmt(n.faturamento_mensal)}</td><td>${fmt(n.lucro_mensal)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editNegocio('${n.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteNegocio('${n.id}')">Excluir</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum negócio registado</td></tr>'; }
+  function calcTempoAtividade() { const inputData = document.getElementById('nDataInicio').value; const calcOutput = document.getElementById('nTempoCalculado'); if (!inputData) { calcOutput.value = ''; return; } const dataInicio = new Date(inputData), hoje = new Date(); if (dataInicio > hoje) { calcOutput.value = 'Data no futuro'; return; } let anos = hoje.getFullYear() - dataInicio.getFullYear(); let meses = hoje.getMonth() - dataInicio.getMonth(); let dias = hoje.getDate() - dataInicio.getDate(); if (dias < 0) { meses--; const ultimoMes = new Date(hoje.getFullYear(), hoje.getMonth(), 0); dias += ultimoMes.getDate(); } if (meses < 0) { anos--; meses += 12; } const partes = []; if (anos > 0) partes.push(`${anos} ano${anos > 1 ? 's' : ''}`); if (meses > 0) partes.push(`${meses} mês${meses > 1 ? 'es' : ''}`); if (dias > 0) partes.push(`${dias} dia${dias > 1 ? 's' : ''}`); calcOutput.value = partes.length > 0 ? partes.join(', ') : 'Menos de 1 dia'; }
+  async function openNegocioModal(n) { document.getElementById('modalNegocioTitle').textContent = n ? 'Editar Negócio' : 'Novo Negócio'; await loadClienteOptions('nCliente', n?.cliente_id); document.getElementById('negocioId').value = n?.id || ''; document.getElementById('nNome').value = n?.nome_fantasia || ''; document.getElementById('nCpf').value = n?.cpf || ''; document.getElementById('nAtiv').value = n?.atividade || ''; document.getElementById('nSetor').value = n?.setor || ''; document.getElementById('nDataInicio').value = n?.data_inicio || ''; calcTempoAtividade(); document.getElementById('nEnd').value = n?.endereco_comercial || ''; document.getElementById('nNum').value = n?.numero || ''; document.getElementById('nBairro').value = n?.bairro || ''; document.getElementById('nCidade').value = n?.cidade || ''; document.getElementById('nUf').value = n?.uf || ''; document.getElementById('nCep').value = n?.cep || ''; document.getElementById('nFat').value = toMoneyInput(n?.faturamento_mensal); document.getElementById('nCusto').value = toMoneyInput(n?.custo_mensal); document.getElementById('nLucro').value = toMoneyInput(n?.lucro_mensal); document.getElementById('nFunc').value = n?.num_funcionarios || ''; document.getElementById('nTipoLocal').value = n?.tipo_local || ''; document.getElementById('nObs').value = n?.observacoes || ''; openModal('modalNegocio'); }
   async function editNegocio(id) { const { data } = await sb.from('micro_negocios').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openNegocioModal(data); }
-  
-  async function saveNegocio() { 
-    const id = document.getElementById('negocioId').value; 
-    const obj = { 
-      empresa_id: EMPRESA_ID, 
-      cliente_id: document.getElementById('nCliente').value || null, 
-      nome_fantasia: document.getElementById('nNome').value, 
-      cpf: document.getElementById('nCpf').value, 
-      atividade: document.getElementById('nAtiv').value, 
-      setor: document.getElementById('nSetor').value, 
-      data_inicio: document.getElementById('nDataInicio').value || null, 
-      endereco_comercial: document.getElementById('nEnd').value, 
-      numero: document.getElementById('nNum').value, 
-      bairro: document.getElementById('nBairro').value, 
-      cidade: document.getElementById('nCidade').value, 
-      uf: document.getElementById('nUf').value, 
-      cep: document.getElementById('nCep').value, 
-      faturamento_mensal: unmaskMoney(document.getElementById('nFat').value), 
-      custo_mensal: unmaskMoney(document.getElementById('nCusto').value), 
-      lucro_mensal: unmaskMoney(document.getElementById('nLucro').value), 
-      num_funcionarios: parseInt(document.getElementById('nFunc').value) || 0, 
-      tipo_local: document.getElementById('nTipoLocal').value, 
-      observacoes: document.getElementById('nObs').value, 
-    }; 
-    await (id ? sb.from('micro_negocios').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('micro_negocios').insert(obj)); 
-    closeModal('modalNegocio'); loadNegocios(); 
-  }
-  
+  async function saveNegocio() { const id = document.getElementById('negocioId').value; const obj = { empresa_id: EMPRESA_ID, cliente_id: document.getElementById('nCliente').value || null, nome_fantasia: document.getElementById('nNome').value, cpf: document.getElementById('nCpf').value, atividade: document.getElementById('nAtiv').value, setor: document.getElementById('nSetor').value, data_inicio: document.getElementById('nDataInicio').value || null, endereco_comercial: document.getElementById('nEnd').value, numero: document.getElementById('nNum').value, bairro: document.getElementById('nBairro').value, cidade: document.getElementById('nCidade').value, uf: document.getElementById('nUf').value, cep: document.getElementById('nCep').value, faturamento_mensal: unmaskMoney(document.getElementById('nFat').value), custo_mensal: unmaskMoney(document.getElementById('nCusto').value), lucro_mensal: unmaskMoney(document.getElementById('nLucro').value), num_funcionarios: parseInt(document.getElementById('nFunc').value) || 0, tipo_local: document.getElementById('nTipoLocal').value, observacoes: document.getElementById('nObs').value, }; await (id ? sb.from('micro_negocios').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('micro_negocios').insert(obj)); closeModal('modalNegocio'); loadNegocios(); }
   async function deleteNegocio(id) { if (!confirm('Excluir?')) return; await sb.from('micro_negocios').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadNegocios(); }
 
   // =============================================
-  // AVALIAÇÃO FINANCEIRA
+  // AVALIAÇÃO FINANCEIRA E FLUXO DE CAIXA
   // =============================================
-  async function loadAvaliacoes() { 
-    const { data } = await sb.from('avaliacao_financeira').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); 
-    document.getElementById('tblAvaliacao').innerHTML = (data || []).map(a => `
-      <tr>
-        <td>${a.cliente?.nome || '-'}</td>
-        <td>${fmt(a.renda_familiar)}</td>
-        <td>${fmt(a.capacidade_pagamento)}</td>
-        <td>${a.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td>
-        <td>${fmtDate(a.data_avaliacao)}</td>
-        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvaliacao('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvaliacao('${a.id}')">Apagar</button></div></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma avaliação registada</td></tr>'; 
-  }
-  
-  async function openAvaliacaoModal(a) { 
-    document.getElementById('modalAvaliacaoTitle').textContent = a ? 'Editar Avaliação' : 'Nova Avaliação'; 
-    await loadClienteOptions('avCliente', a?.cliente_id); 
-    document.getElementById('avaliacaoId').value = a?.id || ''; 
-    document.getElementById('avRendaFam').value = toMoneyInput(a?.renda_familiar); 
-    document.getElementById('avOutrasRendas').value = toMoneyInput(a?.outras_rendas); 
-    document.getElementById('avDespFixas').value = toMoneyInput(a?.despesas_fixas); 
-    document.getElementById('avDespVar').value = toMoneyInput(a?.despesas_variaveis); 
-    document.getElementById('avPrestacoes').value = toMoneyInput(a?.prestacoes_existentes); 
-    document.getElementById('avPatrimonio').value = toMoneyInput(a?.patrimonio_estimado); 
-    document.getElementById('avDividas').value = toMoneyInput(a?.dividas_existentes); 
-    document.getElementById('avCapacidade').value = toMoneyInput(a?.capacidade_pagamento); 
-    document.getElementById('avAvaliador').value = a?.avaliador || ''; 
-    document.getElementById('avAprovado').value = a?.aprovado ? 'true' : 'false'; 
-    document.getElementById('avParecer').value = a?.parecer || ''; 
-    openModal('modalAvaliacao'); 
-  }
-  
+  async function loadAvaliacoes() { const { data } = await sb.from('avaliacao_financeira').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); document.getElementById('tblAvaliacao').innerHTML = (data || []).map(a => `<tr><td>${a.cliente?.nome || '-'}</td><td>${fmt(a.renda_familiar)}</td><td>${fmt(a.capacidade_pagamento)}</td><td>${a.aprovado ? '<span class="badge badge-success">Sim</span>' : '<span class="badge badge-danger">Não</span>'}</td><td>${fmtDate(a.data_avaliacao)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvaliacao('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvaliacao('${a.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhuma avaliação registada</td></tr>'; }
+  async function openAvaliacaoModal(a) { document.getElementById('modalAvaliacaoTitle').textContent = a ? 'Editar Avaliação' : 'Nova Avaliação'; await loadClienteOptions('avCliente', a?.cliente_id); document.getElementById('avaliacaoId').value = a?.id || ''; document.getElementById('avRendaFam').value = toMoneyInput(a?.renda_familiar); document.getElementById('avOutrasRendas').value = toMoneyInput(a?.outras_rendas); document.getElementById('avDespFixas').value = toMoneyInput(a?.despesas_fixas); document.getElementById('avDespVar').value = toMoneyInput(a?.despesas_variaveis); document.getElementById('avPrestacoes').value = toMoneyInput(a?.prestacoes_existentes); document.getElementById('avPatrimonio').value = toMoneyInput(a?.patrimonio_estimado); document.getElementById('avDividas').value = toMoneyInput(a?.dividas_existentes); document.getElementById('avCapacidade').value = toMoneyInput(a?.capacidade_pagamento); document.getElementById('avAvaliador').value = a?.avaliador || ''; document.getElementById('avAprovado').value = a?.aprovado ? 'true' : 'false'; document.getElementById('avParecer').value = a?.parecer || ''; openModal('modalAvaliacao'); }
   async function editAvaliacao(id) { const { data } = await sb.from('avaliacao_financeira').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openAvaliacaoModal(data); }
-  
-  async function saveAvaliacao() { 
-    const obj = { 
-      empresa_id: EMPRESA_ID, 
-      cliente_id: document.getElementById('avCliente').value || null, 
-      renda_familiar: unmaskMoney(document.getElementById('avRendaFam').value), 
-      outras_rendas: unmaskMoney(document.getElementById('avOutrasRendas').value), 
-      despesas_fixas: unmaskMoney(document.getElementById('avDespFixas').value), 
-      despesas_variaveis: unmaskMoney(document.getElementById('avDespVar').value), 
-      prestacoes_existentes: unmaskMoney(document.getElementById('avPrestacoes').value), 
-      patrimonio_estimado: unmaskMoney(document.getElementById('avPatrimonio').value), 
-      dividas_existentes: unmaskMoney(document.getElementById('avDividas').value), 
-      capacidade_pagamento: unmaskMoney(document.getElementById('avCapacidade').value), 
-      avaliador: document.getElementById('avAvaliador').value, 
-      aprovado: document.getElementById('avAprovado').value === 'true', 
-      parecer: document.getElementById('avParecer').value, 
-    }; 
-    const id = document.getElementById('avaliacaoId').value; 
-    await (id ? sb.from('avaliacao_financeira').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avaliacao_financeira').insert(obj)); 
-    closeModal('modalAvaliacao'); loadAvaliacoes(); 
-  }
-  
+  async function saveAvaliacao() { const obj = { empresa_id: EMPRESA_ID, cliente_id: document.getElementById('avCliente').value || null, renda_familiar: unmaskMoney(document.getElementById('avRendaFam').value), outras_rendas: unmaskMoney(document.getElementById('avOutrasRendas').value), despesas_fixas: unmaskMoney(document.getElementById('avDespFixas').value), despesas_variaveis: unmaskMoney(document.getElementById('avDespVar').value), prestacoes_existentes: unmaskMoney(document.getElementById('avPrestacoes').value), patrimonio_estimado: unmaskMoney(document.getElementById('avPatrimonio').value), dividas_existentes: unmaskMoney(document.getElementById('avDividas').value), capacidade_pagamento: unmaskMoney(document.getElementById('avCapacidade').value), avaliador: document.getElementById('avAvaliador').value, aprovado: document.getElementById('avAprovado').value === 'true', parecer: document.getElementById('avParecer').value, }; const id = document.getElementById('avaliacaoId').value; await (id ? sb.from('avaliacao_financeira').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avaliacao_financeira').insert(obj)); closeModal('modalAvaliacao'); loadAvaliacoes(); }
   async function deleteAvaliacao(id) { if (!confirm('Apagar?')) return; await sb.from('avaliacao_financeira').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadAvaliacoes(); }
 
-  // =============================================
-  // FLUXO DE CAIXA
-  // =============================================
-  async function loadFluxos() { 
-    const { data } = await sb.from('fluxo_caixa').select('*,negocio:micro_negocios(nome_fantasia)').eq('empresa_id', EMPRESA_ID).order('mes_referencia', { ascending: false }); 
-    document.getElementById('tblFluxo').innerHTML = (data || []).map(f => `
-      <tr>
-        <td>${f.negocio?.nome_fantasia || '-'}</td>
-        <td>${f.mes_referencia}</td>
-        <td>${fmt(f.total_receitas)}</td>
-        <td>${fmt(f.total_despesas)}</td>
-        <td style="font-weight:700;color:${f.saldo >= 0 ? 'var(--success-text)' : 'var(--danger-text)'}">${fmt(f.saldo)}</td>
-        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editFluxo('${f.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteFluxo('${f.id}')">Apagar</button></div></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum fluxo registado</td></tr>'; 
-  }
-  
-  async function openFluxoModal(f) { 
-    document.getElementById('modalFluxoTitle').textContent = f ? 'Editar Fluxo' : 'Novo Fluxo'; 
-    await loadNegocioOptions('fNegocio', f?.micro_negocio_id); 
-    document.getElementById('fluxoId').value = f?.id || ''; 
-    document.getElementById('fMes').value = f?.mes_referencia || ''; 
-    document.getElementById('fRecVendas').value = toMoneyInput(f?.receita_vendas); 
-    document.getElementById('fRecServ').value = toMoneyInput(f?.receita_servicos); 
-    document.getElementById('fOutrasRec').value = toMoneyInput(f?.outras_receitas); 
-    document.getElementById('fCustoMerc').value = toMoneyInput(f?.custo_mercadorias); 
-    document.getElementById('fCustoMat').value = toMoneyInput(f?.custo_materiais); 
-    document.getElementById('fAluguel').value = toMoneyInput(f?.despesa_aluguel); 
-    document.getElementById('fSalarios').value = toMoneyInput(f?.despesa_salarios); 
-    document.getElementById('fEnergia').value = toMoneyInput(f?.despesa_energia); 
-    document.getElementById('fAgua').value = toMoneyInput(f?.despesa_agua); 
-    document.getElementById('fTelefone').value = toMoneyInput(f?.despesa_telefone); 
-    document.getElementById('fTransporte').value = toMoneyInput(f?.despesa_transporte); 
-    document.getElementById('fOutrasDesp').value = toMoneyInput(f?.outras_despesas); 
-    openModal('modalFluxo'); 
-  }
-  
+  async function loadFluxos() { const { data } = await sb.from('fluxo_caixa').select('*,negocio:micro_negocios(nome_fantasia)').eq('empresa_id', EMPRESA_ID).order('mes_referencia', { ascending: false }); document.getElementById('tblFluxo').innerHTML = (data || []).map(f => `<tr><td>${f.negocio?.nome_fantasia || '-'}</td><td>${f.mes_referencia}</td><td>${fmt(f.total_receitas)}</td><td>${fmt(f.total_despesas)}</td><td style="font-weight:700;color:${f.saldo >= 0 ? 'var(--success-text)' : 'var(--danger-text)'}">${fmt(f.saldo)}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editFluxo('${f.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteFluxo('${f.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum fluxo registado</td></tr>'; }
+  async function openFluxoModal(f) { document.getElementById('modalFluxoTitle').textContent = f ? 'Editar Fluxo' : 'Novo Fluxo'; await loadNegocioOptions('fNegocio', f?.micro_negocio_id); document.getElementById('fluxoId').value = f?.id || ''; document.getElementById('fMes').value = f?.mes_referencia || ''; document.getElementById('fRecVendas').value = toMoneyInput(f?.receita_vendas); document.getElementById('fRecServ').value = toMoneyInput(f?.receita_servicos); document.getElementById('fOutrasRec').value = toMoneyInput(f?.outras_receitas); document.getElementById('fCustoMerc').value = toMoneyInput(f?.custo_mercadorias); document.getElementById('fCustoMat').value = toMoneyInput(f?.custo_materiais); document.getElementById('fAluguel').value = toMoneyInput(f?.despesa_aluguel); document.getElementById('fSalarios').value = toMoneyInput(f?.despesa_salarios); document.getElementById('fEnergia').value = toMoneyInput(f?.despesa_energia); document.getElementById('fAgua').value = toMoneyInput(f?.despesa_agua); document.getElementById('fTelefone').value = toMoneyInput(f?.despesa_telefone); document.getElementById('fTransporte').value = toMoneyInput(f?.despesa_transporte); document.getElementById('fOutrasDesp').value = toMoneyInput(f?.outras_despesas); openModal('modalFluxo'); }
   async function editFluxo(id) { const { data } = await sb.from('fluxo_caixa').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openFluxoModal(data); }
-  
-  async function saveFluxo() { 
-    const rv = unmaskMoney(document.getElementById('fRecVendas').value); 
-    const rs = unmaskMoney(document.getElementById('fRecServ').value); 
-    const ro = unmaskMoney(document.getElementById('fOutrasRec').value); 
-    const cm = unmaskMoney(document.getElementById('fCustoMerc').value); 
-    const cmat = unmaskMoney(document.getElementById('fCustoMat').value); 
-    const da = unmaskMoney(document.getElementById('fAluguel').value); 
-    const ds = unmaskMoney(document.getElementById('fSalarios').value); 
-    const de = unmaskMoney(document.getElementById('fEnergia').value); 
-    const dag = unmaskMoney(document.getElementById('fAgua').value); 
-    const dt = unmaskMoney(document.getElementById('fTelefone').value); 
-    const dtr = unmaskMoney(document.getElementById('fTransporte').value); 
-    const dout = unmaskMoney(document.getElementById('fOutrasDesp').value); 
-    const totalR = rv + rs + ro; const totalD = cm + cmat + da + ds + de + dag + dt + dtr + dout; 
-    
-    const obj = { 
-      empresa_id: EMPRESA_ID, 
-      micro_negocio_id: document.getElementById('fNegocio').value || null, 
-      mes_referencia: document.getElementById('fMes').value, 
-      receita_vendas: rv, receita_servicos: rs, outras_receitas: ro, 
-      custo_mercadorias: cm, custo_materiais: cmat, despesa_aluguel: da, despesa_salarios: ds, despesa_energia: de, despesa_agua: dag, despesa_telefone: dt, despesa_transporte: dtr, outras_despesas: dout, 
-      total_receitas: totalR, total_despesas: totalD, saldo: totalR - totalD, 
-    }; 
-    const id = document.getElementById('fluxoId').value; 
-    await (id ? sb.from('fluxo_caixa').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('fluxo_caixa').insert(obj)); 
-    closeModal('modalFluxo'); loadFluxos(); 
-  }
-  
+  async function saveFluxo() { const rv = unmaskMoney(document.getElementById('fRecVendas').value); const rs = unmaskMoney(document.getElementById('fRecServ').value); const ro = unmaskMoney(document.getElementById('fOutrasRec').value); const cm = unmaskMoney(document.getElementById('fCustoMerc').value); const cmat = unmaskMoney(document.getElementById('fCustoMat').value); const da = unmaskMoney(document.getElementById('fAluguel').value); const ds = unmaskMoney(document.getElementById('fSalarios').value); const de = unmaskMoney(document.getElementById('fEnergia').value); const dag = unmaskMoney(document.getElementById('fAgua').value); const dt = unmaskMoney(document.getElementById('fTelefone').value); const dtr = unmaskMoney(document.getElementById('fTransporte').value); const dout = unmaskMoney(document.getElementById('fOutrasDesp').value); const totalR = rv + rs + ro; const totalD = cm + cmat + da + ds + de + dag + dt + dtr + dout; const obj = { empresa_id: EMPRESA_ID, micro_negocio_id: document.getElementById('fNegocio').value || null, mes_referencia: document.getElementById('fMes').value, receita_vendas: rv, receita_servicos: rs, outras_receitas: ro, custo_mercadorias: cm, custo_materiais: cmat, despesa_aluguel: da, despesa_salarios: ds, despesa_energia: de, despesa_agua: dag, despesa_telefone: dt, despesa_transporte: dtr, outras_despesas: dout, total_receitas: totalR, total_despesas: totalD, saldo: totalR - totalD, }; const id = document.getElementById('fluxoId').value; await (id ? sb.from('fluxo_caixa').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('fluxo_caixa').insert(obj)); closeModal('modalFluxo'); loadFluxos(); }
   async function deleteFluxo(id) { if (!confirm('Apagar?')) return; await sb.from('fluxo_caixa').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadFluxos(); }
 
   // =============================================
-  // OPERACOES
+  // OPERAÇÕES (Totalmente reescrito com proteção anti-bugs)
   // =============================================
   async function loadOperacoes() { 
-    const searchStr = (document.getElementById('searchOperacoes')?.value || '').trim().toLowerCase(); 
-    const status = document.getElementById('filterStatusOp')?.value; 
-    const dateFilter = document.getElementById('filterOpDate')?.value; 
-    
-    let q = sb.from('operacoes').select('*,cliente:clientes(nome,cpf)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); 
-    if (status) q = q.eq('status', status); 
-    if (dateFilter) q = q.eq('data_contratacao', dateFilter); 
-    
-    let { data } = await q; 
-    
-    if (searchStr) { 
-      data = (data || []).filter(o => (o.numero_contrato && o.numero_contrato.toLowerCase().includes(searchStr)) || (o.cliente?.nome && o.cliente.nome.toLowerCase().includes(searchStr)) || (o.cliente?.cpf && o.cliente.cpf.includes(searchStr)) ); 
-    } 
-    
-    document.getElementById('tblOperacoes').innerHTML = (data || []).map(o => `
-      <tr>
-        <td><strong>${o.numero_contrato || '-'}</strong></td>
-        <td>${o.cliente?.nome || '-'}</td>
-        <td>${fmt(o.valor_aprovado || o.valor_solicitado)}</td>
-        <td>${o.taxa_juros}%</td>
-        <td>${o.num_parcelas}x</td>
-        <td>${statusBadge(o.status)}</td>
-        <td>${fmtDate(o.data_contratacao)}</td>
-        <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editOperacao('${o.id}')">Editar</button><button class="btn btn-success btn-sm" onclick="gerarParcelas('${o.id}')">Parcelas</button><button class="btn btn-danger btn-sm" onclick="deleteOperacao('${o.id}')">Apagar</button></div></td>
-      </tr>
-    `).join('') || '<tr><td colspan="8" class="empty-state">Nenhuma operação registada</td></tr>'; 
+    try {
+      const searchStr = (document.getElementById('searchOperacoes')?.value || '').trim().toLowerCase(); 
+      const status = document.getElementById('filterStatusOp')?.value; 
+      const dateFilter = document.getElementById('filterOpDate')?.value; 
+      
+      let q = sb.from('operacoes').select('*,cliente:clientes(nome,cpf)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false }); 
+      if (status) q = q.eq('status', status); 
+      if (dateFilter) q = q.eq('data_contratacao', dateFilter); 
+      
+      let { data, error } = await q; 
+      if(error) throw error;
+      
+      if (searchStr) { 
+        data = (data || []).filter(o => (o.numero_contrato && o.numero_contrato.toLowerCase().includes(searchStr)) || (o.cliente?.nome && o.cliente.nome.toLowerCase().includes(searchStr)) || (o.cliente?.cpf && o.cliente.cpf.includes(searchStr)) ); 
+      } 
+      
+      document.getElementById('tblOperacoes').innerHTML = (data || []).map(o => `
+        <tr>
+          <td><strong>${o.numero_contrato || '-'}</strong></td>
+          <td>${o.cliente?.nome || '-'}</td>
+          <td>${fmt(o.valor_aprovado || o.valor_solicitado)}</td>
+          <td>${o.taxa_juros}%</td>
+          <td>${o.num_parcelas}x</td>
+          <td>${statusBadge(o.status)}</td>
+          <td>${fmtDate(o.data_contratacao)}</td>
+          <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editOperacao('${o.id}')">Editar</button><button class="btn btn-success btn-sm" onclick="gerarParcelas('${o.id}')">Parcelas</button><button class="btn btn-danger btn-sm" onclick="deleteOperacao('${o.id}')">Apagar</button></div></td>
+        </tr>
+      `).join('') || '<tr><td colspan="8" class="empty-state">Nenhuma operação registada</td></tr>'; 
+    } catch(e) {
+      showToast('Erro ao listar operações: ' + e.message, 'error');
+    }
   }
   
   async function openOperacaoModal(o) { 
@@ -1922,8 +1553,20 @@
     document.getElementById('opGarantia').value = o?.garantia || ''; 
     document.getElementById('opStatus').value = o?.status || 'em_analise'; 
     document.getElementById('opObs').value = o?.observacoes || ''; 
+    
+    // Esconde o botão de gerar parcelas se já for uma edição
     document.getElementById('btnSaveOpParcelas').style.display = o ? 'none' : 'inline-flex'; 
-    if (o?.cliente_id) await loadClienteAvalistas(); 
+    
+    if (o?.cliente_id) {
+        await loadClienteAvalistas(); 
+        // BUG CORRIGIDO: Selecionar o avalista e negócio APÓS carregar as opções
+        document.getElementById('opAvalista').value = o.avalista_id || '';
+        document.getElementById('opNegocio').value = o.micro_negocio_id || '';
+    } else {
+        document.getElementById('opAvalista').innerHTML = '<option value="">Nenhum</option>';
+        document.getElementById('opNegocio').innerHTML = '<option value="">Nenhum</option>';
+    }
+
     openModal('modalOperacao'); 
   }
   
@@ -1934,71 +1577,111 @@
     document.getElementById('opAvalista').innerHTML = '<option value="">Nenhum</option>' + (aRes.data || []).map(a => `<option value="${a.id}">${a.nome}</option>`).join(''); 
     document.getElementById('opNegocio').innerHTML = '<option value="">Nenhum</option>' + (nRes.data || []).map(n => `<option value="${n.id}">${n.nome_fantasia}</option>`).join(''); 
   }
+
+  async function editOperacao(id) { 
+    try {
+      const { data, error } = await sb.from('operacoes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); 
+      if (error) throw error;
+      if (data) openOperacaoModal(data); 
+    } catch(e) {
+      showToast('Erro ao abrir operação: ' + e.message, 'error');
+    }
+  }
   
   async function saveOperacao() { 
-    const id = document.getElementById('operacaoId').value; 
-    const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); 
-    const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); 
-    const valor = vAprov || vSolic || 0; 
-    const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; 
-    const nparc = parseInt(document.getElementById('opNumParc').value) || 1; 
-    const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc; 
-    
-    const obj = { 
-      empresa_id: EMPRESA_ID, 
-      numero_contrato: document.getElementById('opContrato').value, 
-      cliente_id: document.getElementById('opCliente').value || null, 
-      avalista_id: document.getElementById('opAvalista').value || null, 
-      micro_negocio_id: document.getElementById('opNegocio').value || null, 
-      valor_solicitado: vSolic, 
-      valor_aprovado: vAprov, 
-      taxa_juros: taxa, 
-      num_parcelas: nparc, 
-      valor_parcela: Math.round(pmt * 100) / 100, 
-      data_contratacao: document.getElementById('opDataContr').value || null, 
-      data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, 
-      finalidade: document.getElementById('opFinalidade').value, 
-      garantia: document.getElementById('opGarantia').value, 
-      status: document.getElementById('opStatus').value, 
-      observacoes: document.getElementById('opObs').value, 
-    }; 
-    
-    await (id ? sb.from('operacoes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('operacoes').insert(obj)); 
-    closeModal('modalOperacao'); loadOperacoes(); 
+    const btn = document.getElementById('btnSaveOperacao');
+    const originalText = btn.textContent;
+    btn.textContent = 'A Guardar...'; btn.disabled = true;
+
+    try {
+        const id = document.getElementById('operacaoId').value; 
+        const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); 
+        const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); 
+        const valor = vAprov || vSolic || 0; 
+        const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; 
+        const nparc = parseInt(document.getElementById('opNumParc').value) || 1; 
+        
+        const taxaDec = taxa / 100;
+        const pmt = taxa > 0 ? (valor * taxaDec * Math.pow(1 + taxaDec, nparc)) / (Math.pow(1 + taxaDec, nparc) - 1) : valor / nparc; 
+        
+        const obj = { 
+          empresa_id: EMPRESA_ID, 
+          numero_contrato: document.getElementById('opContrato').value, 
+          cliente_id: document.getElementById('opCliente').value || null, 
+          avalista_id: document.getElementById('opAvalista').value || null, 
+          micro_negocio_id: document.getElementById('opNegocio').value || null, 
+          valor_solicitado: vSolic, 
+          valor_aprovado: vAprov, 
+          taxa_juros: taxa, 
+          num_parcelas: nparc, 
+          valor_parcela: Math.round(pmt * 100) / 100, 
+          data_contratacao: document.getElementById('opDataContr').value || null, 
+          data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, 
+          finalidade: document.getElementById('opFinalidade').value, 
+          garantia: document.getElementById('opGarantia').value, 
+          status: document.getElementById('opStatus').value, 
+          observacoes: document.getElementById('opObs').value, 
+        }; 
+        
+        const { error } = id ? await sb.from('operacoes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : await sb.from('operacoes').insert(obj); 
+        if (error) throw error;
+        
+        showToast(id ? 'Operação atualizada com sucesso!' : 'Operação registada!', 'success');
+        closeModal('modalOperacao'); 
+        loadOperacoes(); 
+    } catch(e) {
+        showToast('Erro ao guardar: ' + e.message, 'error');
+    } finally {
+        btn.textContent = originalText; btn.disabled = false;
+    }
   }
   
   async function saveOperacaoAndGenerateParcelas() { 
-    const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); 
-    const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); 
-    const valor = vAprov || vSolic || 0; 
-    const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; 
-    const nparc = parseInt(document.getElementById('opNumParc').value) || 1; 
-    const pmt = taxa > 0 ? (valor * taxa / 100 * Math.pow(1 + taxa / 100, nparc)) / (Math.pow(1 + taxa / 100, nparc) - 1) : valor / nparc; 
-    
-    const obj = { 
-      empresa_id: EMPRESA_ID, 
-      numero_contrato: document.getElementById('opContrato').value, 
-      cliente_id: document.getElementById('opCliente').value || null, 
-      avalista_id: document.getElementById('opAvalista').value || null, 
-      micro_negocio_id: document.getElementById('opNegocio').value || null, 
-      valor_solicitado: vSolic, 
-      valor_aprovado: vAprov, 
-      taxa_juros: taxa, 
-      num_parcelas: nparc, 
-      valor_parcela: Math.round(pmt * 100) / 100, 
-      data_contratacao: document.getElementById('opDataContr').value || null, 
-      data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, 
-      finalidade: document.getElementById('opFinalidade').value, 
-      garantia: document.getElementById('opGarantia').value, 
-      status: 'em_andamento', 
-      observacoes: document.getElementById('opObs').value, 
-    }; 
-    
-    const { data: inserted, error } = await sb.from('operacoes').insert(obj).select().single(); 
-    if (error) { showToast('Erro: ' + error.message, 'error'); return; } 
-    await generateParcelsForOp(inserted); 
-    showToast('Parcelas geradas!', 'success'); 
-    closeModal('modalOperacao'); loadOperacoes(); 
+    const btn = document.getElementById('btnSaveOpParcelas');
+    const originalText = btn.textContent;
+    btn.textContent = 'A Gerar...'; btn.disabled = true;
+
+    try {
+        const vAprov = unmaskMoney(document.getElementById('opValorAprov').value); 
+        const vSolic = unmaskMoney(document.getElementById('opValorSolic').value); 
+        const valor = vAprov || vSolic || 0; 
+        const taxa = parseFloat(document.getElementById('opTaxa').value) || 0; 
+        const nparc = parseInt(document.getElementById('opNumParc').value) || 1; 
+        
+        const taxaDec = taxa / 100;
+        const pmt = taxa > 0 ? (valor * taxaDec * Math.pow(1 + taxaDec, nparc)) / (Math.pow(1 + taxaDec, nparc) - 1) : valor / nparc; 
+        
+        const obj = { 
+          empresa_id: EMPRESA_ID, 
+          numero_contrato: document.getElementById('opContrato').value, 
+          cliente_id: document.getElementById('opCliente').value || null, 
+          avalista_id: document.getElementById('opAvalista').value || null, 
+          micro_negocio_id: document.getElementById('opNegocio').value || null, 
+          valor_solicitado: vSolic, 
+          valor_aprovado: vAprov, 
+          taxa_juros: taxa, 
+          num_parcelas: nparc, 
+          valor_parcela: Math.round(pmt * 100) / 100, 
+          data_contratacao: document.getElementById('opDataContr').value || null, 
+          data_primeiro_vencimento: document.getElementById('opDataVenc').value || null, 
+          finalidade: document.getElementById('opFinalidade').value, 
+          garantia: document.getElementById('opGarantia').value, 
+          status: document.getElementById('opStatus').value,
+          observacoes: document.getElementById('opObs').value, 
+        }; 
+        
+        const { data: inserted, error } = await sb.from('operacoes').insert(obj).select().single(); 
+        if (error) throw error;
+        
+        await generateParcelsForOp(inserted); 
+        showToast('Operação salva e parcelas geradas!', 'success'); 
+        closeModal('modalOperacao'); 
+        loadOperacoes(); 
+    } catch(e) {
+        showToast('Erro ao gerar: ' + e.message, 'error');
+    } finally {
+        btn.textContent = originalText; btn.disabled = false;
+    }
   }
   
   async function generateParcelsForOp(op) { 
@@ -2032,20 +1715,33 @@
   }
   
   async function gerarParcelas(opId) { 
-    if (!confirm('Gerar parcelas?')) return; 
-    const { data: op } = await sb.from('operacoes').select('*').eq('id', opId).eq('empresa_id', EMPRESA_ID).single(); 
-    if (!op) return; 
-    const { count } = await sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID); 
-    if (count > 0) { showToast('Já existem parcelas', 'error'); return; } 
-    await generateParcelsForOp(op); 
-    showToast('Geradas!', 'success'); 
+    if (!confirm('Gerar parcelas? Esta ação não pode ser desfeita.')) return; 
+    try {
+        const { data: op, error: e1 } = await sb.from('operacoes').select('*').eq('id', opId).eq('empresa_id', EMPRESA_ID).single(); 
+        if (e1) throw e1;
+        
+        const { count, error: e2 } = await sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('operacao_id', opId).eq('empresa_id', EMPRESA_ID); 
+        if (e2) throw e2;
+
+        if (count > 0) { showToast('Atenção: Já existem parcelas geradas para esta operação.', 'warning'); return; } 
+        
+        await generateParcelsForOp(op); 
+        showToast('Parcelas geradas com sucesso!', 'success'); 
+    } catch(e) {
+        showToast('Erro ao gerar: ' + e.message, 'error');
+    }
   }
   
   async function deleteOperacao(id) { 
-    if (!confirm('Excluir operação e parcelas?')) return; 
-    await sb.from('parcelas').delete().eq('operacao_id', id).eq('empresa_id', EMPRESA_ID); 
-    await sb.from('operacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); 
-    loadOperacoes(); 
+    if (!confirm('Excluir operação e as suas respetivas parcelas? Esta ação é irreversível!')) return; 
+    try {
+        await sb.from('parcelas').delete().eq('operacao_id', id).eq('empresa_id', EMPRESA_ID); 
+        await sb.from('operacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); 
+        showToast('Operação apagada.', 'success');
+        loadOperacoes(); 
+    } catch(e) {
+        showToast('Erro ao apagar: ' + e.message, 'error');
+    }
   }
 
   // =============================================
@@ -2103,16 +1799,27 @@
   
   async function pagarParcela() { 
     const id = document.getElementById('ppId').value; 
-    const obj = { 
-      data_pagamento: document.getElementById('ppData').value, 
-      valor_pago: unmaskMoney(document.getElementById('ppValor').value), 
-      forma_pagamento: document.getElementById('ppForma').value, 
-      valor_desconto: unmaskMoney(document.getElementById('ppDesconto').value), 
-      observacoes: document.getElementById('ppObs').value, 
-      status: 'paga', 
-    }; 
-    await sb.from('parcelas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID); 
-    closeModal('modalPagarParcela'); loadParcelas(); 
+    const btn = document.getElementById('btnConfirmPagarParcela');
+    btn.textContent = 'A processar...'; btn.disabled = true;
+
+    try {
+        const obj = { 
+          data_pagamento: document.getElementById('ppData').value, 
+          valor_pago: unmaskMoney(document.getElementById('ppValor').value), 
+          forma_pagamento: document.getElementById('ppForma').value, 
+          valor_desconto: unmaskMoney(document.getElementById('ppDesconto').value), 
+          observacoes: document.getElementById('ppObs').value, 
+          status: 'paga', 
+        }; 
+        await sb.from('parcelas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID); 
+        showToast('Pagamento confirmado com sucesso!', 'success');
+        closeModal('modalPagarParcela'); 
+        loadParcelas(); 
+    } catch (e) {
+        showToast('Erro ao confirmar pagamento: ' + e.message, 'error');
+    } finally {
+        btn.textContent = 'Confirmar Recebimento'; btn.disabled = false;
+    }
   }
 
   // =============================================
@@ -2127,25 +1834,13 @@
     try {
         const today = new Date().toISOString().slice(0, 10);
 
-        // 1. Busca TODAS as parcelas que estão pendentes, mas já passaram da data de vencimento
-        const { data: pendentes } = await sb.from('parcelas')
-            .select('id')
-            .eq('status', 'pendente')
-            .eq('empresa_id', EMPRESA_ID)
-            .lt('data_vencimento', today);
-
-        // Se existirem parcelas vencidas, atualiza-as para 'atrasada' na hora
+        const { data: pendentes } = await sb.from('parcelas').select('id').eq('status', 'pendente').eq('empresa_id', EMPRESA_ID).lt('data_vencimento', today);
         if (pendentes && pendentes.length > 0) {
             const ids = pendentes.map(p => p.id);
             await sb.from('parcelas').update({ status: 'atrasada' }).in('id', ids).eq('empresa_id', EMPRESA_ID);
         }
 
-        // 2. Agora procura as parcelas atrasadas e calcula a inadimplência
-        const { data: atrasadas } = await sb.from('parcelas')
-            .select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)')
-            .eq('status', 'atrasada')
-            .eq('empresa_id', EMPRESA_ID); 
-            
+        const { data: atrasadas } = await sb.from('parcelas').select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)').eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
         for (const p of (atrasadas || [])) { 
             const dias = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); 
             const multa = p.valor_total * (p.operacao?.taxa_multa || 2) / 100; 
@@ -2155,7 +1850,6 @@
             const { data: existente } = await sb.from('inadimplencia').select('id, status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID); 
             
             if (existente && existente.length > 0) { 
-                // Atualiza os juros apenas se ainda estiver "pendente" de cobrança
                 if (existente[0].status === 'pendente') {
                     await sb.from('inadimplencia').update({ dias_atraso: dias, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100 }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); 
                 }
@@ -2164,7 +1858,6 @@
             } 
         } 
 
-        // 3. Verifica se alguma parcela que estava na inadimplência foi paga e marca como 'resolvido' automaticamente
         const { data: pagas } = await sb.from('parcelas').select('id').eq('status', 'paga').eq('empresa_id', EMPRESA_ID);
         if (pagas && pagas.length > 0) {
             const idsPagas = pagas.map(p => p.id);
@@ -2184,11 +1877,7 @@
   async function loadInadimplencia() { 
     const statusFilter = document.getElementById('filterInadStatus')?.value;
     let q = sb.from('inadimplencia').select('*, cliente:clientes(*), operacao:operacoes(numero_contrato), parcela:parcelas(numero_parcela, data_vencimento)').eq('empresa_id', EMPRESA_ID).order('dias_atraso', { ascending: false }); 
-    
-    if (statusFilter) {
-        q = q.eq('status', statusFilter);
-    }
-    
+    if (statusFilter) q = q.eq('status', statusFilter);
     const { data } = await q; 
 
     inadCacheAgrupado = {}; 
@@ -2197,8 +1886,9 @@
         if(!inadCacheAgrupado[i.cliente_id]) { 
             inadCacheAgrupado[i.cliente_id] = { cliente: cli, total: 0, itens: [] }; 
         } 
-        
-        inadCacheAgrupado[i.cliente_id].total += i.valor_total_devido; 
+        if (i.status === 'pendente') {
+            inadCacheAgrupado[i.cliente_id].total += i.valor_total_devido; 
+        }
         inadCacheAgrupado[i.cliente_id].itens.push(i); 
     }); 
 
