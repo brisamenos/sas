@@ -2,346 +2,756 @@
 <html lang="pt-PT">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MicroCred - Iniciar Sessão</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>MicroCred — Acesso</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    
-    :root { 
-      --primary: #ea580c; 
-      --primary-light: #f97316; 
-      --bg: #faf7f5; 
-      --surface: #ffffff; 
-      --text: #1c1917; 
-      --text-secondary: #57534e; 
-      --text-light: #a8a29e;
-      --border: #e7e5e4; 
-      --transition: all .3s cubic-bezier(0.4, 0, 0.2, 1); 
-      --radius: 16px;
-      --shadow: 0 10px 40px rgba(0,0,0,0.08);
+
+    :root {
+      --primary: #ff5722;
+      --primary-light: #ff7043;
+      --primary-glow: rgba(255, 87, 34, 0.35);
+      --bg-dark: #080f1a;
+      --bg-mid: #0d1827;
+      --surface: rgba(255,255,255,0.04);
+      --surface-hover: rgba(255,255,255,0.07);
+      --border: rgba(255,255,255,0.08);
+      --border-focus: rgba(255, 87, 34, 0.6);
+      --text: #f0f4ff;
+      --text-secondary: #7a90b0;
+      --text-light: #3a4e68;
     }
-    
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background: linear-gradient(135deg, #faf7f5 0%, #e7e5e4 100%); 
-      color: var(--text); 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      min-height: 100vh; 
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-dark);
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
       -webkit-font-smoothing: antialiased;
+      position: relative;
     }
-    
+
+    /* ── FUNDO ANIMADO ── */
+    .bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    /* Grade de pontos */
+    .bg-canvas::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,0.06) 1px, transparent 1px);
+      background-size: 36px 36px;
+      mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 40%, transparent 100%);
+    }
+
+    /* Orbes de luz */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      animation: orbDrift 14s ease-in-out infinite;
+      pointer-events: none;
+    }
+    .orb-1 {
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(255,87,34,0.18) 0%, transparent 70%);
+      top: -120px; left: -100px;
+      animation-duration: 18s;
+    }
+    .orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(41,121,255,0.12) 0%, transparent 70%);
+      bottom: -100px; right: -80px;
+      animation-duration: 22s;
+      animation-delay: -7s;
+    }
+    .orb-3 {
+      width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,171,0,0.08) 0%, transparent 70%);
+      top: 50%; left: 60%;
+      transform: translate(-50%,-50%);
+      animation-duration: 25s;
+      animation-delay: -12s;
+    }
+
+    @keyframes orbDrift {
+      0%, 100% { transform: translate(0, 0) scale(1); }
+      33%       { transform: translate(30px, -20px) scale(1.05); }
+      66%       { transform: translate(-20px, 25px) scale(0.97); }
+    }
+
+    /* Linha diagonal decorativa */
+    .bg-line {
+      position: absolute;
+      width: 2px;
+      height: 100vh;
+      background: linear-gradient(180deg, transparent 0%, rgba(255,87,34,0.15) 40%, rgba(255,87,34,0.25) 60%, transparent 100%);
+      transform: rotate(15deg) translateX(-50%);
+      left: 50%;
+      top: -20%;
+      animation: lineShimmer 6s ease-in-out infinite;
+    }
+
+    @keyframes lineShimmer {
+      0%, 100% { opacity: 0.4; }
+      50% { opacity: 1; }
+    }
+
+    /* ── WRAPPER PRINCIPAL ── */
     .login-wrapper {
+      position: relative;
+      z-index: 10;
       width: 100%;
       max-width: 420px;
       padding: 20px;
+      animation: wrapperIn 0.8s cubic-bezier(0.34, 1.2, 0.64, 1) both;
     }
-    
+
+    @keyframes wrapperIn {
+      from { opacity: 0; transform: translateY(32px) scale(0.97); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    /* ── CARD ── */
     .login-card {
-      background: var(--surface);
-      padding: 45px 35px;
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      text-align: center;
-      border: 1px solid #ffffff;
+      background: linear-gradient(160deg, rgba(255,255,255,0.055) 0%, rgba(255,255,255,0.02) 100%);
+      border: 1px solid var(--border);
+      border-radius: 28px;
+      padding: 42px 38px 36px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow:
+        0 0 0 1px rgba(255,255,255,0.04) inset,
+        0 40px 80px rgba(0,0,0,0.6),
+        0 0 80px rgba(255,87,34,0.06);
+      position: relative;
+      overflow: hidden;
     }
-    
+
+    /* Brilho no topo do card */
+    .login-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 20%; right: 20%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+    }
+
+    /* ── HEADER ── */
     .login-header {
-      margin-bottom: 35px;
-      /* Altura fixa para o formulário não saltar quando a imagem aparecer */
-      min-height: 140px; 
+      text-align: center;
+      margin-bottom: 36px;
+      min-height: 120px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: flex-end;
     }
-    
-    .login-header img {
-      max-width: 200px;
-      max-height: 90px;
-      object-fit: contain;
-      margin-bottom: 15px;
-      transition: opacity 0.5s ease, transform 0.5s ease;
-      border-radius: 8px;
+
+    .logo-wrap {
+      margin-bottom: 16px;
+      transition: all 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
     }
 
-    .login-header img.loading {
-      opacity: 0;
-      transform: scale(0.90) translateY(10px);
+    .logo-wrap.has-logo img {
+      opacity: 1 !important;
+      transform: scale(1) translateY(0) !important;
     }
-    
+
+    .logo-default {
+      width: 58px; height: 58px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, #ff5722 0%, #ff8a50 100%);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 8px 30px rgba(255,87,34,0.4);
+      transition: all 0.4s ease;
+    }
+
+    .logo-empresa {
+      max-width: 180px;
+      max-height: 72px;
+      object-fit: contain;
+      border-radius: 10px;
+      opacity: 0;
+      transform: scale(0.88) translateY(8px);
+      transition: all 0.5s cubic-bezier(0.34, 1.4, 0.64, 1);
+      display: none;
+    }
+
+    .welcome-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,87,34,0.12);
+      border: 1px solid rgba(255,87,34,0.2);
+      color: #ff7043;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 100px;
+      margin-bottom: 10px;
+      font-family: 'Outfit', sans-serif;
+    }
+
     .login-header h1 {
-      font-size: 22px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
       font-weight: 700;
       color: var(--text);
-      margin-bottom: 5px;
-      letter-spacing: -0.5px;
-      transition: var(--transition);
+      letter-spacing: -0.6px;
+      line-height: 1.2;
+      transition: all 0.4s ease;
     }
-    
+
     .login-header p {
-      font-size: 13.5px;
+      font-size: 13px;
       color: var(--text-secondary);
+      margin-top: 6px;
+      font-weight: 400;
     }
-    
+
+    /* ── CAMPOS ── */
     .form-group {
-      text-align: left;
-      margin-bottom: 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      margin-bottom: 16px;
+      position: relative;
     }
-    
+
     .form-group label {
-      font-size: 12px;
+      display: block;
+      font-size: 11px;
       font-weight: 700;
-      color: var(--text-secondary);
+      letter-spacing: 1px;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      font-family: 'Outfit', sans-serif;
     }
-    
+
+    .input-wrap {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 14px;
+      color: var(--text-light);
+      transition: color 0.3s;
+      pointer-events: none;
+      z-index: 2;
+    }
+
     .form-group input {
       width: 100%;
-      padding: 14px 16px;
+      padding: 13px 14px 13px 42px;
+      background: rgba(255,255,255,0.04);
       border: 1.5px solid var(--border);
-      border-radius: 10px;
-      font-family: inherit;
-      font-size: 14.5px;
-      transition: var(--transition);
-      background: #fafaf9;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
       color: var(--text);
-    }
-    
-    .form-group input:focus {
+      transition: all 0.25s ease;
       outline: none;
-      border-color: var(--primary);
-      background: #fff;
-      box-shadow: 0 0 0 4px rgba(234, 88, 12, 0.1);
+      -webkit-appearance: none;
     }
 
     .form-group input::placeholder {
-      color: #cbd5e1;
-    }
-    
-    .btn-submit {
-      width: 100%;
-      padding: 15px;
-      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-weight: 700;
-      font-size: 15px;
-      cursor: pointer;
-      transition: var(--transition);
-      box-shadow: 0 4px 15px rgba(234, 88, 12, 0.25);
-      margin-top: 10px;
-      letter-spacing: 0.2px;
-    }
-    
-    .btn-submit:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 20px rgba(234, 88, 12, 0.35);
-    }
-    
-    .btn-submit:active {
-      transform: translateY(0);
+      color: var(--text-light);
     }
 
+    .form-group input:focus {
+      border-color: var(--border-focus);
+      background: rgba(255,87,34,0.04);
+      box-shadow: 0 0 0 4px rgba(255,87,34,0.1);
+    }
+
+    .form-group input:focus + .input-icon,
+    .input-wrap:focus-within .input-icon {
+      color: #ff7043;
+    }
+
+    /* Mover ícone para before hack */
+    .input-wrap .input-icon { order: -1; }
+    .input-wrap input { order: 1; }
+
+    /* Fix: icon fica absoluto */
+    .input-wrap { position: relative; }
+    .input-wrap .input-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    /* Toggle senha */
+    .toggle-pass {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text-light);
+      padding: 4px;
+      border-radius: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.2s;
+      z-index: 2;
+    }
+    .toggle-pass:hover { color: var(--text-secondary); }
+
+    /* ── BOTÃO SUBMIT ── */
+    .btn-submit {
+      width: 100%;
+      padding: 14px 20px;
+      background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 14.5px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      box-shadow: 0 4px 20px rgba(255,87,34,0.35);
+      margin-top: 8px;
+      letter-spacing: 0.3px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn-submit:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 30px rgba(255,87,34,0.5);
+    }
+
+    .btn-submit:hover::before { opacity: 1; }
+    .btn-submit:active:not(:disabled) { transform: translateY(0); }
+
     .btn-submit:disabled {
-      opacity: 0.7;
+      opacity: 0.6;
       cursor: not-allowed;
       transform: none;
       box-shadow: none;
     }
-    
+
+    /* Spinner */
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+      flex-shrink: 0;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── DIVISOR ── */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 24px 0 0;
+    }
+    .divider-line { flex: 1; height: 1px; background: var(--border); }
+    .divider-text { font-size: 11px; color: var(--text-light); white-space: nowrap; font-family: 'Outfit', sans-serif; letter-spacing: 0.5px; }
+
+    /* ── RODAPÉ ── */
     .footer-text {
-      margin-top: 30px;
-      font-size: 12px;
-      color: var(--text-light);
-      line-height: 1.6;
+      text-align: center;
+      margin-top: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
     }
 
-    /* TOAST NOTIFICATIONS */
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; }
-    .toast { padding: 14px 20px; border-radius: 10px; font-size: 13.5px; font-weight: 600; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: toastIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275), toastOut .4s ease 3s forwards; max-width: 350px; display: flex; align-items: center; gap: 10px; }
-    .toast.success { background: linear-gradient(135deg, #16a34a, #22c55e); }
-    .toast.error { background: linear-gradient(135deg, #dc2626, #ef4444); }
-    @keyframes toastIn { from { opacity: 0; transform: translateX(40px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
-    @keyframes toastOut { to { opacity: 0; transform: translateX(40px) scale(0.9); } }
+    .footer-brand {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11.5px;
+      color: var(--text-light);
+      font-weight: 500;
+    }
+
+    .footer-secure {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 10.5px;
+      color: var(--text-light);
+      opacity: 0.6;
+    }
+
+    .badge-secure {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0,200,83,0.1);
+      border: 1px solid rgba(0,200,83,0.15);
+      color: #4cde8a;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 100px;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* ── TOAST ── */
+    .toast-container {
+      position: fixed; top: 20px; right: 20px;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: 10px;
+    }
+    .toast {
+      padding: 14px 18px;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      animation: toastIn .4s cubic-bezier(0.34, 1.3, 0.64, 1), toastOut .4s ease 3.5s forwards;
+      max-width: 340px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      backdrop-filter: blur(12px);
+      font-family: 'DM Sans', sans-serif;
+    }
+    .toast.success { background: linear-gradient(135deg, rgba(0,178,72,0.92), rgba(0,200,83,0.88)); border: 1px solid rgba(0,255,100,0.15); }
+    .toast.error   { background: linear-gradient(135deg, rgba(229,57,53,0.92), rgba(255,82,82,0.88)); border: 1px solid rgba(255,100,100,0.15); }
+    @keyframes toastIn  { from { opacity:0; transform: translateX(50px) scale(0.9); } to { opacity:1; transform: translateX(0) scale(1); } }
+    @keyframes toastOut { to   { opacity:0; transform: translateX(50px) scale(0.9); } }
+
+    /* ── MOBILE ── */
+    @media (max-width: 480px) {
+      html, body { overflow: auto; }
+      .login-wrapper { padding: 16px; max-width: 100%; }
+      .login-card { padding: 32px 24px 28px; border-radius: 22px; }
+      .login-header h1 { font-size: 21px; }
+    }
+
+    /* ── INDICADOR DE FORÇA ── */
+    .user-found-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #4cde8a;
+      margin-top: 6px;
+      padding: 0 2px;
+      animation: fadeIn 0.3s ease;
+    }
+    .user-found-badge.visible { display: flex; }
+    @keyframes fadeIn { from { opacity:0; transform: translateY(-4px); } to { opacity:1; transform: translateY(0); } }
+
   </style>
 </head>
 <body>
 
-  <div class="toast-container" id="toastContainer"></div>
+<div class="toast-container" id="toastContainer"></div>
 
-  <div class="login-wrapper">
-    <div class="login-card">
-      <div class="login-header">
-        <img id="mainLogo" style="display: none;" class="loading" alt="Logo da Empresa" />
-        <h1 id="welcomeText">Bem-vindo de volta</h1>
-        <p>Inicie sessão no seu espaço exclusivo</p>
+<!-- Fundo animado -->
+<div class="bg-canvas">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+  <div class="bg-line"></div>
+</div>
+
+<div class="login-wrapper">
+  <div class="login-card">
+
+    <div class="login-header">
+      <div class="logo-wrap" id="logoWrap">
+        <!-- Logo padrão (ícone) -->
+        <div class="logo-default" id="logoDefault">
+          <svg width="28" height="28" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/>
+            <path stroke-linecap="round" d="M12 6v6l4 2"/>
+          </svg>
+        </div>
+        <!-- Logo da empresa (carregada dinamicamente) -->
+        <img id="logoEmpresa" class="logo-empresa" alt="Logo da Empresa" />
       </div>
 
-      <form id="loginForm" onsubmit="handleLogin(event)">
-        <div class="form-group">
-          <label>Utilizador</label>
-          <input type="text" id="username" placeholder="ex: empresa.silva" required autocomplete="username" onblur="fetchLogo(this.value)" />
-        </div>
-        <div class="form-group">
-          <label>Palavra-passe</label>
-          <input type="password" id="password" placeholder="••••••••" required autocomplete="current-password" />
-        </div>
+      <div class="welcome-tag">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Acesso Seguro
+      </div>
 
-        <button type="submit" class="btn-submit" id="btnSubmit">
-          <span id="btnText">Acessar</span>
-        </button>
-      </form>
+      <h1 id="welcomeText">Bem-vindo de volta</h1>
+      <p id="welcomeSub">Inicie sessão no seu espaço exclusivo</p>
+    </div>
 
-      <div class="footer-text">
-        Tecnologia MicroCred &copy; 2026<br>
-        Ambiente Seguro!
+    <form id="loginForm" onsubmit="handleLogin(event)" autocomplete="on">
+
+      <div class="form-group">
+        <label>Utilizador</label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+            <circle cx="12" cy="7" r="4"/>
+          </svg>
+          <input
+            type="text"
+            id="username"
+            placeholder="ex: empresa.silva"
+            required
+            autocomplete="username"
+            onblur="fetchLogo(this.value)"
+          />
+        </div>
+        <div class="user-found-badge" id="userFoundBadge">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          Utilizador encontrado
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Palavra-passe</label>
+        <div class="input-wrap">
+          <svg class="input-icon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <rect x="3" y="11" width="18" height="11" rx="2"/>
+            <path stroke-linecap="round" d="M7 11V7a5 5 0 0110 0v4"/>
+          </svg>
+          <input
+            type="password"
+            id="password"
+            placeholder="••••••••"
+            required
+            autocomplete="current-password"
+          />
+          <button type="button" class="toggle-pass" onclick="togglePassword()" id="btnTogglePass" title="Mostrar/ocultar senha">
+            <svg id="eyeIcon" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+              <circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-submit" id="btnSubmit">
+        <span class="spinner" id="btnSpinner"></span>
+        <span id="btnText">Acessar o Sistema</span>
+        <svg id="btnArrow" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M5 12h14M12 5l7 7-7 7"/>
+        </svg>
+      </button>
+
+    </form>
+
+    <div class="divider">
+      <div class="divider-line"></div>
+      <span class="divider-text">Dev &copy; 2026</span>
+      <div class="divider-line"></div>
+    </div>
+
+    <div class="footer-text">
+      <div class="badge-secure">
+        <svg width="10" height="10" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+        Ambiente Encriptado e Seguro
       </div>
     </div>
+
   </div>
+</div>
 
-  <script>
-    // ==========================================
-    // CONFIGURAÇÕES SUPABASE
-    // ==========================================
-    const SUPABASE_URL = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
-    const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<script>
+  // ==========================================
+  // SUPABASE
+  // ==========================================
+  const SUPABASE_URL     = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
+  const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    window.onload = () => { 
-      sessionStorage.clear(); 
-    };
+  window.onload = () => { sessionStorage.clear(); };
 
-    function showToast(msg, type = 'error') {
-      const c = document.getElementById('toastContainer');
-      const t = document.createElement('div');
-      t.className = 'toast ' + type; 
-      
-      const icon = type === 'success' 
-        ? '<svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>' 
-        : '<svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-      
-      t.innerHTML = icon + '<span>' + msg + '</span>';
-      c.appendChild(t); 
-      setTimeout(() => t.remove(), 3500);
+  // ── Toast ──
+  function showToast(msg, type = 'error') {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast ' + type;
+    const icon = type === 'success'
+      ? '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+      : '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>';
+    t.innerHTML = icon + '<span>' + msg + '</span>';
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
+  }
+
+  // ── Toggle senha ──
+  function togglePassword() {
+    const inp  = document.getElementById('password');
+    const icon = document.getElementById('eyeIcon');
+    const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    icon.innerHTML = show
+      ? '<path stroke-linecap="round" d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/><line stroke-linecap="round" x1="1" y1="1" x2="23" y2="23"/>'
+      : '<path stroke-linecap="round" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>';
+  }
+
+  // ── Buscar logo dinamicamente ──
+  async function fetchLogo(username) {
+    const logoDefault  = document.getElementById('logoDefault');
+    const logoEmpresa  = document.getElementById('logoEmpresa');
+    const logoWrap     = document.getElementById('logoWrap');
+    const welcomeText  = document.getElementById('welcomeText');
+    const welcomeSub   = document.getElementById('welcomeSub');
+    const foundBadge   = document.getElementById('userFoundBadge');
+
+    if (!username.trim()) {
+      logoDefault.style.display  = 'flex';
+      logoEmpresa.style.display  = 'none';
+      logoEmpresa.style.opacity  = '0';
+      logoWrap.classList.remove('has-logo');
+      welcomeText.textContent = 'Bem-vindo de volta';
+      welcomeSub.textContent  = 'Inicie sessão no seu espaço exclusivo';
+      foundBadge.classList.remove('visible');
+      return;
     }
 
-    // ==========================================
-    // FUNÇÃO: BUSCAR LOGÓTIPO DINAMICAMENTE
-    // ==========================================
-    async function fetchLogo(username) {
-      const logoImg = document.getElementById('mainLogo');
-      const welcomeText = document.getElementById('welcomeText');
+    try {
+      const { data } = await sb.from('usuarios_clientes')
+        .select('logo_url, nome_empresa')
+        .eq('usuario', username.trim())
+        .single();
 
-      // Se o campo for limpo, esconde a logo de novo
-      if(!username.trim()) {
-         logoImg.style.display = 'none';
-         logoImg.classList.add('loading');
-         welcomeText.textContent = 'Bem-vindo de volta';
-         return;
-      }
-      
-      try {
-        const { data, error } = await sb.from('usuarios_clientes')
-          .select('logo_url, nome_empresa')
-          .eq('usuario', username.trim())
-          .single();
-        
-        logoImg.classList.add('loading');
-        
-        setTimeout(() => {
-          if (data) {
-              welcomeText.textContent = `Olá, ${data.nome_empresa}`;
-              
-              if (data.logo_url) {
-                  logoImg.src = data.logo_url;
-                  logoImg.style.display = 'block';
-              } else {
-                  logoImg.style.display = 'none';
-              }
-          } else {
-              logoImg.style.display = 'none';
-              welcomeText.textContent = 'Bem-vindo de volta';
-          }
-          // Remove a classe loading para a imagem aparecer com efeito fade-in
-          logoImg.classList.remove('loading');
-        }, 300);
+      if (data) {
+        welcomeText.textContent = data.nome_empresa || 'Bem-vindo de volta';
+        welcomeSub.textContent  = 'Acesso exclusivo ao seu painel';
+        foundBadge.classList.add('visible');
 
-      } catch (err) {
-        logoImg.style.display = 'none';
+        if (data.logo_url) {
+          logoEmpresa.style.display = 'block';
+          logoEmpresa.src = data.logo_url;
+          logoEmpresa.onload = () => {
+            logoDefault.style.display = 'none';
+            setTimeout(() => {
+              logoWrap.classList.add('has-logo');
+            }, 50);
+          };
+        }
+      } else {
+        foundBadge.classList.remove('visible');
+        logoDefault.style.display  = 'flex';
+        logoEmpresa.style.display  = 'none';
+        logoWrap.classList.remove('has-logo');
         welcomeText.textContent = 'Bem-vindo de volta';
-        logoImg.classList.add('loading');
+        welcomeSub.textContent  = 'Inicie sessão no seu espaço exclusivo';
       }
+    } catch {
+      foundBadge.classList.remove('visible');
+    }
+  }
+
+  // ── Login ──
+  async function handleLogin(e) {
+    e.preventDefault();
+
+    const user       = document.getElementById('username').value.trim();
+    const pass       = document.getElementById('password').value.trim();
+    const btnSubmit  = document.getElementById('btnSubmit');
+    const btnText    = document.getElementById('btnText');
+    const spinner    = document.getElementById('btnSpinner');
+    const arrow      = document.getElementById('btnArrow');
+
+    if (!user || !pass) {
+      showToast('Preencha o utilizador e a palavra-passe.', 'error');
+      return;
     }
 
-    // ==========================================
-    // FUNÇÃO: PROCESSAR O LOGIN
-    // ==========================================
-    async function handleLogin(e) {
-      e.preventDefault();
-      
-      const user = document.getElementById('username').value.trim();
-      const pass = document.getElementById('password').value.trim();
-      const btnSubmit = document.getElementById('btnSubmit');
-      const btnText = document.getElementById('btnText');
+    btnSubmit.disabled  = true;
+    btnText.textContent = 'A verificar...';
+    spinner.style.display = 'block';
+    arrow.style.display   = 'none';
 
-      if (!user || !pass) {
-        showToast('Preencha o utilizador e a palavra-passe.', 'error');
-        return;
+    try {
+      const { data, error } = await sb
+        .from('usuarios_clientes')
+        .select('*')
+        .eq('usuario', user)
+        .eq('senha', pass)
+        .single();
+
+      if (error || !data) throw new Error('Utilizador ou palavra-passe incorretos.');
+
+      if (data.status !== 'ativo')
+        throw new Error('Acesso bloqueado. Contacte o suporte.');
+
+      const hoje = new Date().toISOString().slice(0, 10);
+      if (data.vencimento < hoje) {
+        const dataPt = data.vencimento.split('-').reverse().join('/');
+        throw new Error(`Assinatura expirada em ${dataPt}. Contacte o suporte.`);
       }
 
-      btnSubmit.disabled = true;
-      btnText.textContent = 'A verificar credenciais...';
+      btnText.textContent = 'Acesso autorizado!';
+      showToast('Acesso autorizado! A preparar o ambiente...', 'success');
 
-      try {
-        const { data, error } = await sb
-          .from('usuarios_clientes')
-          .select('*')
-          .eq('usuario', user)
-          .eq('senha', pass)
-          .single();
+      sessionStorage.setItem('microcred_auth',        'true');
+      sessionStorage.setItem('microcred_empresa_id',  data.id);
+      sessionStorage.setItem('microcred_empresa',     data.nome_empresa);
+      sessionStorage.setItem('microcred_vencimento',  data.vencimento);
+      sessionStorage.setItem('microcred_logo',        data.logo_url || 'null');
 
-        if (error || !data) {
-          throw new Error('Utilizador ou palavra-passe incorretos!');
-        }
+      setTimeout(() => { window.location.href = 'index.html'; }, 1200);
 
-        if (data.status !== 'ativo') {
-          throw new Error('O seu acesso encontra-se bloqueado. Contacte o suporte.');
-        }
-
-        const hoje = new Date().toISOString().slice(0,10);
-        if (data.vencimento < hoje) {
-          const dataPt = data.vencimento.split('-').reverse().join('/');
-          throw new Error(`A sua assinatura expirou a ${dataPt}. Contacte o suporte para renovar.`);
-        }
-
-        showToast('Acesso autorizado! A preparar o ambiente...', 'success');
-        
-        sessionStorage.setItem('microcred_auth', 'true');
-        sessionStorage.setItem('microcred_empresa_id', data.id);
-        sessionStorage.setItem('microcred_empresa', data.nome_empresa);
-        sessionStorage.setItem('microcred_vencimento', data.vencimento);
-        // Guarda a logo para o painel (passa 'null' como string se não houver logo)
-        sessionStorage.setItem('microcred_logo', data.logo_url || 'null'); 
-
-        setTimeout(() => {
-          window.location.href = 'index.html'; 
-        }, 1200);
-
-      } catch (err) {
-        showToast(err.message, 'error');
-        btnSubmit.disabled = false;
-        btnText.textContent = 'Aceder ao Sistema';
-      }
+    } catch (err) {
+      showToast(err.message, 'error');
+      btnSubmit.disabled    = false;
+      btnText.textContent   = 'Acessar o Sistema';
+      spinner.style.display = 'none';
+      arrow.style.display   = 'block';
     }
-  </script>
+  }
+</script>
 </body>
 </html>
