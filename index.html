@@ -1017,6 +1017,42 @@
         </div>
       </div>
 
+      <div class="page-section" id="page-notificacoes">
+        <div class="card">
+          <div class="card-header">
+            <h3>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              Central de Notificações
+            </h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <select id="notifFiltroTipo" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
+                <option value="">Todos os tipos</option>
+                <option value="atraso">Atraso</option>
+                <option value="vencimento">Vencimento</option>
+                <option value="cobranca">Cobrança</option>
+                <option value="sistema">Sistema</option>
+                <option value="manual">Manual</option>
+              </select>
+              <select id="notifFiltroLida" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
+                <option value="">Todas</option>
+                <option value="false">Não lidas</option>
+                <option value="true">Lidas</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="marcarTodasLidas()">✓ Marcar todas lidas</button>
+              <button class="btn btn-primary btn-sm" onclick="openNovaNotifModal()">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                Nova Notificação
+              </button>
+            </div>
+          </div>
+          <div class="card-body" style="padding:16px;">
+            <div id="notifList" style="display:flex;flex-direction:column;gap:10px;">
+              <div style="text-align:center;padding:40px;color:var(--text-light);">Carregando notificações...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div class="page-section" id="page-plano">
         <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
           
@@ -1306,44 +1342,6 @@
     </div> </div>
 
       <!-- NOTIFICAÇÕES -->
-      <div class="page-section" id="page-notificacoes">
-        <div class="card">
-          <!-- Filtros e ações -->
-          <div class="card-header">
-            <h3>
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-              Central de Notificações
-            </h3>
-            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <select id="notifFiltroTipo" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
-                <option value="">Todos os tipos</option>
-                <option value="atraso">Atraso</option>
-                <option value="vencimento">Vencimento</option>
-                <option value="cobranca">Cobrança</option>
-                <option value="sistema">Sistema</option>
-                <option value="manual">Manual</option>
-              </select>
-              <select id="notifFiltroLida" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
-                <option value="">Todas</option>
-                <option value="false">Não lidas</option>
-                <option value="true">Lidas</option>
-              </select>
-              <button class="btn btn-outline btn-sm" onclick="marcarTodasLidas()">✓ Marcar todas lidas</button>
-              <button class="btn btn-primary btn-sm" onclick="openNovaNotifModal()">
-                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                Nova Notificação
-              </button>
-            </div>
-          </div>
-
-          <!-- Lista de notificações -->
-          <div class="card-body" style="padding:16px;">
-            <div id="notifList" style="display:flex;flex-direction:column;gap:10px;">
-              <div style="text-align:center;padding:40px;color:var(--text-light);">Carregando notificações...</div>
-            </div>
-          </div>
-        </div>
-      </div>
 
     </div> <div class="modal-overlay" id="modalConfirmDeleteLogo">
   <div class="modal" style="max-width: 400px; text-align: center; padding: 40px 30px;">
