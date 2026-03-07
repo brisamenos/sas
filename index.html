@@ -690,6 +690,58 @@
     @media (max-width: 480px) {
       .stats-grid { grid-template-columns: 1fr; }
     }
+    @media (max-width: 900px) {
+      #agendaGrid { grid-template-columns: 1fr !important; }
+    }
+
+    /* ── QUICK ACTION BUTTONS ── */
+    .quick-action-btn:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.10); }
+    .quick-action-btn:active { transform: scale(0.96); }
+
+    /* ── AGENDA CARDS ── */
+    .agenda-item {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px; border-bottom: 1px solid var(--border-light);
+      transition: background 0.18s; cursor: default;
+    }
+    .agenda-item:last-child { border-bottom: none; }
+    .agenda-item:hover { background: var(--surface-2); }
+    .agenda-avatar {
+      width: 36px; height: 36px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 800; color: #fff;
+      flex-shrink: 0; font-family: 'Outfit', sans-serif;
+    }
+    .agenda-info { flex: 1; min-width: 0; }
+    .agenda-name { font-size: 13px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .agenda-sub  { font-size: 11px; color: var(--text-light); margin-top: 1px; }
+    .agenda-valor { font-size: 13px; font-weight: 800; color: var(--text); font-family: 'Outfit', sans-serif; white-space: nowrap; }
+
+    /* ── ALERT BANNER ── */
+    .alert-banner {
+      padding: 12px 18px; border-radius: 12px;
+      display: flex; align-items: center; gap: 12px;
+      font-size: 13.5px; font-weight: 600;
+      animation: pageIn 0.3s ease both;
+    }
+    .alert-danger  { background: linear-gradient(90deg, rgba(229,57,53,0.10), rgba(229,57,53,0.04)); border: 1px solid rgba(229,57,53,0.25); color: var(--danger-text); }
+    .alert-warning { background: linear-gradient(90deg, rgba(255,171,0,0.10), rgba(255,171,0,0.04)); border: 1px solid rgba(255,171,0,0.25); color: var(--warning-text); }
+    .alert-banner a { color: inherit; text-decoration: underline; cursor: pointer; font-weight: 700; }
+
+    /* ── PROGRESS BAR ── */
+    .progress-bar-wrap { background: var(--border-light); border-radius: 100px; height: 6px; overflow: hidden; margin-top: 4px; }
+    .progress-bar-fill { height: 100%; border-radius: 100px; transition: width 0.6s cubic-bezier(0.4,0,0.2,1); }
+
+    /* ── TOPBAR RESPONSIVO ── */
+    @media (max-width: 768px) {
+      #dashBottomGrid { grid-template-columns: 1fr !important; }
+      #agendaGrid { grid-template-columns: 1fr !important; }
+      .topbar-right .btn-outline:not(:last-child) { display: none; }
+    }
+    @media (max-width: 540px) {
+      #dashBottomGrid > .card:last-child { display: none; }
+    }
+  
   </style>
 </head>
 <body>
@@ -705,28 +757,76 @@
 
     <div class="sidebar-nav">
       <div class="nav-section">Principal</div>
-      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')"> Dashboard </div>
-      
+      <div class="nav-item active" data-page="dashboard" onclick="navigate('dashboard')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" data-page="agenda" onclick="navigate('agenda')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+        Agenda
+        <span id="agendaBadge" style="margin-left:auto;background:#ff3d57;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;display:none;font-family:'Outfit',sans-serif;line-height:1.4;"></span>
+      </div>
+
       <div class="nav-section">Cadastros</div>
-      <div class="nav-item" data-page="clientes" onclick="navigate('clientes')"> Clientes </div>
-      <div class="nav-item" data-page="avalistas" onclick="navigate('avalistas')"> Avalistas </div>
-      <div class="nav-item" data-page="negocios" onclick="navigate('negocios')"> Micro Negócios </div>
-      
+      <div class="nav-item" data-page="clientes" onclick="navigate('clientes')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path stroke-linecap="round" d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        Clientes
+      </div>
+      <div class="nav-item" data-page="avalistas" onclick="navigate('avalistas')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
+        Avalistas
+      </div>
+      <div class="nav-item" data-page="negocios" onclick="navigate('negocios')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+        Micro Negócios
+      </div>
+
       <div class="nav-section">Financeiro</div>
-      <div class="nav-item" data-page="avaliacao" onclick="navigate('avaliacao')"> Avaliação Financeira </div>
-      <div class="nav-item" data-page="fluxo" onclick="navigate('fluxo')"> Fluxo de Caixa </div>
-      
+      <div class="nav-item" data-page="avaliacao" onclick="navigate('avaliacao')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        Avaliação Financeira
+      </div>
+      <div class="nav-item" data-page="fluxo" onclick="navigate('fluxo')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline stroke-linecap="round" stroke-linejoin="round" points="17 6 23 6 23 12"/></svg>
+        Fluxo de Caixa
+      </div>
+
       <div class="nav-section">Operações</div>
-      <div class="nav-item" data-page="operacoes" onclick="navigate('operacoes')"> Operações </div>
-      <div class="nav-item" data-page="parcelas" onclick="navigate('parcelas')"> Parcelas </div>
-      <div class="nav-item" data-page="inadimplencia" onclick="navigate('inadimplencia')"> Inadimplência </div>
-      <div class="nav-item" data-page="renovacoes" onclick="navigate('renovacoes')"> Renovações </div>
-      
+      <div class="nav-item" data-page="operacoes" onclick="navigate('operacoes')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+        Operações
+      </div>
+      <div class="nav-item" data-page="parcelas" onclick="navigate('parcelas')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path stroke-linecap="round" d="M2 10h20"/></svg>
+        Parcelas
+      </div>
+      <div class="nav-item" data-page="inadimplencia" onclick="navigate('inadimplencia')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        Inadimplência
+      </div>
+      <div class="nav-item" data-page="renovacoes" onclick="navigate('renovacoes')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+        Renovações
+      </div>
+
       <div class="nav-section">Relatórios</div>
-      <div class="nav-item" data-page="relatorios" onclick="navigate('relatorios')"> Relatórios </div>
-      
+      <div class="nav-item" data-page="relatorios" onclick="navigate('relatorios')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+        Relatórios
+      </div>
+
       <div class="nav-section">Configurações</div>
-      <div class="nav-item" data-page="plano" onclick="navigate('plano')"> Meu Plano & Logo </div>
+      <div class="nav-item" data-page="plano" onclick="navigate('plano')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><circle cx="12" cy="12" r="3"/></svg>
+        Meu Plano & Logo
+      </div>
+
+      <div style="padding:16px 14px 10px;">
+        <div style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:12px 14px;text-align:center;">
+          <div id="clockTime" style="font-family:'Outfit',sans-serif;font-size:22px;font-weight:700;color:#fff;letter-spacing:2px;"></div>
+          <div id="clockDate" style="font-size:10.5px;color:rgba(255,255,255,0.38);margin-top:2px;font-family:'Outfit',sans-serif;"></div>
+        </div>
+      </div>
     </div>
   </nav>
 
@@ -739,36 +839,120 @@
         <h2 id="pageTitle">Dashboard</h2>
       </div>
       <div class="topbar-right">
+        <button class="btn btn-outline btn-sm" title="Novo Cliente" onclick="navigate('clientes'); setTimeout(()=>openClienteModal(),300)" style="gap:5px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+          Cliente
+        </button>
+        <button class="btn btn-outline btn-sm" title="Nova Operação" onclick="navigate('operacoes'); setTimeout(()=>openOperacaoModal(),300)" style="gap:5px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+          Operação
+        </button>
+        <div style="width:1px;height:24px;background:var(--border);"></div>
         <div class="conn-badge" id="connStatus">Online</div>
-        <span id="userEmailDisplay" style="font-size: 13px; font-weight: 600; color: var(--text-secondary); margin-left: 5px; display: none;"></span>
-        <button class="btn btn-outline btn-sm" onclick="logout()" style="color: var(--danger); border-color: #fca5a5;">Sair</button>
+        <div id="userChip" style="display:none;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:5px 12px 5px 6px;border-radius:100px;cursor:default;">
+          <div id="userAvatar" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#ff5722,#ff8a50);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;flex-shrink:0;"></div>
+          <span id="userEmailDisplay" style="font-size:12.5px;font-weight:600;color:var(--text-secondary);"></span>
+        </div>
+        <button class="btn btn-outline btn-sm" onclick="logout()" style="color:var(--danger);border-color:rgba(255,61,87,0.3);gap:5px;">
+          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+          Sair
+        </button>
       </div>
     </header>
 
     <div class="content">
 
       <div class="page-section active" id="page-dashboard">
+        <!-- Alertas de parcelas urgentes -->
+        <div id="dashAlerts" style="margin-bottom:20px;display:flex;flex-direction:column;gap:10px;"></div>
+
+        <!-- KPI Cards -->
         <div class="stats-grid" id="dashStats"></div>
-        
+
+        <!-- Segunda linha: gráficos -->
         <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));">
           <div class="card">
-            <div class="card-header"><h3>Operações por Status</h3></div>
-            <div class="card-body" style="height: 300px; position: relative;"><canvas id="dashChartStatus"></canvas></div>
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--primary)"><path stroke-linecap="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg> Operações por Status</h3>
+            </div>
+            <div class="card-body" style="height:280px;position:relative;"><canvas id="dashChartStatus"></canvas></div>
           </div>
           <div class="card">
-            <div class="card-header"><h3>Visão Financeira</h3></div>
-            <div class="card-body" style="height: 300px; position: relative;"><canvas id="dashChartFin"></canvas></div>
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--vivid-green)"><polyline stroke-linecap="round" stroke-linejoin="round" points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline stroke-linecap="round" stroke-linejoin="round" points="17 6 23 6 23 12"/></svg> Visão Financeira</h3>
+            </div>
+            <div class="card-body" style="height:280px;position:relative;"><canvas id="dashChartFin"></canvas></div>
           </div>
         </div>
 
-        <div class="card">
-          <div class="card-header"><h3>Últimas Operações Registradas</h3></div>
-          <div class="card-body no-padding">
-            <div class="table-wrap">
-              <table>
-                <thead><tr><th>Contrato</th><th>Cliente</th><th>Valor</th><th>Parcelas</th><th>Status</th><th>Data</th></tr></thead>
-                <tbody id="dashOperacoes"></tbody>
-              </table>
+        <!-- Terceira linha: tabela + vencimentos próximos -->
+        <div style="display:grid;grid-template-columns:1fr 340px;gap:20px;" id="dashBottomGrid">
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--primary)"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Últimas Operações</h3>
+              <button class="btn btn-outline btn-sm" onclick="navigate('operacoes')">Ver todas</button>
+            </div>
+            <div class="card-body no-padding">
+              <div class="table-wrap">
+                <table>
+                  <thead><tr><th>Contrato</th><th>Cliente</th><th>Valor</th><th>Parcelas</th><th>Status</th><th>Data</th></tr></thead>
+                  <tbody id="dashOperacoes"></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="card" style="margin-bottom:0;">
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--warning)"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg> Próximos Vencimentos</h3>
+            </div>
+            <div class="card-body" style="padding:12px;" id="dashVencimentos">
+              <div style="text-align:center;padding:30px 0;color:var(--text-light);font-size:13px;">Carregando...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Atalhos Rápidos -->
+        <div class="card" style="margin-top:20px;">
+          <div class="card-header"><h3>⚡ Ações Rápidas</h3></div>
+          <div class="card-body">
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">
+              <button onclick="navigate('clientes');setTimeout(()=>openClienteModal(),300)" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(255,87,34,0.08),rgba(255,87,34,0.04));border:1.5px solid rgba(255,87,34,0.2);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#ff5722,#ff7043);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </div>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Novo Cliente</span>
+              </button>
+              <button onclick="navigate('operacoes');setTimeout(()=>openOperacaoModal(),300)" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(21,101,192,0.08),rgba(21,101,192,0.04));border:1.5px solid rgba(41,121,255,0.2);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#1565c0,#2979ff);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2"/></svg>
+                </div>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Nova Operação</span>
+              </button>
+              <button onclick="navigate('parcelas')" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(0,178,72,0.08),rgba(0,178,72,0.04));border:1.5px solid rgba(0,200,83,0.2);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#00b248,#00c853);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path stroke-linecap="round" d="M2 10h20"/></svg>
+                </div>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Ver Parcelas</span>
+              </button>
+              <button onclick="checkInadimplencia(event)" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(229,57,53,0.08),rgba(229,57,53,0.04));border:1.5px solid rgba(229,57,53,0.2);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#e53935,#ff5252);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                </div>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Sincronizar</span>
+              </button>
+              <button onclick="navigate('relatorios')" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(255,171,0,0.08),rgba(255,171,0,0.04));border:1.5px solid rgba(255,171,0,0.25);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#ff8f00,#ffab00);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"/><path stroke-linecap="round" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"/></svg>
+                </div>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Relatórios</span>
+              </button>
+              <button onclick="navigate('agenda')" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(0,188,212,0.08),rgba(0,188,212,0.04));border:1.5px solid rgba(0,188,212,0.25);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+                <div style="width:40px;height:40px;background:linear-gradient(135deg,#0097a7,#00bcd4);border-radius:12px;display:flex;align-items:center;justify-content:center;">
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01"/></svg>
+                </div>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Agenda</span>
+              </button>
             </div>
           </div>
         </div>
@@ -1060,7 +1244,44 @@
         </div>
       </div>
 
-    </div> </div> </div> <div class="modal-overlay" id="modalConfirmDeleteLogo">
+    </div> </div>
+
+      <!-- AGENDA DE COBRANÇAS -->
+      <div class="page-section" id="page-agenda">
+        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:20px;" id="agendaStats"></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="agendaGrid">
+          <div class="card" style="margin-bottom:0;border-top:3px solid var(--danger);">
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="var(--danger)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg> Vencidas (Atraso)</h3>
+              <span id="cntAtrasadas" class="badge badge-danger">0</span>
+            </div>
+            <div id="listaAtrasadas"><div class="empty-state">Carregando...</div></div>
+          </div>
+          <div class="card" style="margin-bottom:0;border-top:3px solid var(--warning);">
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="var(--warning)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Vencem Hoje</h3>
+              <span id="cntHoje" class="badge badge-warning">0</span>
+            </div>
+            <div id="listaHoje"><div class="empty-state">Carregando...</div></div>
+          </div>
+          <div class="card" style="margin-bottom:0;border-top:3px solid var(--info);">
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="var(--info)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Vencem Amanhã</h3>
+              <span id="cntAmanha" class="badge badge-info">0</span>
+            </div>
+            <div id="listaAmanha"><div class="empty-state">Carregando...</div></div>
+          </div>
+          <div class="card" style="margin-bottom:0;border-top:3px solid var(--success);">
+            <div class="card-header">
+              <h3><svg width="16" height="16" fill="none" stroke="var(--success)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg> Próximos 7 Dias</h3>
+              <span id="cnt7dias" class="badge badge-neutral">0</span>
+            </div>
+            <div id="lista7dias"><div class="empty-state">Carregando...</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div> <div class="modal-overlay" id="modalConfirmDeleteLogo">
   <div class="modal" style="max-width: 400px; text-align: center; padding: 40px 30px;">
     <svg style="width:50px;height:50px;color:var(--warning);margin-bottom:15px; display:inline-block;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
     <h3 style="margin-bottom:10px;">Opções de Logótipo</h3>
@@ -1522,10 +1743,28 @@
     }
 
     const emailDisplay = document.getElementById('userEmailDisplay');
-    if (emailDisplay) {
+    const userChip = document.getElementById('userChip');
+    const userAvatar = document.getElementById('userAvatar');
+    if (emailDisplay && EMPRESA_NOME) {
         emailDisplay.textContent = EMPRESA_NOME;
-        emailDisplay.style.display = 'block';
+        if (userAvatar) userAvatar.textContent = EMPRESA_NOME.charAt(0).toUpperCase();
+        if (userChip) userChip.style.display = 'flex';
     }
+    // Relógio em tempo real
+    function updateClock() {
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2,'0');
+      const m = String(now.getMinutes()).padStart(2,'0');
+      const s = String(now.getSeconds()).padStart(2,'0');
+      const el = document.getElementById('clockTime');
+      if (el) el.textContent = h + ':' + m + ':' + s;
+      const dias = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+      const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+      const elD = document.getElementById('clockDate');
+      if (elD) elD.textContent = dias[now.getDay()] + ', ' + now.getDate() + ' ' + meses[now.getMonth()] + ' ' + now.getFullYear();
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
 
     const userLogo = sessionStorage.getItem('microcred_logo');
     if(userLogo && userLogo !== 'null') {
@@ -1546,7 +1785,7 @@
   // NAVIGATION & MOBILE FIX
   // =============================================
   const pageTitles = {
-    dashboard: 'Dashboard', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
+    dashboard: 'Dashboard', agenda: 'Agenda de Cobranças', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
     avaliacao: 'Avaliação Financeira', fluxo: 'Fluxo de Caixa', operacoes: 'Operações',
     parcelas: 'Parcelas', inadimplencia: 'Inadimplência', renovacoes: 'Renovações', relatorios: 'Relatórios',
     plano: 'Identidade e Plano'
@@ -1583,6 +1822,7 @@
           break;
       case 'renovacoes': loadRenovacoes(); break;
       case 'relatorios': loadRelatorios(); break;
+      case 'agenda': loadAgenda(); break;
       case 'plano': loadPlano(); break;
     }
   }
@@ -1598,10 +1838,17 @@
   function fmt(v) { return (v || 0).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }); }
   function fmtDate(d) { return d ? new Date(d + 'T00:00:00').toLocaleDateString('pt-BR') : '-'; }
   function showToast(msg, type = 'info') {
+    const icons = {
+      success: '<svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>',
+      error:   '<svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M6 18L18 6M6 6l12 12"/></svg>',
+      info:    '<svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      warning: '<svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+    };
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
-    t.className = 'toast ' + type; t.textContent = msg;
-    c.appendChild(t); setTimeout(() => t.remove(), 3500);
+    t.className = 'toast ' + type;
+    t.innerHTML = (icons[type] || icons.info) + '<span>' + msg + '</span>';
+    c.appendChild(t); setTimeout(() => t.remove(), 3800);
   }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
   function openModal(id) { document.getElementById(id).classList.add('open'); }
@@ -1811,12 +2058,68 @@
     const totalCarteira = ativas.reduce((s, o) => s + Number(o.valor_aprovado || o.valor_solicitado || 0), 0);
     const totalAtrasadas = iRes.count || 0;
     
+    // Calcular recebido este mês
+    const now = new Date();
+    const mesAtual = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+    const recebidoMes = parcelasAll.filter(p => p.status === 'paga' && (p.data_pagamento || '').startsWith(mesAtual)).reduce((s,p) => s+Number(p.valor_pago||0), 0);
+
+    // Alertas de vencimento
+    const today = now.toISOString().slice(0,10);
+    const tomorrow = new Date(now); tomorrow.setDate(tomorrow.getDate()+1);
+    const tomorrowStr = tomorrow.toISOString().slice(0,10);
+    const venceHoje = parcelasAll.filter(p => p.data_vencimento === today && p.status === 'pendente').length;
+    const venceAmanha = parcelasAll.filter(p => p.data_vencimento === tomorrowStr && p.status === 'pendente').length;
+
+    const alertsEl = document.getElementById('dashAlerts');
+    if (alertsEl) {
+      let alertHtml = '';
+      if (totalAtrasadas > 0) alertHtml += `<div class="alert-banner alert-danger"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span>⚠️ <strong>${totalAtrasadas} parcela${totalAtrasadas>1?'s':''} em atraso!</strong> <a onclick="navigate('inadimplencia')">Ver inadimplência →</a></span></div>`;
+      if (venceHoje > 0) alertHtml += `<div class="alert-banner alert-warning"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>🕐 <strong>${venceHoje} parcela${venceHoje>1?'s':''} vencem hoje.</strong> <a onclick="navigate('agenda')">Ver agenda →</a></span></div>`;
+      if (venceAmanha > 0) alertHtml += `<div class="alert-banner alert-warning" style="background:rgba(255,171,0,0.06);"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>📅 <strong>${venceAmanha} parcela${venceAmanha>1?'s':''} vencem amanhã.</strong></span></div>`;
+      alertsEl.innerHTML = alertHtml;
+
+      // Badge na sidebar de agenda
+      const badge = document.getElementById('agendaBadge');
+      const total = venceHoje + venceAmanha + totalAtrasadas;
+      if (badge && total > 0) { badge.textContent = total; badge.style.display = 'inline'; }
+    }
+
     document.getElementById('dashStats').innerHTML = `
       <div class="stat-card accent"><div class="label">Total Clientes</div><div class="value">${totalClientes}</div></div>
       <div class="stat-card info"><div class="label">Operações Ativas</div><div class="value">${ativas.length}</div></div>
       <div class="stat-card success"><div class="label">Carteira Ativa</div><div class="value">${fmt(totalCarteira)}</div></div>
       <div class="stat-card danger"><div class="label">Parcelas Atrasadas</div><div class="value">${totalAtrasadas}</div></div>
     `;
+
+    // Vencimentos próximos no painel lateral
+    const vencEl = document.getElementById('dashVencimentos');
+    if (vencEl) {
+      const proximos = parcelasAll
+        .filter(p => ['pendente','atrasada'].includes(p.status) && p.data_vencimento <= tomorrowStr)
+        .sort((a,b) => a.data_vencimento.localeCompare(b.data_vencimento))
+        .slice(0, 8);
+      if (proximos.length === 0) {
+        vencEl.innerHTML = '<div style="text-align:center;padding:24px 0;color:var(--text-light);font-size:13px;">✅ Nenhum vencimento urgente</div>';
+      } else {
+        // Buscar nomes
+        const cIds = [...new Set(proximos.map(p => p.operacao_id).filter(Boolean))];
+        const { data: opNames } = await sb.from('operacoes').select('id,cliente_id,clientes(nome)').in('id', cIds).eq('empresa_id', EMPRESA_ID);
+        const opMap = {}; (opNames||[]).forEach(o => opMap[o.id] = o.clientes?.nome || '?');
+        vencEl.innerHTML = proximos.map(p => {
+          const isAtrasada = p.status === 'atrasada';
+          const cor = isAtrasada ? '#e53935' : '#ff8f00';
+          const inicial = (opMap[p.operacao_id] || '?').charAt(0).toUpperCase();
+          return `<div class="agenda-item">
+            <div class="agenda-avatar" style="background:${isAtrasada ? 'linear-gradient(135deg,#e53935,#ff5252)' : 'linear-gradient(135deg,#ff8f00,#ffab00)'};">${inicial}</div>
+            <div class="agenda-info">
+              <div class="agenda-name">${opMap[p.operacao_id] || 'Cliente'}</div>
+              <div class="agenda-sub">${isAtrasada ? '⚠️ Atrasada' : '⏰ Vence hoje/amanhã'} · ${fmtDate(p.data_vencimento)}</div>
+            </div>
+            <div class="agenda-valor" style="color:${cor};">${fmt(p.valor_total)}</div>
+          </div>`;
+        }).join('');
+      }
+    }
 
     const ctxStatus = document.getElementById('dashChartStatus').getContext('2d');
     if (chartStatusInstance) chartStatusInstance.destroy();
@@ -1877,17 +2180,32 @@
     if (search) q = q.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
     const { data } = await q;
     
-    document.getElementById('tblClientes').innerHTML = (data||[]).map(c => `
-      <tr>
-        <td><strong>${c.nome}</strong></td><td>${c.cpf}</td><td>${c.celular || '-'}</td><td>${c.cidade || '-'}/${c.uf || '-'}</td><td>${statusBadge(c.status)}</td>
+    document.getElementById('tblClientes').innerHTML = (data||[]).map(c => {
+      const ini = (c.nome||'?').charAt(0).toUpperCase();
+      const colors = ['#ff5722','#2979ff','#00b248','#ff8f00','#9c27b0','#00bcd4'];
+      const cor = colors[(c.nome||'').charCodeAt(0) % colors.length];
+      return `<tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:34px;height:34px;border-radius:10px;background:${cor};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;flex-shrink:0;">${ini}</div>
+            <div>
+              <div style="font-weight:700;font-size:13.5px;">${c.nome}</div>
+              <div style="font-size:11px;color:var(--text-light);">${c.email||''}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-family:'Outfit',sans-serif;font-size:13px;">${c.cpf}</td>
+        <td>${c.celular ? `<a href="https://api.whatsapp.com/send?phone=55${c.celular.replace(/\D/g,'')}" target="_blank" style="color:var(--success-text);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>${c.celular}</a>` : '-'}</td>
+        <td>${c.cidade||'-'}/${c.uf||'-'}</td>
+        <td>${statusBadge(c.status)}</td>
         <td><div class="btn-group">
           <button class="btn btn-info btn-sm" onclick="viewCliente('${c.id}')">Ver</button>
           <button class="btn btn-outline btn-sm" onclick="printCliente('${c.id}')">PDF</button>
           <button class="btn btn-outline btn-sm" onclick="editCliente('${c.id}')">Editar</button>
           <button class="btn btn-danger btn-sm" onclick="deleteCliente('${c.id}')">Apagar</button>
         </div></td>
-      </tr>
-    `).join('') || '<tr><td colspan="6" class="empty-state">Nenhum cliente encontrado</td></tr>';
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" class="empty-state">Nenhum cliente encontrado</td></tr>';
   }
 
   async function viewCliente(id) {
@@ -2064,18 +2382,37 @@
         data = (data || []).filter(o => (o.numero_contrato && o.numero_contrato.toLowerCase().includes(searchStr)) || (o.cliente?.nome && o.cliente.nome.toLowerCase().includes(searchStr)) || (o.cliente?.cpf && o.cliente.cpf.includes(searchStr)) ); 
       } 
       
-      document.getElementById('tblOperacoes').innerHTML = (data || []).map(o => `
-        <tr>
-          <td><strong>${o.numero_contrato || '-'}</strong></td>
+      // Buscar progresso de parcelas pagas para cada operação
+      const opIds = (data||[]).map(o => o.id);
+      let progressMap = {};
+      if (opIds.length > 0) {
+        const { data: parcsCount } = await sb.from('parcelas').select('operacao_id,status').eq('empresa_id', EMPRESA_ID).in('operacao_id', opIds);
+        (parcsCount||[]).forEach(p => {
+          if (!progressMap[p.operacao_id]) progressMap[p.operacao_id] = { total: 0, pagas: 0 };
+          progressMap[p.operacao_id].total++;
+          if (p.status === 'paga') progressMap[p.operacao_id].pagas++;
+        });
+      }
+      document.getElementById('tblOperacoes').innerHTML = (data || []).map(o => {
+        const prog = progressMap[o.id] || { total: o.num_parcelas, pagas: 0 };
+        const pct = prog.total > 0 ? Math.round((prog.pagas / prog.total) * 100) : 0;
+        const progColor = pct >= 80 ? '#00c853' : pct >= 40 ? '#ffab00' : '#2979ff';
+        return `<tr>
+          <td><strong style="font-family:'Outfit',sans-serif;">${o.numero_contrato || '-'}</strong></td>
           <td>${o.cliente?.nome || '-'}</td>
-          <td>${fmt(o.valor_aprovado || o.valor_solicitado)}</td>
-          <td>${o.taxa_juros}%</td>
-          <td>${o.num_parcelas}x</td>
+          <td style="font-family:'Outfit',sans-serif;font-weight:700;">${fmt(o.valor_aprovado || o.valor_solicitado)}</td>
+          <td><span class="badge badge-neutral" style="font-family:'Outfit',sans-serif;">${o.taxa_juros}% a.m.</span></td>
+          <td>
+            <div style="font-size:12px;font-weight:700;font-family:'Outfit',sans-serif;margin-bottom:3px;">${prog.pagas}/${prog.total > 0 ? prog.total : o.num_parcelas}x</div>
+            <div class="progress-bar-wrap" style="width:80px;">
+              <div class="progress-bar-fill" style="width:${pct}%;background:${progColor};"></div>
+            </div>
+          </td>
           <td>${statusBadge(o.status)}</td>
-          <td>${fmtDate(o.data_contratacao)}</td>
+          <td style="color:var(--text-light);font-size:12px;">${fmtDate(o.data_contratacao)}</td>
           <td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editOperacao('${o.id}')">Editar</button><button class="btn btn-success btn-sm" onclick="gerarParcelas('${o.id}')">Parcelas</button><button class="btn btn-danger btn-sm" onclick="deleteOperacao('${o.id}')">Apagar</button></div></td>
-        </tr>
-      `).join('') || '<tr><td colspan="8" class="empty-state">Nenhuma operação registada</td></tr>'; 
+        </tr>`;
+      }).join('') || '<tr><td colspan="8" class="empty-state">Nenhuma operação registada</td></tr>'; 
     } catch(e) {
       showToast('Erro ao listar operações: ' + e.message, 'error');
     }
@@ -2316,19 +2653,27 @@
     
     if (data.length === 0) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>'; return; } 
     
-    document.getElementById('tblParcelas').innerHTML = data.map(p => `
-      <tr>
+    const todayStr = new Date().toISOString().slice(0,10);
+    document.getElementById('tblParcelas').innerHTML = data.map(p => {
+      const isAtrasada = p.status === 'atrasada';
+      const isHoje = p.data_vencimento === todayStr && p.status === 'pendente';
+      const rowStyle = isAtrasada ? 'background:rgba(229,57,53,0.03);' : isHoje ? 'background:rgba(255,171,0,0.03);' : '';
+      const dias = isAtrasada ? Math.floor((new Date() - new Date(p.data_vencimento+'T00:00:00')) / 86400000) : 0;
+      return `<tr style="${rowStyle}">
         <td><strong>${p.operacao?.cliente?.nome || '-'}</strong></td>
-        <td>${p.operacao?.numero_contrato || '-'}</td>
-        <td>${p.numero_parcela}</td>
-        <td>${fmt(p.valor_total)}</td>
-        <td>${fmtDate(p.data_vencimento)}</td>
+        <td style="font-family:'Outfit',sans-serif;">${p.operacao?.numero_contrato || '-'}</td>
+        <td><span style="font-family:'Outfit',sans-serif;font-weight:700;">${p.numero_parcela}ª</span></td>
+        <td style="font-family:'Outfit',sans-serif;font-weight:700;">${fmt(p.valor_total)}</td>
+        <td>${isAtrasada ? `<span style="color:var(--danger);font-weight:700;">${fmtDate(p.data_vencimento)} <span style="font-size:10px;background:var(--danger-bg);color:var(--danger-text);padding:1px 6px;border-radius:100px;">${dias}d atraso</span></span>` : isHoje ? `<span style="color:var(--warning-text);font-weight:700;">Hoje ⏰</span>` : fmtDate(p.data_vencimento)}</td>
         <td>${fmtDate(p.data_pagamento)}</td>
         <td>${p.valor_pago ? fmt(p.valor_pago) : '-'}</td>
         <td>${statusBadge(p.status)}</td>
-        <td>${p.status !== 'paga' ? `<button class="btn btn-success btn-sm" onclick="openPagarParcela('${p.id}', ${p.valor_total})">Pagar</button>` : ''}</td>
-      </tr>
-    `).join(''); 
+        <td>${p.status !== 'paga' ? `<button class="btn btn-success btn-sm" onclick="openPagarParcela('${p.id}', ${p.valor_total})">
+          <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+          Pagar
+        </button>` : '<span style="color:var(--success-text);font-size:12px;font-weight:700;">✓ Pago</span>'}</td>
+      </tr>`;
+    }).join(''); 
   }
   
   function openPagarParcela(id, valor) { 
@@ -2631,6 +2976,84 @@
     a.click(); 
     URL.revokeObjectURL(url); 
     showToast(`Ficheiro Excel transferido!`, 'success'); 
+  }
+
+
+  // =============================================
+  // AGENDA DE COBRANÇAS
+  // =============================================
+  async function loadAgenda() {
+    const today = new Date().toISOString().slice(0,10);
+    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
+    const tomorrowStr = tomorrow.toISOString().slice(0,10);
+    const in7 = new Date(); in7.setDate(in7.getDate()+7);
+    const in7Str = in7.toISOString().slice(0,10);
+
+    // Buscar parcelas pendentes/atrasadas até 7 dias
+    const { data: parcelas } = await sb.from('parcelas')
+      .select('*,operacao:operacoes(numero_contrato,cliente_id,cliente:clientes(nome,celular,telefone))')
+      .eq('empresa_id', EMPRESA_ID)
+      .in('status', ['pendente','atrasada'])
+      .lte('data_vencimento', in7Str)
+      .order('data_vencimento');
+
+    const atrasadas = (parcelas||[]).filter(p => p.data_vencimento < today);
+    const hoje = (parcelas||[]).filter(p => p.data_vencimento === today);
+    const amanha = (parcelas||[]).filter(p => p.data_vencimento === tomorrowStr);
+    const prox7 = (parcelas||[]).filter(p => p.data_vencimento > tomorrowStr && p.data_vencimento <= in7Str);
+
+    // Atualizar contadores
+    document.getElementById('cntAtrasadas').textContent = atrasadas.length;
+    document.getElementById('cntHoje').textContent = hoje.length;
+    document.getElementById('cntAmanha').textContent = amanha.length;
+    document.getElementById('cnt7dias').textContent = prox7.length;
+
+    // Badge sidebar
+    const badge = document.getElementById('agendaBadge');
+    const total = atrasadas.length + hoje.length + amanha.length;
+    if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'inline' : 'none'; }
+
+    function renderList(containerId, items, cor, gradient) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      if (items.length === 0) { el.innerHTML = '<div class="empty-state" style="padding:24px!important;">✅ Nenhuma parcela</div>'; return; }
+      el.innerHTML = items.map(p => {
+        const nome = p.operacao?.cliente?.nome || 'Cliente';
+        const tel = p.operacao?.cliente?.celular || p.operacao?.cliente?.telefone || '';
+        const inicial = nome.charAt(0).toUpperCase();
+        return `<div class="agenda-item">
+          <div class="agenda-avatar" style="background:${gradient};">${inicial}</div>
+          <div class="agenda-info">
+            <div class="agenda-name">${nome}</div>
+            <div class="agenda-sub">Contrato: ${p.operacao?.numero_contrato||'-'} · Parcela ${p.numero_parcela}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
+            <div class="agenda-valor" style="color:${cor};">${fmt(p.valor_total)}</div>
+            ${tel ? `<button onclick="whatsAppCobrancaRapida('${tel}','${nome}',${p.valor_total},'${p.data_vencimento}')" class="btn btn-success" style="padding:3px 8px;font-size:10px;border-radius:6px;gap:3px;">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+              WhatsApp
+            </button>` : ''}
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    renderList('listaAtrasadas', atrasadas, '#e53935', 'linear-gradient(135deg,#e53935,#ff5252)');
+    renderList('listaHoje', hoje, '#ff8f00', 'linear-gradient(135deg,#ff8f00,#ffab00)');
+    renderList('listaAmanha', amanha, '#1565c0', 'linear-gradient(135deg,#1565c0,#2979ff)');
+    renderList('lista7dias', prox7, '#00b248', 'linear-gradient(135deg,#00b248,#00c853)');
+  }
+
+  function whatsAppCobrancaRapida(tel, nome, valor, venc) {
+    let p = tel.replace(/\D/g,'');
+    if (p.length === 10 || p.length === 11) p = '55' + p;
+    const primeiroNome = nome.split(' ')[0];
+    const msg = `Olá ${primeiroNome}! 👋
+
+Passamos para informar que sua parcela no valor de *${fmt(valor)}* vence em *${fmtDate(venc)}*.
+
+Qualquer dúvida, estamos à disposição! 😊`;
+    window.open('https://api.whatsapp.com/send?phone=' + p + '&text=' + encodeURIComponent(msg), '_blank');
   }
 
   // Inicializa o Software
