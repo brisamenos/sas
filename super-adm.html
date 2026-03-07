@@ -3,490 +3,1171 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>MicroCred - Super Admin SaaS</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <title>MicroCred — Control Center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    
+
     :root {
-      --primary: #ea580c; --primary-light: #f97316;
-      --bg: #0f172a; --surface: #1e293b; --surface-hover: #334155;
-      --text: #f8fafc; --text-secondary: #94a3b8; --border: #334155;
-      --success: #10b981; --danger: #ef4444; --warning: #f59e0b; --info: #3b82f6; --purple: #8b5cf6;
-      --radius: 12px; --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --primary:        #ff5722;
+      --primary-dim:    rgba(255,87,34,0.15);
+      --primary-border: rgba(255,87,34,0.3);
+      --primary-glow:   0 0 24px rgba(255,87,34,0.35);
+
+      --teal:           #00bfa5;
+      --teal-dim:       rgba(0,191,165,0.12);
+      --teal-border:    rgba(0,191,165,0.3);
+
+      --bg:             #060b12;
+      --bg2:            #09101a;
+      --surface:        #0d1520;
+      --surface-2:      #111d2e;
+      --surface-3:      #162235;
+      --surface-hover:  #1a2a3e;
+
+      --border:         rgba(255,255,255,0.06);
+      --border-md:      rgba(255,255,255,0.1);
+      --border-bright:  rgba(255,255,255,0.16);
+
+      --text:           #d8e4f0;
+      --text-2:         #7a9ab8;
+      --text-3:         #3a5570;
+      --text-accent:    #ff7043;
+
+      --green:          #00e676;
+      --green-dim:      rgba(0,230,118,0.1);
+      --green-border:   rgba(0,230,118,0.25);
+
+      --red:            #ff3d57;
+      --red-dim:        rgba(255,61,87,0.1);
+      --red-border:     rgba(255,61,87,0.25);
+
+      --amber:          #ffab00;
+      --amber-dim:      rgba(255,171,0,0.1);
+      --amber-border:   rgba(255,171,0,0.25);
+
+      --blue:           #448aff;
+      --blue-dim:       rgba(68,138,255,0.1);
+      --blue-border:    rgba(68,138,255,0.25);
+
+      --purple:         #ce93d8;
+      --purple-dim:     rgba(206,147,216,0.1);
+      --purple-border:  rgba(206,147,216,0.28);
+
+      --r:     16px;
+      --r-sm:  10px;
+      --r-xs:  7px;
+      --ease:  cubic-bezier(0.4, 0, 0.2, 1);
+      --t:     all 0.22s var(--ease);
     }
 
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); -webkit-font-smoothing: antialiased; line-height: 1.5; padding-bottom: 50px; overflow-x: hidden; }
-    
-    .navbar { background: rgba(30, 41, 59, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border); padding: 15px 40px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 50; }
-    .navbar h1 { font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 10px; margin: 0; }
-    .navbar-actions { display: flex; gap: 10px; flex-wrap: wrap; }
-    
-    .container { max-width: 1300px; margin: 30px auto 0; padding: 0 20px; }
-    
-    /* Stats Grid */
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 15px; margin-bottom: 30px; }
-    .stat-card { background: linear-gradient(145deg, var(--surface), rgba(30,41,59,0.4)); padding: 25px; border-radius: var(--radius); border: 1px solid var(--border); display: flex; flex-direction: column; position: relative; overflow: hidden; transition: var(--transition); }
-    .stat-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(0,0,0,0.3); border-color: var(--text-secondary); }
-    .stat-card .label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; }
-    .stat-card .value { font-size: 32px; font-weight: 800; color: var(--text); margin-top: 5px; }
-    .stat-card .icon { position: absolute; right: -15px; bottom: -15px; opacity: 0.05; width: 100px; height: 100px; color: var(--text); }
+    html { scroll-behavior: smooth; }
 
-    /* Cards */
-    .card { background: var(--surface); border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
-    .card-header { padding: 20px 25px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-    .card-header h3 { font-size: 16px; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 8px; }
-    .card-body { padding: 25px; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      padding-bottom: 60px;
+    }
 
-    /* Forms */
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; align-items: end; }
-    .form-group { display: flex; flex-direction: column; gap: 6px; }
-    .form-group.full { grid-column: 1 / -1; }
-    .form-group label { font-size: 11px; color: var(--text-secondary); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
-    .form-group input { padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15,23,42,0.6); color: var(--text); font-family: inherit; font-size: 14px; transition: var(--transition); outline: none; width: 100%; }
-    .form-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.15); background: var(--bg); }
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 4px; height: 4px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #1a3050; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #254570; }
 
-    /* File Input Estilizado */
-    .file-input-wrapper input[type="file"] { width: 100%; padding: 12px; background: rgba(255,255,255,0.02); border: 1px dashed var(--border); color: var(--text-secondary); border-radius: 8px; cursor: pointer; font-size: 13px; font-family: monospace; }
-    .file-input-wrapper input[type="file"]::file-selector-button { background: var(--border); color: var(--text); border: none; padding: 6px 12px; border-radius: 4px; margin-right: 10px; cursor: pointer; font-weight: 600; font-family: 'Inter', sans-serif; }
+    /* ══════════════════════════════════════════
+       TELA DE LOGIN MASTER
+    ══════════════════════════════════════════ */
+    #adminLogin {
+      position: fixed; inset: 0; z-index: 10000;
+      background: var(--bg);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden; padding: 20px;
+    }
 
-    /* Buttons */
-    .btn { padding: 10px 18px; border-radius: 8px; border: none; font-weight: 600; font-size: 13.5px; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
-    .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-light)); color: #fff; box-shadow: 0 4px 12px rgba(234,88,12,0.2); }
-    .btn-primary:hover { box-shadow: 0 6px 16px rgba(234,88,12,0.4); transform: translateY(-1px); }
-    .btn-danger { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.3); }
-    .btn-danger:hover { background: var(--danger); color: #fff; box-shadow: 0 4px 12px rgba(239,68,68,0.3); }
-    .btn-success { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.3); }
-    .btn-success:hover { background: var(--success); color: #fff; box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
-    .btn-purple { background: rgba(139,92,246,0.1); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
-    .btn-purple:hover { background: var(--purple); color: #fff; box-shadow: 0 4px 12px rgba(139,92,246,0.3); }
-    .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-secondary); }
-    .btn-outline:hover { background: var(--surface-hover); color: var(--text); }
-    
-    /* Icon Buttons */
-    .btn-icon { width: 36px; height: 36px; padding: 0; border-radius: 8px; background: rgba(255,255,255,0.05); border: 1px solid transparent; color: var(--text-secondary); transition: var(--transition); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-    .btn-icon:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border); transform: scale(1.05); }
-    
-    .btn-icon.edit:hover { color: var(--info); border-color: var(--info); background: rgba(59,130,246,0.1); }
-    .btn-icon.pic:hover { color: #ec4899; border-color: #ec4899; background: rgba(236,72,153,0.1); }
-    .btn-icon.renew:hover { color: var(--info); border-color: var(--info); background: rgba(59,130,246,0.1); }
-    .btn-icon.lock:hover { color: var(--warning); border-color: var(--warning); background: rgba(245,158,11,0.1); }
-    .btn-icon.del:hover { color: var(--danger); border-color: var(--danger); background: rgba(239,68,68,0.1); }
-    .btn-icon.backup { color: var(--success); background: rgba(16,185,129,0.05); border-color: rgba(16,185,129,0.2); }
-    .btn-icon.backup:hover { color: #fff; border-color: var(--success); background: var(--success); }
-    .btn-icon.restore { color: var(--purple); background: rgba(139,92,246,0.05); border-color: rgba(139,92,246,0.2); }
-    .btn-icon.restore:hover { color: #fff; border-color: var(--purple); background: var(--purple); }
+    /* Grid scanline sutil */
+    #adminLogin::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.022) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.022) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+    }
 
-    /* Table */
-    .table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    table { width: 100%; border-collapse: collapse; min-width: 1050px; }
-    th { padding: 15px 20px; text-align: left; font-size: 11px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; border-bottom: 2px solid var(--border); letter-spacing: 0.5px; white-space: nowrap; }
-    td { padding: 15px 20px; border-bottom: 1px solid var(--border); font-size: 13.5px; vertical-align: middle; transition: var(--transition); white-space: nowrap; }
-    tbody tr:hover td { background: rgba(255,255,255,0.02); }
-    
-    .badge { padding: 5px 12px; border-radius: 20px; font-size: 10px; font-weight: 800; text-transform: uppercase; display: inline-flex; align-items: center; gap: 4px; }
-    .badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; }
-    .bg-green { background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.2); }
-    .bg-green::before { background: var(--success); }
-    .bg-red { background: rgba(239,68,68,0.1); color: var(--danger); border: 1px solid rgba(239,68,68,0.2); }
-    .bg-red::before { background: var(--danger); }
-    .bg-gray { background: rgba(148,163,184,0.1); color: var(--text-secondary); border: 1px solid rgba(148,163,184,0.2); }
-    .bg-gray::before { background: var(--text-secondary); }
-    
-    .id-tenant { font-family: 'Courier New', Courier, monospace; font-size: 11px; color: var(--primary); background: rgba(234,88,12,0.1); padding: 4px 8px; border-radius: 6px; font-weight: 700; }
+    /* Orbes de calor */
+    .l-orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(100px); pointer-events: none;
+    }
+    .l-orb-1 {
+      width: 520px; height: 520px;
+      background: radial-gradient(circle, rgba(255,87,34,0.13) 0%, transparent 70%);
+      top: -150px; left: -120px;
+      animation: pulse1 20s ease-in-out infinite;
+    }
+    .l-orb-2 {
+      width: 400px; height: 400px;
+      background: radial-gradient(circle, rgba(0,191,165,0.09) 0%, transparent 70%);
+      bottom: -120px; right: -80px;
+      animation: pulse2 25s ease-in-out infinite;
+    }
+    @keyframes pulse1 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(30px,-25px) scale(1.06);} }
+    @keyframes pulse2 { 0%,100%{transform:translate(0,0) scale(1);} 50%{transform:translate(-20px,30px) scale(1.08);} }
 
-    /* Modals */
-    .modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.85); backdrop-filter: blur(6px); display: none; align-items: center; justify-content: center; z-index: 2000; opacity: 0; transition: opacity 0.3s ease; padding: 20px; }
+    /* Card de login */
+    .login-card {
+      position: relative; z-index: 1;
+      width: 100%; max-width: 390px;
+      background: linear-gradient(155deg, rgba(255,255,255,0.052) 0%, rgba(255,255,255,0.016) 100%);
+      border: 1px solid var(--border-md);
+      border-radius: 24px;
+      padding: 44px 36px 36px;
+      backdrop-filter: blur(28px);
+      -webkit-backdrop-filter: blur(28px);
+      box-shadow: 0 40px 90px rgba(0,0,0,0.65), 0 0 0 1px rgba(255,255,255,0.035) inset;
+      animation: loginIn 0.75s cubic-bezier(0.34,1.18,0.64,1) both;
+    }
+    /* Linha brilhante no topo */
+    .login-card::before {
+      content: '';
+      position: absolute; top: 0; left: 18%; right: 18%; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+      border-radius: 100px;
+    }
+    @keyframes loginIn {
+      from { opacity: 0; transform: translateY(32px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+
+    /* Ícone master */
+    .login-emblem {
+      width: 64px; height: 64px;
+      background: linear-gradient(135deg, #ff5722 0%, #ff8a50 100%);
+      border-radius: 18px;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      box-shadow: 0 12px 35px rgba(255,87,34,0.4), 0 0 0 1px rgba(255,255,255,0.08) inset;
+      position: relative;
+    }
+    .login-emblem::after {
+      content: '';
+      position: absolute; inset: -5px;
+      border-radius: 22px;
+      border: 1px solid rgba(255,87,34,0.2);
+    }
+
+    .login-badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      background: rgba(255,87,34,0.1);
+      border: 1px solid rgba(255,87,34,0.22);
+      color: var(--text-accent);
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; font-weight: 500;
+      letter-spacing: 2px; text-transform: uppercase;
+      padding: 4px 10px; border-radius: 100px;
+      margin-bottom: 10px;
+    }
+
+    .login-card h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px; font-weight: 800;
+      color: var(--text);
+      letter-spacing: -0.7px;
+      text-align: center; margin-bottom: 4px;
+    }
+    .login-card p {
+      font-size: 13px; color: var(--text-2);
+      text-align: center; margin-bottom: 30px;
+    }
+
+    /* Grupos de form no login */
+    .lf-group { margin-bottom: 14px; }
+    .lf-group label {
+      display: block;
+      font-family: 'Syne', sans-serif;
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1.4px; text-transform: uppercase;
+      color: var(--text-2); margin-bottom: 7px;
+    }
+    .lf-wrap { position: relative; }
+    .lf-icon {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3); pointer-events: none;
+      transition: color 0.2s;
+    }
+    .lf-group input {
+      width: 100%;
+      padding: 12px 14px 12px 42px;
+      background: rgba(255,255,255,0.035);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; color: var(--text);
+      outline: none; transition: var(--t);
+    }
+    .lf-group input::placeholder { color: var(--text-3); }
+    .lf-group input:focus {
+      border-color: var(--primary-border);
+      background: rgba(255,87,34,0.04);
+      box-shadow: 0 0 0 4px rgba(255,87,34,0.08);
+    }
+    .lf-group input:focus ~ .lf-icon { color: var(--primary); }
+
+    .btn-master-login {
+      width: 100%; padding: 13.5px;
+      background: linear-gradient(135deg, #ff5722 0%, #ff7043 100%);
+      color: #fff; border: none;
+      border-radius: var(--r-sm);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 14px;
+      letter-spacing: 0.4px;
+      cursor: pointer; margin-top: 6px;
+      transition: var(--t);
+      box-shadow: 0 4px 20px rgba(255,87,34,0.32);
+      display: flex; align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-master-login:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 28px rgba(255,87,34,0.48);
+    }
+    .btn-master-login:active { transform: translateY(0); }
+
+    .login-footer-note {
+      margin-top: 22px;
+      text-align: center;
+      font-size: 10.5px; color: var(--text-3);
+      display: flex; align-items: center; justify-content: center; gap: 5px;
+      font-family: 'DM Mono', monospace;
+      letter-spacing: 0.5px;
+    }
+
+    /* ══════════════════════════════════════════
+       TOPBAR PRINCIPAL
+    ══════════════════════════════════════════ */
+    .topbar {
+      position: sticky; top: 0; z-index: 50;
+      height: 62px;
+      background: rgba(9,16,26,0.92);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(20px) saturate(160%);
+      -webkit-backdrop-filter: blur(20px) saturate(160%);
+      display: flex; align-items: center;
+      justify-content: space-between;
+      padding: 0 28px;
+    }
+
+    .topbar-brand {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .brand-mark {
+      position: relative;
+      width: 36px; height: 36px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #ff5722, #ff7043);
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(255,87,34,0.3);
+      flex-shrink: 0;
+    }
+    .brand-text { line-height: 1; }
+    .brand-text strong {
+      font-family: 'Syne', sans-serif;
+      font-size: 15px; font-weight: 800;
+      color: var(--text); display: block;
+      letter-spacing: -0.3px;
+    }
+    .brand-text span {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; color: var(--primary);
+      text-transform: uppercase; letter-spacing: 1.8px;
+    }
+
+    /* Linha central decorativa */
+    .topbar-line {
+      position: absolute; left: 50%; transform: translateX(-50%);
+      display: flex; align-items: center; gap: 8px;
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; color: var(--text-3);
+      letter-spacing: 1.5px; text-transform: uppercase;
+      pointer-events: none;
+    }
+    .topbar-line-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--teal);
+      box-shadow: 0 0 8px var(--teal);
+      animation: blink 2.4s ease-in-out infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.2;} }
+
+    .topbar-right {
+      display: flex; align-items: center; gap: 10px;
+    }
+
+    .clock-chip {
+      font-family: 'DM Mono', monospace;
+      font-size: 12px; color: var(--text-2);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 5px 12px; border-radius: 8px;
+      letter-spacing: 1px;
+    }
+
+    .btn-sair {
+      display: flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      background: transparent;
+      border: 1px solid var(--border-md);
+      border-radius: 8px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12.5px; font-weight: 600;
+      color: var(--text-2); cursor: pointer;
+      transition: var(--t);
+    }
+    .btn-sair:hover {
+      background: var(--red-dim);
+      border-color: var(--red-border);
+      color: var(--red);
+    }
+
+    /* ══════════════════════════════════════════
+       CONTAINER & LAYOUT
+    ══════════════════════════════════════════ */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 28px 24px 60px;
+    }
+
+    /* Linha horizontal decorativa com texto */
+    .section-divider {
+      display: flex; align-items: center; gap: 14px;
+      margin-bottom: 18px;
+      animation: fadeUp 0.5s var(--ease) both;
+    }
+    .section-divider-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9.5px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 2px;
+      color: var(--text-3); white-space: nowrap;
+    }
+    .section-divider-line {
+      flex: 1; height: 1px;
+      background: linear-gradient(90deg, var(--border-md), transparent);
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ══════════════════════════════════════════
+       STAT CARDS
+    ══════════════════════════════════════════ */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+
+    .kpi {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 22px 22px 18px;
+      position: relative; overflow: hidden;
+      transition: var(--t);
+      animation: fadeUp 0.5s var(--ease) both;
+    }
+    .kpi:nth-child(1) { animation-delay: 0.05s; }
+    .kpi:nth-child(2) { animation-delay: 0.10s; }
+    .kpi:nth-child(3) { animation-delay: 0.15s; }
+
+    .kpi:hover { transform: translateY(-3px); border-color: var(--border-md); }
+
+    /* Barra de acento lateral */
+    .kpi::before {
+      content: '';
+      position: absolute; left: 0; top: 16px; bottom: 16px;
+      width: 3px; border-radius: 0 3px 3px 0;
+    }
+    .kpi.k-total::before  { background: var(--border-bright); }
+    .kpi.k-ativos::before { background: var(--green); box-shadow: 0 0 10px rgba(0,230,118,0.5); }
+    .kpi.k-venc::before   { background: var(--red); box-shadow: 0 0 10px rgba(255,61,87,0.5); }
+
+    .kpi-top {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 12px;
+    }
+    .kpi-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9.5px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 1.8px;
+    }
+    .kpi.k-total .kpi-label  { color: var(--text-2); }
+    .kpi.k-ativos .kpi-label { color: var(--green); }
+    .kpi.k-venc .kpi-label   { color: var(--red); }
+
+    .kpi-icon {
+      width: 38px; height: 38px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .kpi.k-total .kpi-icon  { background: rgba(255,255,255,0.05); color: var(--text-2); }
+    .kpi.k-ativos .kpi-icon { background: var(--green-dim); color: var(--green); }
+    .kpi.k-venc .kpi-icon   { background: var(--red-dim); color: var(--red); }
+
+    .kpi-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 44px; font-weight: 800;
+      line-height: 1; letter-spacing: -2px;
+      color: var(--text);
+    }
+
+    /* ══════════════════════════════════════════
+       PAINÉIS (CARDS)
+    ══════════════════════════════════════════ */
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      margin-bottom: 20px;
+      overflow: hidden;
+      animation: fadeUp 0.5s var(--ease) both;
+    }
+    .panel:nth-child(1) { animation-delay: 0.2s; }
+    .panel:nth-child(2) { animation-delay: 0.28s; }
+
+    .panel-head {
+      padding: 16px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 10px;
+      background: linear-gradient(90deg, rgba(255,255,255,0.022) 0%, transparent 60%);
+    }
+    .panel-title {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 14px; font-weight: 700;
+      color: var(--text); letter-spacing: -0.2px;
+    }
+    .panel-title-icon {
+      width: 30px; height: 30px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--primary-dim);
+      color: var(--primary);
+    }
+
+    .panel-body { padding: 22px; }
+    .panel-body.flush { padding: 0; }
+
+    /* ══════════════════════════════════════════
+       FORM — REGISTRAR
+    ══════════════════════════════════════════ */
+    .reg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+      gap: 14px;
+      align-items: end;
+    }
+
+    .fg { display: flex; flex-direction: column; gap: 6px; }
+    .fg label {
+      font-family: 'DM Mono', monospace;
+      font-size: 9.5px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 1.5px;
+      color: var(--text-2);
+    }
+    .fg input, .fg select {
+      padding: 10.5px 13px;
+      background: var(--bg2);
+      border: 1.5px solid var(--border);
+      border-radius: var(--r-xs);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13.5px; color: var(--text);
+      outline: none; transition: var(--t);
+      width: 100%;
+    }
+    .fg input::placeholder { color: var(--text-3); }
+    .fg input:focus, .fg select:focus {
+      border-color: var(--primary-border);
+      background: rgba(255,87,34,0.04);
+      box-shadow: 0 0 0 3px rgba(255,87,34,0.08);
+    }
+    .fg select option { background: var(--surface); color: var(--text); }
+
+    /* ══════════════════════════════════════════
+       BOTÕES
+    ══════════════════════════════════════════ */
+    .btn {
+      padding: 10px 16px; border: none;
+      border-radius: var(--r-xs);
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 12.5px;
+      cursor: pointer; transition: var(--t);
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      white-space: nowrap; letter-spacing: 0.2px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #ff7043);
+      color: #fff;
+      box-shadow: 0 4px 16px rgba(255,87,34,0.22);
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 22px rgba(255,87,34,0.38); }
+
+    .btn-success { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+    .btn-success:hover { background: var(--green); color: #08120c; box-shadow: 0 4px 16px rgba(0,230,118,0.3); }
+
+    .btn-danger  { background: var(--red-dim); color: var(--red); border: 1px solid var(--red-border); }
+    .btn-danger:hover  { background: var(--red); color: #fff; box-shadow: 0 4px 16px rgba(255,61,87,0.3); }
+
+    .btn-info    { background: var(--blue-dim); color: var(--blue); border: 1px solid var(--blue-border); }
+    .btn-info:hover    { background: var(--blue); color: #fff; box-shadow: 0 4px 16px rgba(68,138,255,0.3); }
+
+    .btn-ghost {
+      background: transparent;
+      border: 1px solid var(--border-md);
+      color: var(--text-2);
+    }
+    .btn-ghost:hover { background: var(--surface-hover); color: var(--text); border-color: var(--border-bright); }
+
+    .btn:disabled { opacity: 0.48; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+
+    /* Ícone-botão da tabela */
+    .ibtn {
+      width: 32px; height: 32px; padding: 0;
+      border-radius: 7px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.04);
+      color: var(--text-3);
+      cursor: pointer; transition: var(--t);
+      display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0; vertical-align: middle;
+    }
+    .ibtn:hover { transform: scale(1.1); }
+    .ibtn.i-pic:hover    { color: var(--purple); border-color: var(--purple-border); background: var(--purple-dim); }
+    .ibtn.i-cal:hover    { color: var(--blue);   border-color: var(--blue-border);   background: var(--blue-dim); }
+    .ibtn.i-lock:hover   { color: var(--amber);  border-color: var(--amber-border);  background: var(--amber-dim); }
+    .ibtn.i-dl           { color: var(--teal);   border-color: var(--teal-border);   background: var(--teal-dim); }
+    .ibtn.i-dl:hover     { color: #fff;           border-color: var(--teal);          background: var(--teal); box-shadow: 0 4px 14px rgba(0,191,165,0.3); }
+    .ibtn.i-del:hover    { color: var(--red);    border-color: var(--red-border);    background: var(--red-dim); }
+
+    /* ══════════════════════════════════════════
+       TABELA
+    ══════════════════════════════════════════ */
+    .tbl-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; min-width: 820px; }
+
+    thead tr {
+      background: linear-gradient(90deg, rgba(255,255,255,0.03), transparent);
+      border-bottom: 1px solid var(--border-md);
+    }
+    th {
+      padding: 12px 18px;
+      text-align: left;
+      font-family: 'DM Mono', monospace;
+      font-size: 9.5px; font-weight: 500;
+      color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 1.5px;
+      white-space: nowrap;
+    }
+    td {
+      padding: 14px 18px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; vertical-align: middle;
+      white-space: nowrap; transition: background 0.15s;
+    }
+    tbody tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: rgba(255,255,255,0.014); }
+
+    /* Logo thumbnail */
+    .logo-th {
+      width: 40px; height: 40px;
+      border-radius: 9px;
+      object-fit: contain;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,0.04);
+      padding: 4px;
+    }
+
+    /* Empresa cell */
+    .co-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 13.5px; font-weight: 700;
+      color: var(--text); display: block; margin-bottom: 3px;
+    }
+    .co-creds {
+      font-family: 'DM Mono', monospace;
+      font-size: 10.5px; color: var(--text-2);
+    }
+    .co-creds .cv { color: var(--primary); }
+
+    /* ID Tenant chip */
+    .tid {
+      font-family: 'DM Mono', monospace;
+      font-size: 10.5px; color: var(--primary);
+      background: var(--primary-dim);
+      border: 1px solid var(--primary-border);
+      padding: 3px 9px; border-radius: 5px; font-weight: 500;
+    }
+
+    /* Data */
+    .date-val {
+      font-family: 'DM Mono', monospace;
+      font-size: 12.5px; font-weight: 500;
+    }
+
+    /* Badges */
+    .badge {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 3px 10px; border-radius: 100px;
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; font-weight: 500;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      white-space: nowrap;
+    }
+    .badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+    .b-green { background: var(--green-dim); color: var(--green); border: 1px solid var(--green-border); }
+    .b-green .badge-dot { background: var(--green); box-shadow: 0 0 6px rgba(0,230,118,0.7); }
+
+    .b-red   { background: var(--red-dim);   color: var(--red);   border: 1px solid var(--red-border); }
+    .b-red .badge-dot   { background: var(--red); }
+
+    .b-gray  { background: rgba(100,130,160,0.08); color: var(--text-2); border: 1px solid rgba(100,130,160,0.18); }
+    .b-gray .badge-dot  { background: var(--text-2); }
+
+    /* Ações */
+    .actions { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+
+    /* ══════════════════════════════════════════
+       MODAIS
+    ══════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(4,8,15,0.88);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      display: none; align-items: center; justify-content: center;
+      z-index: 2000; padding: 20px;
+      opacity: 0; transition: opacity 0.25s ease;
+    }
     .modal-overlay.open { display: flex; opacity: 1; }
-    .modal { background: var(--surface); padding: 30px; border-radius: 16px; width: 100%; max-width: 420px; border: 1px solid var(--border); box-shadow: 0 20px 40px rgba(0,0,0,0.4); transform: translateY(20px) scale(0.95); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); max-height: 90vh; overflow-y: auto; }
-    .modal-overlay.open .modal { transform: translateY(0) scale(1); }
-    .modal-header { margin-bottom: 20px; }
-    .modal-header h3 { margin: 0 0 5px 0; font-size: 18px; color: #fff; }
-    .modal-header p { margin: 0; font-size: 13px; color: var(--text-secondary); line-height: 1.4; }
 
-    /* Login Screen */
-    #adminLogin { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 10000; padding: 20px; }
-    .login-box { background: var(--surface); padding: 40px 30px; border-radius: 20px; width: 100%; max-width: 380px; text-align: center; border: 1px solid var(--border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); }
-    
-    /* Toasts */
-    .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; max-width: calc(100% - 40px); }
-    .toast { padding: 14px 20px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #fff; box-shadow: 0 10px 25px rgba(0,0,0,0.2); animation: toastIn .4s cubic-bezier(0.175, 0.885, 0.32, 1.275), toastOut .4s ease 3s forwards; width: 100%; display: flex; align-items: center; gap: 10px; }
-    .toast.success { background: linear-gradient(135deg, #10b981, #059669); }
-    .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .toast.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    @keyframes toastIn { from { opacity: 0; transform: translateX(40px); } to { opacity: 1; transform: translateX(0); } }
-    @keyframes toastOut { to { opacity: 0; transform: translateX(40px); } }
+    .modal {
+      background: var(--surface-2);
+      border: 1px solid var(--border-md);
+      border-radius: 20px;
+      width: 100%; max-width: 420px;
+      box-shadow: 0 40px 80px rgba(0,0,0,0.7), 0 0 0 1px rgba(255,255,255,0.04) inset;
+      transform: scale(0.93) translateY(14px);
+      transition: transform 0.28s cubic-bezier(0.34,1.2,0.64,1);
+      max-height: 92vh; overflow-y: auto;
+    }
+    .modal-overlay.open .modal { transform: scale(1) translateY(0); }
 
-    .logo-thumb { width: 44px; height: 44px; border-radius: 8px; object-fit: contain; background: rgba(255,255,255,0.05); border: 1px solid var(--border); padding: 4px; }
+    .modal-head {
+      padding: 22px 24px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-head h3 {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px; font-weight: 800;
+      color: var(--text); margin-bottom: 3px;
+    }
+    .modal-head p { font-size: 12.5px; color: var(--text-2); }
 
+    .modal-body  { padding: 20px 24px; }
+    .modal-foot  { padding: 0 24px 22px; display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Info box de vencimento */
+    .info-shelf {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .info-shelf-lbl {
+      font-family: 'DM Mono', monospace;
+      font-size: 9.5px; text-transform: uppercase;
+      letter-spacing: 1.5px; color: var(--text-3);
+      margin-bottom: 4px;
+    }
+    .info-shelf-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px; font-weight: 700; color: var(--text);
+    }
+
+    /* Divider modal */
+    .m-divider {
+      display: flex; align-items: center; gap: 10px;
+      margin: 16px 0;
+    }
+    .m-divider-line { flex: 1; height: 1px; background: var(--border); }
+    .m-divider-txt {
+      font-family: 'DM Mono', monospace;
+      font-size: 9px; color: var(--text-3);
+      text-transform: uppercase; letter-spacing: 1.5px; white-space: nowrap;
+    }
+
+    /* Exclusão icon */
+    .del-icon-wrap {
+      width: 68px; height: 68px; border-radius: 50%;
+      background: var(--red-dim);
+      border: 2px solid var(--red-border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 16px; color: var(--red);
+    }
+
+    /* Logo upload box */
+    .upload-box {
+      border: 1.5px dashed var(--border-md);
+      border-radius: 12px; padding: 20px; text-align: center;
+      background: rgba(255,255,255,0.018);
+      margin-bottom: 14px; cursor: pointer;
+      transition: var(--t);
+    }
+    .upload-box:hover { border-color: var(--primary-border); background: var(--primary-dim); }
+
+    /* ══════════════════════════════════════════
+       TOASTS
+    ══════════════════════════════════════════ */
+    .toast-wrap {
+      position: fixed; top: 18px; right: 18px;
+      z-index: 9999;
+      display: flex; flex-direction: column; gap: 8px;
+      max-width: calc(100% - 36px);
+    }
+    .toast {
+      padding: 12px 18px;
+      border-radius: 12px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; font-weight: 600; color: #fff;
+      box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+      animation: tIn .35s cubic-bezier(0.34,1.3,0.64,1), tOut .4s ease 3.6s forwards;
+      display: flex; align-items: center; gap: 10px;
+      backdrop-filter: blur(14px);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .toast.success { background: rgba(0,160,74,0.9); }
+    .toast.error   { background: rgba(210,35,50,0.9); }
+    .toast.info    { background: rgba(30,100,220,0.9); }
+    .toast.warning { background: rgba(190,120,0,0.9); }
+    @keyframes tIn  { from{opacity:0;transform:translateX(50px) scale(0.9);} to{opacity:1;transform:translateX(0) scale(1);} }
+    @keyframes tOut { to{opacity:0;transform:translateX(50px) scale(0.9);} }
+
+    /* ══════════════════════════════════════════
+       MOBILE
+    ══════════════════════════════════════════ */
     @media (max-width: 768px) {
-      .navbar { padding: 15px 20px; flex-direction: column; gap: 15px; }
-      .navbar h1 { font-size: 18px; }
-      .navbar-actions { width: 100%; display: flex; gap: 8px; flex-wrap: wrap; }
-      .navbar-actions button { flex: 1; min-width: 130px; justify-content: center; font-size: 12px; padding: 10px; }
-      
-      .container { padding: 0 15px; margin-top: 20px; }
-      .stats-grid { grid-template-columns: 1fr; gap: 10px; }
-      .stat-card { padding: 20px; }
-      .form-grid { grid-template-columns: 1fr; gap: 12px; }
-      .form-group button { width: 100%; margin-top: 5px; }
-      .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
-      .card-body { padding: 15px; }
-      th, td { padding: 12px 15px; }
-      .btn-icon { width: 34px; height: 34px; }
-      .hide-mobile { display: none; }
+      .topbar { padding: 0 16px; }
+      .topbar-line { display: none; }
+      .clock-chip  { display: none; }
+      .container { padding: 16px 14px 60px; }
+      .stats-row { grid-template-columns: 1fr; gap: 10px; }
+      .reg-grid { grid-template-columns: 1fr; }
+      .panel-body { padding: 16px; }
+      .panel-head { flex-direction: column; align-items: flex-start; }
+      th, td { padding: 11px 14px; }
+      .hide-mob { display: none; }
+      .modal-overlay { padding: 0; align-items: flex-end; }
+      .modal { border-radius: 20px 20px 0 0; max-width: 100%; }
+    }
+    @media (max-width: 480px) {
+      .kpi-value { font-size: 36px; }
+      .login-card { padding: 34px 26px 28px; }
     }
   </style>
 </head>
 <body>
 
-<div class="toast-container" id="toastContainer"></div>
+<div class="toast-wrap" id="toastContainer"></div>
 
+<!-- ════════════════════════════════════════════
+     TELA DE LOGIN MASTER
+════════════════════════════════════════════ -->
 <div id="adminLogin">
-  <div class="login-box">
-    <svg style="width:50px;height:50px;color:var(--primary);margin-bottom:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
-    <h2 style="color: #fff; margin-top: 0; margin-bottom: 5px; font-size: 22px;">Acesso Master</h2>
-    <p style="color: var(--text-secondary); font-size: 13px; margin-bottom: 30px;">Gestão de Inquilinos SaaS</p>
-    
-    <div class="form-group" style="text-align: left; margin-bottom: 15px;">
-      <label>Utilizador Admin</label>
-      <input type="text" id="admUser" placeholder="ex: admin" />
+  <div class="l-orb l-orb-1"></div>
+  <div class="l-orb l-orb-2"></div>
+
+  <div class="login-card">
+    <div style="text-align:center;">
+      <div class="login-emblem">
+        <svg width="30" height="30" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+          <path stroke-linecap="round" d="M9 12l2 2 4-4"/>
+        </svg>
+      </div>
+      <div class="login-badge" style="margin:0 auto 10px;width:fit-content;">
+        <svg width="8" height="8" viewBox="0 0 8 8" fill="currentColor"><circle cx="4" cy="4" r="4"/></svg>
+        ÁREA RESTRITA
+      </div>
+      <h2>Acesso Master</h2>
+      <p style="margin-bottom:28px;">Painel de Controle — MicroCred SaaS</p>
     </div>
-    <div class="form-group" style="text-align: left; margin-bottom: 25px;">
+
+    <div class="lf-group">
+      <label>Identificador</label>
+      <div class="lf-wrap">
+        <svg class="lf-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+          <circle cx="12" cy="7" r="4"/>
+        </svg>
+        <input type="text" id="admUser" placeholder="admin" onkeydown="if(event.key==='Enter')loginAdmin()">
+      </div>
+    </div>
+
+    <div class="lf-group">
       <label>Palavra-passe</label>
-      <input type="password" id="admPass" placeholder="••••••" onkeypress="if(event.key === 'Enter') loginAdmin()" />
+      <div class="lf-wrap">
+        <svg class="lf-icon" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <rect x="3" y="11" width="18" height="11" rx="2"/>
+          <path stroke-linecap="round" d="M7 11V7a5 5 0 0110 0v4"/>
+        </svg>
+        <input type="password" id="admPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')loginAdmin()">
+      </div>
     </div>
-    <button class="btn btn-primary" style="width: 100%; padding: 14px; font-size: 15px;" onclick="loginAdmin()">Entrar no Painel</button>
+
+    <button class="btn-master-login" onclick="loginAdmin()">
+      <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+        <path stroke-linecap="round" d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"/>
+      </svg>
+      Entrar no Painel
+    </button>
+
+    <div class="login-footer-note">
+      <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+        <rect x="3" y="11" width="18" height="11" rx="2"/>
+        <path stroke-linecap="round" d="M7 11V7a5 5 0 0110 0v4"/>
+      </svg>
+      Sessão encriptada · MicroCred © 2026
+    </div>
   </div>
 </div>
 
+<!-- ════════════════════════════════════════════
+     PAINEL PRINCIPAL
+════════════════════════════════════════════ -->
 <div id="adminPanel" style="display:none;">
-  <nav class="navbar">
-    <h1>
-      <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
-      Painel Super Admin
-    </h1>
-    
-    <div class="navbar-actions">
-      <button class="btn btn-purple" style="padding: 8px 14px;" onclick="openModalRestoreGlobal()">
-        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-        Restaurar Global
-      </button>
 
-      <button class="btn btn-success" style="padding: 8px 14px;" id="btnBackupGlobal" onclick="gerarBackupGlobal()">
-        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-        Backup Global
-      </button>
-      
-      <button class="btn btn-outline" style="padding: 8px 14px;" onclick="location.reload()">
-        <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-        Sair
+  <!-- Topbar -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-mark">
+        <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <strong>MicroCred</strong>
+        <span>Control Center</span>
+      </div>
+    </div>
+
+    <div class="topbar-line">
+      <div class="topbar-line-dot"></div>
+      Sistema operacional
+    </div>
+
+    <div class="topbar-right">
+      <div class="clock-chip" id="navClock">--:--:--</div>
+      <button class="btn-sair" onclick="location.reload()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+        </svg>
+        Encerrar Sessão
       </button>
     </div>
-  </nav>
+  </header>
 
   <div class="container">
-    
-    <div class="stats-grid">
-      <div class="stat-card">
-        <span class="label">Total de Clientes</span>
-        <span class="value" id="statTotal">0</span>
-        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+
+    <!-- KPIs -->
+    <div class="section-divider" style="animation-delay:0s;">
+      <span class="section-divider-label">Resumo operacional</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="kpi k-total">
+        <div class="kpi-top">
+          <span class="kpi-label">Total de Inquilinos</span>
+          <div class="kpi-icon">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="statTotal">—</div>
       </div>
-      <div class="stat-card">
-        <span class="label" style="color: var(--success)">Assinaturas Ativas</span>
-        <span class="value" id="statAtivos">0</span>
-        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+
+      <div class="kpi k-ativos">
+        <div class="kpi-top">
+          <span class="kpi-label">Assinaturas Ativas</span>
+          <div class="kpi-icon">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="statAtivos">—</div>
       </div>
-      <div class="stat-card">
-        <span class="label" style="color: var(--danger)">Assinaturas Vencidas</span>
-        <span class="value" id="statVencidos">0</span>
-        <svg class="icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+
+      <div class="kpi k-venc">
+        <div class="kpi-top">
+          <span class="kpi-label">Assinaturas Vencidas</span>
+          <div class="kpi-icon">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+            </svg>
+          </div>
+        </div>
+        <div class="kpi-value" id="statVencidos">—</div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h3>
-          <svg style="width:18px;height:18px;color:var(--primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-          Registrar Nova Empresa
-        </h3>
+    <!-- Registrar -->
+    <div class="section-divider" style="animation-delay:0.18s;">
+      <span class="section-divider-label">Registrar novo inquilino</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="panel" style="animation-delay:0.22s;">
+      <div class="panel-head">
+        <div class="panel-title">
+          <div class="panel-title-icon">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" d="M12 4v16m8-8H4"/>
+            </svg>
+          </div>
+          Nova Empresa
+        </div>
       </div>
-      <div class="card-body">
-        <div class="form-grid">
-          <div class="form-group"><label>Nome da Empresa</label><input type="text" id="cEmpresa" placeholder="Ex: Credito Rápido LTDA"></div>
-          <div class="form-group"><label>Login</label><input type="text" id="cLogin" placeholder="Ex: empresa.silva"></div>
-          <div class="form-group"><label>Senha Inicial</label><input type="text" id="cSenha" placeholder="Defina uma senha"></div>
-          <div class="form-group"><label>Vencimento</label><input type="date" id="cVenc"></div>
-          <div class="form-group"><button class="btn btn-primary" style="height: 42px;" onclick="salvarCliente()">Criar Cliente</button></div>
+      <div class="panel-body">
+        <div class="reg-grid">
+          <div class="fg">
+            <label>Nome da Empresa</label>
+            <input type="text" id="cEmpresa" placeholder="Ex: Credito Rápido LTDA">
+          </div>
+          <div class="fg">
+            <label>Login</label>
+            <input type="text" id="cLogin" placeholder="Ex: empresa.silva">
+          </div>
+          <div class="fg">
+            <label>Senha Inicial</label>
+            <input type="text" id="cSenha" placeholder="Defina uma senha">
+          </div>
+          <div class="fg">
+            <label>Vencimento</label>
+            <input type="date" id="cVenc">
+          </div>
+          <div class="fg">
+            <label>&nbsp;</label>
+            <button class="btn btn-primary" style="height:40px;" onclick="salvarCliente()">
+              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path stroke-linecap="round" d="M12 4v16m8-8H4"/>
+              </svg>
+              Criar Inquilino
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <div class="card">
-      <div class="card-header">
-        <h3>
-          <svg style="width:18px;height:18px;color:var(--primary);" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path></svg>
-          Empresas Registradas
-        </h3>
+    <!-- Tabela -->
+    <div class="section-divider" style="animation-delay:0.28s;">
+      <span class="section-divider-label">Empresas registradas</span>
+      <div class="section-divider-line"></div>
+    </div>
+
+    <div class="panel" style="animation-delay:0.32s;">
+      <div class="panel-head">
+        <div class="panel-title">
+          <div class="panel-title-icon">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+            </svg>
+          </div>
+          Diretório de Inquilinos
+        </div>
+        <button class="btn btn-ghost" style="font-size:11.5px;padding:7px 13px;" onclick="carregarClientes()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+          </svg>
+          Atualizar
+        </button>
       </div>
-      <div class="card-body" style="padding: 0;">
-        <div class="table-responsive">
+      <div class="panel-body flush">
+        <div class="tbl-wrap">
           <table>
             <thead>
               <tr>
-                <th style="width: 60px;">Logo</th>
-                <th>Empresa / Acesso</th>
-                <th class="hide-mobile">ID Tenant</th>
+                <th style="width:52px;">Logo</th>
+                <th>Empresa / Credenciais</th>
+                <th class="hide-mob">ID Tenant</th>
                 <th>Vencimento</th>
                 <th>Status</th>
-                <th style="text-align: center;">Ações do Sistema</th>
+                <th style="text-align:center;">Ações</th>
               </tr>
             </thead>
-            <tbody id="tblClientes">
-              </tbody>
+            <tbody id="tblClientes"></tbody>
           </table>
         </div>
       </div>
     </div>
-  </div>
-</div>
 
-<div class="modal-overlay" id="modalCopiarCredenciais">
-  <div class="modal" style="max-width: 400px; text-align: center;">
-    <div style="width: 50px; height: 50px; background: rgba(16, 185, 129, 0.1); color: var(--success); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-      <svg style="width:26px;height:26px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-    </div>
-    <h3 style="margin-bottom: 5px;">Sucesso!</h3>
-    <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">As credenciais da empresa <strong id="copyNomeEmpresa" style="color: #fff;"></strong> foram salvas.</p>
-    
-    <div style="background: rgba(0,0,0,0.2); border: 1px dashed var(--border); border-radius: 8px; padding: 15px; margin-bottom: 20px; text-align: left;">
-      <div style="margin-bottom: 10px;">
-        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Link de Acesso:</span>
-        <div style="font-size: 13px; color: var(--info); font-family: monospace; margin-top: 2px;" id="copyLink">...</div>
-      </div>
-      <div style="margin-bottom: 10px;">
-        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Login:</span>
-        <div style="font-size: 14px; color: #fff; font-weight: bold; margin-top: 2px;" id="copyLogin"></div>
-      </div>
-      <div>
-        <span style="font-size: 11px; color: var(--text-secondary); text-transform: uppercase; font-weight: 600;">Senha:</span>
-        <div style="font-size: 14px; color: #fff; font-weight: bold; margin-top: 2px;" id="copySenha"></div>
-      </div>
-    </div>
+  </div><!-- /container -->
+</div><!-- /adminPanel -->
 
-    <div style="display: flex; gap: 10px; flex-direction: column;">
-      <button class="btn btn-success" style="padding: 14px;" onclick="copiarCredenciaisTexto()">Copiar para Enviar</button>
-      <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalCopiarCredenciais')">Fechar Janela</button>
-    </div>
-  </div>
-</div>
 
-<div class="modal-overlay" id="modalEditarEmpresa">
-  <div class="modal">
-    <div class="modal-header">
-      <h3>Editar Dados da Empresa</h3>
-      <p>Atualize o nome, login ou senha de acesso deste inquilino.</p>
-    </div>
-    <input type="hidden" id="editEmpId" />
-    <div class="form-grid">
-      <div class="form-group full">
-        <label>Nome da Empresa</label>
-        <input type="text" id="editEmpNome" />
-      </div>
-      <div class="form-group full">
-        <label>Login de Acesso</label>
-        <input type="text" id="editEmpLogin" />
-      </div>
-      <div class="form-group full">
-        <label>Senha de Acesso</label>
-        <input type="text" id="editEmpSenha" />
-      </div>
-    </div>
-    <div style="display: flex; gap: 10px; margin-top: 25px;">
-      <button class="btn btn-outline" style="flex: 1; padding: 12px;" onclick="closeModal('modalEditarEmpresa')">Cancelar</button>
-      <button class="btn btn-primary" style="flex: 1; padding: 12px;" id="btnSalvarEdicaoEmpresa" onclick="salvarEdicaoEmpresa()">Salvar Alterações</button>
-    </div>
-  </div>
-</div>
-
+<!-- ══ MODAL: LOGO ══ -->
 <div class="modal-overlay" id="modalLogoAdmin">
   <div class="modal">
-    <div class="modal-header">
+    <div class="modal-head">
       <h3>Personalizar Logo</h3>
-      <p>Aparece na tela de login deste cliente.</p>
+      <p>Imagem exibida na tela de login do cliente.</p>
     </div>
-    <input type="hidden" id="editLogoId" />
-    <div style="border: 2px dashed var(--border); padding: 20px; border-radius: 12px; margin-bottom: 20px; background: rgba(0,0,0,0.2); text-align: center;">
-      <img id="previewAdminLogo" src="https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png" style="max-width: 100%; max-height: 80px; object-fit: contain; margin-bottom: 15px; border-radius: 6px;" />
-      <input type="file" id="adminLogoUpload" accept="image/png, image/jpeg" style="width: 100%; font-size: 12px; color: var(--text-secondary);" onchange="previewLogoLocal(event)" />
+    <div class="modal-body">
+      <input type="hidden" id="editLogoId">
+      <div class="upload-box">
+        <img id="previewAdminLogo" src="https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png"
+             style="max-width:100%;max-height:80px;object-fit:contain;display:block;margin:0 auto 12px;border-radius:8px;">
+        <div style="font-size:11.5px;color:var(--text-2);margin-bottom:10px;">Clique para selecionar PNG ou JPG</div>
+        <input type="file" id="adminLogoUpload" accept="image/png,image/jpeg"
+               style="width:100%;font-size:11.5px;color:var(--text-2);cursor:pointer;"
+               onchange="previewLogoLocal(event)">
+      </div>
     </div>
-    <div style="display: flex; gap: 10px; flex-direction: column;">
-      <button class="btn btn-info" id="btnSalvarLogo" style="padding: 14px;" onclick="saveAdminLogo()">Salvar Nova Logo</button>
-      <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalLogoAdmin')">Cancelar</button>
+    <div class="modal-foot" style="flex-direction:column;">
+      <button class="btn btn-primary" id="btnSalvarLogo" style="width:100%;padding:12px;" onclick="saveAdminLogo()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+        </svg>
+        Salvar Logo
+      </button>
+      <button class="btn btn-ghost" style="width:100%;padding:12px;" onclick="closeModal('modalLogoAdmin')">Cancelar</button>
     </div>
   </div>
 </div>
 
+
+<!-- ══ MODAL: RENOVAR ══ -->
 <div class="modal-overlay" id="modalRenovar">
   <div class="modal">
-    <div class="modal-header">
+    <div class="modal-head">
       <h3>Renovar Assinatura</h3>
-      <p>Gerencie o vencimento de <strong id="rnwNomeEmpresa" style="color:var(--primary);"></strong>.</p>
+      <p>Gerenciar vencimento de <strong id="rnwNomeEmpresa" style="color:var(--primary);"></strong></p>
     </div>
-    <input type="hidden" id="rnwClienteId" />
-    <input type="hidden" id="rnwCurrentDate" />
-    
-    <div style="margin-bottom: 25px; padding: 15px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
-      <span style="font-size: 12px; color: var(--text-secondary); display: block; margin-bottom: 5px;">Vencimento Atual:</span>
-      <strong style="font-size: 18px; color: var(--text);" id="rnwDataAtualTexto">--/--/----</strong>
-    </div>
-
-    <button class="btn btn-success" style="width: 100%; padding: 14px; margin-bottom: 15px; font-size: 14px;" onclick="renovarMais30Dias()">
-      <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-      Adicionar + 30 Dias 
-    </button>
-
-    <div style="text-align: center; margin: 15px 0; color: var(--text-secondary); font-size: 12px;">OU ESCOLHER DATA MANUAL</div>
-
-    <div class="form-group" style="margin-bottom: 20px;">
-      <input type="date" id="rnwNovaDataManual" style="width: 100%;" />
-    </div>
-
-    <div style="display: flex; gap: 10px;">
-      <button class="btn btn-outline" style="flex: 1; padding: 12px;" onclick="closeModal('modalRenovar')">Cancelar</button>
-      <button class="btn btn-primary" style="flex: 1; padding: 12px;" onclick="renovarDataCustom()">Salvar Data</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modalRestoreIndividual">
-  <div class="modal">
-    <div class="modal-header">
-      <div style="width: 50px; height: 50px; background: rgba(139,92,246,0.1); color: var(--purple); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-        <svg style="width:26px;height:26px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+    <div class="modal-body">
+      <input type="hidden" id="rnwClienteId">
+      <input type="hidden" id="rnwCurrentDate">
+      <div class="info-shelf">
+        <div class="info-shelf-lbl">Vencimento atual</div>
+        <div class="info-shelf-val" id="rnwDataAtualTexto">--/--/----</div>
       </div>
-      <h3 style="text-align: center;">Injetar Backup (Individual)</h3>
-      <p style="text-align: center;">Restaurar dados para a empresa <strong id="rstNomeEmpresa" style="color:var(--purple);"></strong>.</p>
-    </div>
-    
-    <input type="hidden" id="rstClienteId" />
-    
-    <div class="form-group file-input-wrapper">
-      <input type="file" id="rstFileInput" accept=".json" />
-    </div>
-    
-    <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
-      <span style="font-size: 11px; color: var(--warning); line-height: 1.4; display: block;">
-        <strong>ATENÇÃO:</strong> Esta ação irá sobrescrever registos com o mesmo ID para esta empresa. O ficheiro deve pertencer obrigatoriamente a este inquilino.
-      </span>
-    </div>
-
-    <div style="display: flex; gap: 10px; flex-direction: column;">
-      <button class="btn btn-purple" style="padding: 14px;" id="btnExecutarRestore" onclick="executarRestoreIndividual()">Iniciar Restauração</button>
-      <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalRestoreIndividual')">Cancelar</button>
-    </div>
-  </div>
-</div>
-
-<div class="modal-overlay" id="modalRestoreGlobal">
-  <div class="modal">
-    <div class="modal-header">
-      <div style="width: 50px; height: 50px; background: rgba(139,92,246,0.1); color: var(--purple); border-radius: 12px; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-        <svg style="width:26px;height:26px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+      <button class="btn btn-success" style="width:100%;padding:12px;margin-bottom:4px;" onclick="renovarMais30Dias()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+        </svg>
+        Adicionar +30 Dias
+      </button>
+      <div class="m-divider"><div class="m-divider-line"></div><span class="m-divider-txt">ou data manual</span><div class="m-divider-line"></div></div>
+      <div class="fg">
+        <label>Nova data de vencimento</label>
+        <input type="date" id="rnwNovaDataManual">
       </div>
-      <h3 style="text-align: center;">Injetar Backup Global</h3>
-      <p style="text-align: center;">Restaurar dados para <strong>todas as empresas</strong> simultaneamente.</p>
     </div>
-    
-    <div class="form-group file-input-wrapper">
-      <input type="file" id="rstGlobalFileInput" accept=".json" />
-    </div>
-    
-    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
-      <span style="font-size: 11px; color: var(--danger); line-height: 1.4; display: block;">
-        <strong>ATENÇÃO MÁXIMA:</strong> Esta ação irá sobrescrever registos com o mesmo ID em todo o sistema. Certifique-se de que o ficheiro é um <em>Full_System_Dump</em> válido gerado anteriormente.
-      </span>
-    </div>
-
-    <div style="display: flex; gap: 10px; flex-direction: column;">
-      <button class="btn btn-purple" style="padding: 14px;" id="btnExecutarRestoreGlobal" onclick="executarRestoreGlobal()">Iniciar Restauração Global</button>
-      <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalRestoreGlobal')">Cancelar</button>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1;padding:11px;" onclick="closeModal('modalRenovar')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:1;padding:11px;" onclick="renovarDataCustom()">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        Confirmar
+      </button>
     </div>
   </div>
 </div>
 
+
+<!-- ══ MODAL: EXCLUIR ══ -->
 <div class="modal-overlay" id="modalConfirmDelete">
-  <div class="modal" style="border-color: rgba(239,68,68,0.5);">
-    <div style="text-align: center;">
-      <div style="width: 60px; height: 60px; border-radius: 50%; background: rgba(239,68,68,0.1); color: var(--danger); display: flex; align-items: center; justify-content: center; margin: 0 auto 15px;">
-        <svg style="width:30px;height:30px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+  <div class="modal" style="border-color:var(--red-border);">
+    <div class="modal-body" style="padding-top:28px;text-align:center;">
+      <div class="del-icon-wrap">
+        <svg width="30" height="30" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
       </div>
-      <h3 style="margin-bottom: 10px; color: #fff;">Exclusão Permanente!</h3>
-      <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 25px; line-height: 1.5;">
-        Vai excluir o cliente <strong id="delNomeEmpresa" style="color:var(--danger);"></strong>.<br>
-        Todos os dados serão apagados. É irreversível.
+      <h3 style="font-family:'Syne',sans-serif;font-weight:800;font-size:18px;margin-bottom:10px;">Exclusão Permanente</h3>
+      <p style="font-size:13px;color:var(--text-2);line-height:1.65;margin-bottom:20px;">
+        Excluindo <strong id="delNomeEmpresa" style="color:var(--red);"></strong>.<br>
+        Todos os dados serão removidos para sempre.
       </p>
     </div>
-    <input type="hidden" id="delClienteId" />
-    <div style="display: flex; gap: 10px; flex-direction: column;">
-      <button class="btn btn-danger" style="padding: 14px;" id="btnConfirmarExclusao" onclick="executarExclusao()">Sim, Excluir Definitivamente</button>
-      <button class="btn btn-outline" style="padding: 14px;" onclick="closeModal('modalConfirmDelete')">Cancelar e Voltar</button>
+    <input type="hidden" id="delClienteId">
+    <div class="modal-foot" style="flex-direction:column;">
+      <button class="btn btn-danger" id="btnConfirmarExclusao" style="width:100%;padding:12px;" onclick="executarExclusao()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+        </svg>
+        Sim, Excluir Definitivamente
+      </button>
+      <button class="btn btn-ghost" style="width:100%;padding:12px;" onclick="closeModal('modalConfirmDelete')">Cancelar</button>
     </div>
   </div>
 </div>
 
 
 <script>
-  // ==========================================
-  // CONFIGURAÇÕES SUPABASE
-  // ==========================================
-  const SUPABASE_URL = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
+  // ──────────────────────────────────────────
+  // SUPABASE
+  // ──────────────────────────────────────────
+  const SUPABASE_URL      = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
-  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  const sb          = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
   const DEFAULT_LOGO = 'https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png';
 
-  const TABELAS_SISTEMA = [
-    'usuarios_clientes', 
-    'clientes', 
-    'avalistas', 
-    'micro_negocios', 
-    'operacoes', 
-    'parcelas', 
-    'avaliacao_financeira', 
-    'fluxo_caixa', 
-    'renovacoes', 
-    'historico_cobrancas', 
-    'inadimplencia'
-  ];
+  // ── Relógio ──
+  (function tick() {
+    const el = document.getElementById('navClock');
+    if (el) el.textContent = new Date().toLocaleTimeString('pt-BR');
+    setTimeout(tick, 1000);
+  })();
 
-  const TABELAS_ORDEM_INDIVIDUAL = TABELAS_SISTEMA.slice(1);
-
-  // ==========================================
-  // UTILITÁRIOS
-  // ==========================================
+  // ── Toast ──
   function showToast(msg, type = 'info') {
+    const icons = {
+      success: '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      error:   '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M15 9l-6 6M9 9l6 6"/></svg>',
+      info:    '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>',
+      warning: '<svg style="width:18px;height:18px;flex-shrink:0" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>',
+    };
     const c = document.getElementById('toastContainer');
     const t = document.createElement('div');
-    t.className = 'toast ' + type; 
-    let icon = '<svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>';
-    if(type === 'success') icon = '<svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>';
-    t.innerHTML = icon + '<span>' + msg + '</span>';
-    c.appendChild(t); 
-    setTimeout(() => t.remove(), 4000);
+    t.className = 'toast ' + type;
+    t.innerHTML = (icons[type] || icons.info) + '<span>' + msg + '</span>';
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 4200);
   }
 
-  function openModal(id) { document.getElementById(id).classList.add('open'); }
+  function openModal(id)  { document.getElementById(id).classList.add('open'); }
   function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 
-  // ==========================================
-  // LOGIN & INICIALIZAÇÃO
-  // ==========================================
+  // ── Login Master ──
   function loginAdmin() {
-    const user = document.getElementById('admUser').value;
+    const user = document.getElementById('admUser').value.trim();
     const pass = document.getElementById('admPass').value;
-    if(user === 'admin' && pass === '123456') { 
+    if (user === 'admin' && pass === '123456') {
       document.getElementById('adminLogin').style.display = 'none';
       document.getElementById('adminPanel').style.display = 'block';
       carregarClientes();
@@ -495,457 +1176,154 @@
     }
   }
 
-  // ==========================================
-  // GESTÃO DE CLIENTES (CRIAR E LER)
-  // ==========================================
+  // ── Criar Cliente ──
   async function salvarCliente() {
-    const nomeEmpresa = document.getElementById('cEmpresa').value;
-    const usuario = document.getElementById('cLogin').value;
-    const senha = document.getElementById('cSenha').value;
-    const vencimento = document.getElementById('cVenc').value;
-
-    if(!nomeEmpresa || !usuario || !senha || !vencimento) {
+    const obj = {
+      nome_empresa: document.getElementById('cEmpresa').value.trim(),
+      usuario:      document.getElementById('cLogin').value.trim(),
+      senha:        document.getElementById('cSenha').value,
+      vencimento:   document.getElementById('cVenc').value,
+      status:       'ativo'
+    };
+    if (!obj.nome_empresa || !obj.usuario || !obj.senha || !obj.vencimento) {
       showToast('Preencha todos os campos do formulário.', 'warning'); return;
     }
-
-    const obj = {
-      nome_empresa: nomeEmpresa,
-      usuario: usuario,
-      senha: senha,
-      vencimento: vencimento,
-      status: 'ativo'
-    };
-
     const { error } = await sb.from('usuarios_clientes').insert([obj]);
-    if(error) { 
-      showToast('Erro ao registrar: ' + error.message, 'error'); 
-    } else { 
-      showToast('Novo inquilino criado com sucesso!', 'success'); 
-      limparCampos(); 
-      carregarClientes(); 
-      
-      // Abre o modal para copiar credenciais
-      mostrarModalCopiar(nomeEmpresa, usuario, senha);
+    if (error) {
+      showToast('Erro ao registrar: ' + error.message, 'error');
+    } else {
+      showToast('Novo inquilino criado com sucesso!', 'success');
+      ['cEmpresa','cLogin','cSenha','cVenc'].forEach(id => document.getElementById(id).value = '');
+      carregarClientes();
     }
   }
 
-  function limparCampos() {
-    document.getElementById('cEmpresa').value = ''; 
-    document.getElementById('cLogin').value = '';
-    document.getElementById('cSenha').value = ''; 
-    document.getElementById('cVenc').value = '';
-  }
-
+  // ── Carregar Clientes ──
   async function carregarClientes() {
     const { data, error } = await sb.from('usuarios_clientes').select('*').order('created_at', { ascending: false });
-    if(error) return;
+    if (error) return;
 
-    const hoje = new Date().toISOString().slice(0, 10);
+    const hoje  = new Date().toISOString().slice(0, 10);
     const tbody = document.getElementById('tblClientes');
-    
-    let stats = { total: data.length, ativos: 0, vencidos: 0 };
+    let stats   = { total: data.length, ativos: 0, vencidos: 0 };
+
+    const ic = (d) => `<svg style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${d}</svg>`;
+    const iPhoto    = ic(`<path stroke-linecap="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>`);
+    const iCal      = ic(`<rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/>`);
+    const iLock     = ic(`<path stroke-linecap="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`);
+    const iUnlock   = ic(`<path stroke-linecap="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>`);
+    const iDl       = ic(`<path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>`);
+    const iTrash    = ic(`<path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>`);
 
     tbody.innerHTML = (data || []).map(c => {
-      const isVencido = c.vencimento < hoje;
-      let textStatus = isVencido ? 'Vencido' : (c.status === 'bloqueado' ? 'Bloqueado' : 'Ativo');
-      let corBadge = isVencido ? 'bg-red' : (c.status === 'bloqueado' ? 'bg-gray' : 'bg-green');
-      const logoThumb = c.logo_url ? c.logo_url : DEFAULT_LOGO;
+      const vencido   = c.vencimento < hoje;
+      const bloqueado = c.status === 'bloqueado';
+      const bdClass   = vencido ? 'b-red' : bloqueado ? 'b-gray' : 'b-green';
+      const bdLabel   = vencido ? 'Vencido' : bloqueado ? 'Bloqueado' : 'Ativo';
+      const dataFmt   = c.vencimento.split('-').reverse().join('/');
+      const logoSrc   = c.logo_url || DEFAULT_LOGO;
 
-      if (isVencido) stats.vencidos++;
+      if (vencido) stats.vencidos++;
       else if (c.status === 'ativo') stats.ativos++;
 
-      // SVGs dos ícones
-      const iconEdit = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path></svg>`;
-      const iconPic = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
-      const iconDate = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`;
-      const iconLock = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>`;
-      const iconUnlock = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"></path></svg>`;
-      const iconDel = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>`;
-      const iconDownload = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>`;
-      const iconUpload = `<svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>`;
+      const btnLock = c.status === 'ativo'
+        ? `<button class="ibtn i-lock" title="Bloquear" onclick="alterarStatus('${c.id}','bloqueado')">${iLock}</button>`
+        : `<button class="ibtn i-lock" title="Desbloquear" onclick="alterarStatus('${c.id}','ativo')">${iUnlock}</button>`;
 
-      const btnLock = c.status === 'ativo' 
-        ? `<button class="btn btn-icon lock" title="Bloquear Acesso" onclick="alterarStatus('${c.id}', 'bloqueado')">${iconLock}</button>`
-        : `<button class="btn btn-icon lock" title="Desbloquear Acesso" onclick="alterarStatus('${c.id}', 'ativo')">${iconUnlock}</button>`;
+      const logoSafe = (c.logo_url || '').replace(/'/g, '');
 
-      return `
-        <tr>
-          <td><img src="${logoThumb}" class="logo-thumb"></td>
-          <td>
-            <strong style="color:#fff; display:block; margin-bottom:4px;">${c.nome_empresa}</strong>
-            <span style="font-size:11.5px; color:var(--text-secondary);">User: <span style="color:var(--primary);">${c.usuario}</span> | Pass: ${c.senha}</span>
-          </td>
-          <td class="hide-mobile"><span class="id-tenant">${c.id.split('-')[0]}...</span></td>
-          <td><strong style="color: ${isVencido ? 'var(--danger)' : 'var(--text)'}">${c.vencimento.split('-').reverse().join('/')}</strong></td>
-          <td><span class="badge ${corBadge}">${textStatus}</span></td>
-          <td style="text-align: center;">
-            <div style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap;">
-              <button class="btn btn-icon edit" title="Editar Dados da Empresa" onclick="openModalEditarEmpresa('${c.id}', '${c.nome_empresa}', '${c.usuario}', '${c.senha}')">${iconEdit}</button>
-              <button class="btn btn-icon pic" title="Alterar Logo" onclick="openModalLogo('${c.id}', '${c.logo_url || ''}')">${iconPic}</button>
-              <button class="btn btn-icon renew" title="Renovar Assinatura" onclick="openModalRenovar('${c.id}', '${c.nome_empresa}', '${c.vencimento}')">${iconDate}</button>
-              ${btnLock}
-              <button class="btn btn-icon backup" title="Baixar Backup (JSON)" onclick="gerarBackup('${c.id}', '${c.nome_empresa}')">${iconDownload}</button>
-              <button class="btn btn-icon restore" title="Injetar Backup (JSON)" onclick="openModalRestore('${c.id}', '${c.nome_empresa}')">${iconUpload}</button>
-              <button class="btn btn-icon del" title="Excluir Cliente" onclick="openModalExcluir('${c.id}', '${c.nome_empresa}')">${iconDel}</button>
-            </div>
-          </td>
-        </tr>
-      `;
+      return `<tr>
+        <td><img src="${logoSrc}" class="logo-th" onerror="this.src='${DEFAULT_LOGO}'"></td>
+        <td>
+          <span class="co-name">${c.nome_empresa}</span>
+          <span class="co-creds">user: <span class="cv">${c.usuario}</span> &nbsp;·&nbsp; pass: ${c.senha}</span>
+        </td>
+        <td class="hide-mob"><span class="tid">${c.id.split('-')[0]}…</span></td>
+        <td><span class="date-val" style="color:${vencido?'var(--red)':'var(--text-2)'};">${dataFmt}</span></td>
+        <td><span class="badge ${bdClass}"><span class="badge-dot"></span>${bdLabel}</span></td>
+        <td>
+          <div class="actions">
+            <button class="ibtn i-pic"  title="Alterar Logo"       onclick="openModalLogo('${c.id}','${logoSafe}')">${iPhoto}</button>
+            <button class="ibtn i-cal"  title="Renovar Assinatura" onclick="openModalRenovar('${c.id}','${c.nome_empresa}','${c.vencimento}')">${iCal}</button>
+            ${btnLock}
+            <button class="ibtn i-dl"   title="Backup JSON"        onclick="gerarBackup('${c.id}','${c.nome_empresa}')">${iDl}</button>
+            <button class="ibtn i-del"  title="Excluir"            onclick="openModalExcluir('${c.id}','${c.nome_empresa}')">${iTrash}</button>
+          </div>
+        </td>
+      </tr>`;
     }).join('');
 
-    document.getElementById('statTotal').textContent = stats.total;
-    document.getElementById('statAtivos').textContent = stats.ativos;
+    document.getElementById('statTotal').textContent   = stats.total;
+    document.getElementById('statAtivos').textContent  = stats.ativos;
     document.getElementById('statVencidos').textContent = stats.vencidos;
   }
 
   async function alterarStatus(id, novoStatus) {
     await sb.from('usuarios_clientes').update({ status: novoStatus }).eq('id', id);
-    showToast(`Status alterado para ${novoStatus}.`, 'success');
+    showToast(`Status alterado para "${novoStatus}".`, 'success');
     carregarClientes();
   }
 
-  // ==========================================
-  // EDITAR EMPRESA (NOME, LOGIN, SENHA) E COPIAR
-  // ==========================================
-  function openModalEditarEmpresa(id, nome, usuario, senha) {
-    document.getElementById('editEmpId').value = id;
-    document.getElementById('editEmpNome').value = nome;
-    document.getElementById('editEmpLogin').value = usuario;
-    document.getElementById('editEmpSenha').value = senha;
-    openModal('modalEditarEmpresa');
-  }
-
-  async function salvarEdicaoEmpresa() {
-    const id = document.getElementById('editEmpId').value;
-    const nome = document.getElementById('editEmpNome').value.trim();
-    const usuario = document.getElementById('editEmpLogin').value.trim();
-    const senha = document.getElementById('editEmpSenha').value.trim();
-    const btn = document.getElementById('btnSalvarEdicaoEmpresa');
-
-    if(!nome || !usuario || !senha) {
-      showToast('Preencha todos os campos obrigatórios.', 'warning');
-      return;
-    }
-
-    btn.textContent = 'A Guardar...'; btn.disabled = true;
-
-    try {
-      const { error } = await sb.from('usuarios_clientes')
-        .update({ nome_empresa: nome, usuario: usuario, senha: senha })
-        .eq('id', id);
-      
-      if(error) throw error;
-
-      showToast('Dados da empresa atualizados com sucesso!', 'success');
-      closeModal('modalEditarEmpresa');
-      carregarClientes();
-      
-      // Abre o modal de copiar credenciais
-      mostrarModalCopiar(nome, usuario, senha);
-
-    } catch(e) {
-      showToast('Erro ao atualizar: ' + e.message, 'error');
-    } finally {
-      btn.textContent = 'Salvar Alterações'; btn.disabled = false;
-    }
-  }
-
-  // FUNÇÕES DE COPIAR CREDENCIAIS
-  function mostrarModalCopiar(nome, usuario, senha) {
-    document.getElementById('copyNomeEmpresa').textContent = nome;
-    document.getElementById('copyLogin').textContent = usuario;
-    document.getElementById('copySenha').textContent = senha;
-    
-    // Calcula automaticamente o link do sistema (substitui o ficheiro atual por login.html)
-    const baseUrl = window.location.href.substring(0, window.location.href.lastIndexOf("/")) + "/login.html";
-    document.getElementById('copyLink').textContent = baseUrl;
-
-    openModal('modalCopiarCredenciais');
-  }
-
-  function copiarCredenciaisTexto() {
-    const nome = document.getElementById('copyNomeEmpresa').textContent;
-    const login = document.getElementById('copyLogin').textContent;
-    const senha = document.getElementById('copySenha').textContent;
-    const link = document.getElementById('copyLink').textContent;
-
-    const texto = `Olá!\nAqui estão os dados de acesso ao sistema ${nome}:\n\n🔗 Link: ${link}\n👤 Login: ${login}\n🔑 Senha: ${senha}\n\nGuarde estas informações em segurança.`;
-
-    navigator.clipboard.writeText(texto).then(() => {
-      showToast('Credenciais copiadas com sucesso!', 'success');
-      closeModal('modalCopiarCredenciais');
-    }).catch(err => {
-      showToast('Erro ao copiar. O seu navegador pode ter bloqueado.', 'error');
-    });
-  }
-
-
-  // ==========================================
-  // BACKUP GLOBAL (EXPORTAR E IMPORTAR)
-  // ==========================================
-  async function gerarBackupGlobal() {
-    const btn = document.getElementById('btnBackupGlobal');
-    const originalText = btn.innerHTML;
-    btn.innerHTML = 'Aguarde...';
-    btn.disabled = true;
-
-    showToast('A compilar toda a base de dados... Isto pode demorar um pouco.', 'info');
-    
-    let backupTotal = {
-      meta: {
-        tipo: 'Full_System_Dump',
-        data_extracao: new Date().toISOString(),
-        total_tabelas: TABELAS_SISTEMA.length
-      },
-      dados: {}
-    };
-
-    try {
-      const promises = TABELAS_SISTEMA.map(tabela => sb.from(tabela).select('*').limit(25000));
-      const results = await Promise.all(promises);
-
-      TABELAS_SISTEMA.forEach((tabela, index) => {
-         if (results[index].error) throw results[index].error;
-         backupTotal.dados[tabela] = results[index].data || [];
-      });
-
-      const jsonStr = JSON.stringify(backupTotal, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `SaaS_BackupGlobal_${new Date().toISOString().slice(0,10)}.json`;
-      
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      showToast(`Backup Global concluído com sucesso!`, 'success');
-
-    } catch (e) {
-      showToast(`Erro no Backup Global: ${e.message}`, 'error');
-    } finally {
-      btn.innerHTML = originalText;
-      btn.disabled = false;
-    }
-  }
-
-  function openModalRestoreGlobal() {
-    document.getElementById('rstGlobalFileInput').value = '';
-    openModal('modalRestoreGlobal');
-  }
-
-  async function executarRestoreGlobal() {
-    const fileInput = document.getElementById('rstGlobalFileInput');
-    const btn = document.getElementById('btnExecutarRestoreGlobal');
-
-    if (!fileInput.files.length) {
-      showToast('Selecione o ficheiro de Backup Global JSON.', 'warning'); return;
-    }
-
-    if (!confirm('PERIGO: Esta ação injetará/sobrescreverá dados de TODAS as empresas do sistema. Tem a certeza que deseja prosseguir?')) {
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'A Injetar Dados Globais...';
-
-    try {
-      const file = fileInput.files[0];
-      const text = await file.text();
-      const backup = JSON.parse(text);
-
-      if (!backup.dados || backup.meta?.tipo !== 'Full_System_Dump') {
-        throw new Error('O ficheiro selecionado NÃO é um Backup Global (Full_System_Dump) válido!');
-      }
-
-      let injetados = 0;
-
-      for (const tabela of TABELAS_SISTEMA) {
-        const linhas = backup.dados[tabela];
-        if (linhas && linhas.length > 0) {
-          const { error } = await sb.from(tabela).upsert(linhas);
-          if (error) {
-            console.error(`Erro ao injetar na tabela ${tabela}:`, error);
-          } else {
-            injetados += linhas.length;
-          }
-        }
-      }
-
-      showToast(`Restauração Global concluída! ${injetados} registos atualizados.`, 'success');
-      closeModal('modalRestoreGlobal');
-
-    } catch (err) {
-      showToast(err.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Iniciar Restauração Global';
-      carregarClientes();
-    }
-  }
-
-  // ==========================================
-  // BACKUP INDIVIDUAL (EXPORTAR 1 EMPRESA)
-  // ==========================================
+  // ── Backup ──
   async function gerarBackup(id, nome_empresa) {
-    showToast(`A extrair dados de ${nome_empresa}...`, 'info');
-    
+    showToast(`A gerar backup de ${nome_empresa}…`, 'info');
     try {
-      let backupObj = {
-        cliente: nome_empresa,
-        id_tenant: id,
-        data_extracao: new Date().toISOString(),
-        dados: {}
-      };
-
-      const { data: contaInfo } = await sb.from('usuarios_clientes').select('*').eq('id', id).single();
-      backupObj.dados['conta_acesso'] = contaInfo;
-
-      const promises = TABELAS_ORDEM_INDIVIDUAL.map(tabela => sb.from(tabela).select('*').eq('empresa_id', id));
-      const results = await Promise.all(promises);
-
-      TABELAS_ORDEM_INDIVIDUAL.forEach((tabela, index) => {
-         backupObj.dados[tabela] = results[index].data || [];
+      let bk = { cliente: nome_empresa, id_tenant: id, data_extracao: new Date().toISOString(), dados: {} };
+      const { data: conta } = await sb.from('usuarios_clientes').select('*').eq('id', id).single();
+      bk.dados['conta_acesso'] = conta;
+      const tabelas = ['clientes','avalistas','micro_negocios','operacoes','parcelas','avaliacao_financeira','fluxo_caixa','renovacoes','historico_cobrancas','inadimplencia'];
+      const res = await Promise.all(tabelas.map(t => sb.from(t).select('*').eq('empresa_id', id)));
+      tabelas.forEach((t, i) => { bk.dados[t] = res[i].data || []; });
+      const blob = new Blob([JSON.stringify(bk, null, 2)], { type: 'application/json' });
+      const url  = URL.createObjectURL(blob);
+      const a    = Object.assign(document.createElement('a'), {
+        href: url,
+        download: `backup_${nome_empresa.replace(/[^a-zA-Z0-9]/g,'_').toLowerCase()}_${new Date().toISOString().slice(0,10)}.json`
       });
-
-      const jsonStr = JSON.stringify(backupObj, null, 2);
-      const blob = new Blob([jsonStr], { type: "application/json" });
-      const url = URL.createObjectURL(blob);
-      
-      const a = document.createElement('a');
-      a.href = url;
-      const nomeSeguro = nome_empresa.replace(/[^a-zA-Z0-9]/g, '_').toLowerCase();
-      a.download = `backup_${nomeSeguro}_${new Date().toISOString().slice(0,10)}.json`;
-      
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-      showToast(`Backup concluído! Arquivo gerado.`, 'success');
-    } catch (e) {
-      showToast(`Erro ao gerar backup: ${e.message}`, 'error');
-    }
+      document.body.appendChild(a); a.click();
+      document.body.removeChild(a); URL.revokeObjectURL(url);
+      showToast(`Backup de ${nome_empresa} baixado!`, 'success');
+    } catch (e) { showToast('Erro ao gerar backup: ' + e.message, 'error'); }
   }
 
-  // ==========================================
-  // IMPORTAR BACKUP INDIVIDUAL (RESTAURAR 1 EMPRESA)
-  // ==========================================
-  function openModalRestore(id, nome) {
-    document.getElementById('rstClienteId').value = id;
-    document.getElementById('rstNomeEmpresa').textContent = nome;
-    document.getElementById('rstFileInput').value = '';
-    openModal('modalRestoreIndividual');
-  }
-
-  async function executarRestoreIndividual() {
-    const idDestino = document.getElementById('rstClienteId').value;
-    const fileInput = document.getElementById('rstFileInput');
-    const btn = document.getElementById('btnExecutarRestore');
-
-    if (!fileInput.files.length) {
-      showToast('Selecione um ficheiro JSON para restaurar.', 'warning'); return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = 'A Injetar Dados...';
-
-    try {
-      const file = fileInput.files[0];
-      const text = await file.text();
-      const backup = JSON.parse(text);
-
-      if (!backup.dados || !backup.id_tenant) {
-        throw new Error('Ficheiro inválido ou corrompido.');
-      }
-
-      if (backup.id_tenant !== idDestino) {
-        throw new Error('Bloqueado: Este backup pertence a outra empresa! Não é permitido misturar dados.');
-      }
-
-      let injetados = 0;
-
-      for (const tabela of TABELAS_ORDEM_INDIVIDUAL) {
-        const linhas = backup.dados[tabela];
-        if (linhas && linhas.length > 0) {
-          const { error } = await sb.from(tabela).upsert(linhas);
-          if (error) {
-            console.error(`Erro ao injetar na tabela ${tabela}:`, error);
-          } else {
-            injetados += linhas.length;
-          }
-        }
-      }
-
-      if(backup.dados.conta_acesso) {
-         await sb.from('usuarios_clientes').upsert(backup.dados.conta_acesso);
-      }
-
-      showToast(`${injetados} registos restaurados com sucesso!`, 'success');
-      closeModal('modalRestoreIndividual');
-
-    } catch (err) {
-      showToast(err.message, 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = 'Iniciar Restauração';
-      carregarClientes();
-    }
-  }
-
-  // ==========================================
-  // RENOVAÇÃO DE ASSINATURA
-  // ==========================================
+  // ── Renovação ──
   function openModalRenovar(id, nome, vencimento) {
-    document.getElementById('rnwClienteId').value = id;
+    document.getElementById('rnwClienteId').value        = id;
     document.getElementById('rnwNomeEmpresa').textContent = nome;
-    document.getElementById('rnwCurrentDate').value = vencimento;
+    document.getElementById('rnwCurrentDate').value      = vencimento;
     document.getElementById('rnwDataAtualTexto').textContent = vencimento.split('-').reverse().join('/');
-    document.getElementById('rnwNovaDataManual').value = vencimento; 
+    document.getElementById('rnwNovaDataManual').value   = vencimento;
     openModal('modalRenovar');
   }
 
   async function atualizarVencimento(id, novaDataStr) {
     try {
       const { error } = await sb.from('usuarios_clientes').update({ vencimento: novaDataStr }).eq('id', id);
-      if(error) throw error;
+      if (error) throw error;
       showToast('Assinatura renovada com sucesso!', 'success');
       closeModal('modalRenovar');
       carregarClientes();
-    } catch (e) {
-      showToast('Erro ao renovar: ' + e.message, 'error');
-    }
+    } catch (e) { showToast('Erro ao renovar: ' + e.message, 'error'); }
   }
 
   function renovarMais30Dias() {
-    const id = document.getElementById('rnwClienteId').value;
-    const dataAtualDB = document.getElementById('rnwCurrentDate').value;
-    
-    let baseDate = new Date(dataAtualDB + 'T00:00:00');
-    let hoje = new Date();
-    hoje.setHours(0,0,0,0);
-    
-    if (baseDate < hoje) baseDate = new Date(hoje);
-    
-    baseDate.setDate(baseDate.getDate() + 30);
-    const novaDataStr = baseDate.toISOString().split('T')[0];
-    
-    atualizarVencimento(id, novaDataStr);
+    const id   = document.getElementById('rnwClienteId').value;
+    const base = document.getElementById('rnwCurrentDate').value;
+    let d = new Date(base + 'T00:00:00');
+    const hoje = new Date(); hoje.setHours(0,0,0,0);
+    if (d < hoje) d = new Date(hoje);
+    d.setDate(d.getDate() + 30);
+    atualizarVencimento(id, d.toISOString().split('T')[0]);
   }
 
   function renovarDataCustom() {
     const id = document.getElementById('rnwClienteId').value;
-    const novaDataStr = document.getElementById('rnwNovaDataManual').value;
-    if(!novaDataStr) { showToast('Selecione uma data.', 'warning'); return; }
-    atualizarVencimento(id, novaDataStr);
+    const dt = document.getElementById('rnwNovaDataManual').value;
+    if (!dt) { showToast('Selecione uma data.', 'warning'); return; }
+    atualizarVencimento(id, dt);
   }
 
-  // ==========================================
-  // EXCLUSÃO SEGURA DE CLIENTE
-  // ==========================================
+  // ── Excluir ──
   function openModalExcluir(id, nome) {
     document.getElementById('delClienteId').value = id;
     document.getElementById('delNomeEmpresa').textContent = nome;
@@ -953,34 +1331,28 @@
   }
 
   async function executarExclusao() {
-    const id = document.getElementById('delClienteId').value;
+    const id  = document.getElementById('delClienteId').value;
     const btn = document.getElementById('btnConfirmarExclusao');
-    btn.textContent = "A apagar dados..."; btn.disabled = true;
-
+    btn.textContent = 'A apagar…'; btn.disabled = true;
     try {
-      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', id).single();
-      if (currentData && currentData.logo_url && currentData.logo_url.includes('/storage/v1/object/public/imagens/logos/')) {
-        const filePath = currentData.logo_url.split('/public/imagens/')[1];
-        if (filePath) await sb.storage.from('imagens').remove([filePath]);
+      const { data: cur } = await sb.from('usuarios_clientes').select('logo_url').eq('id', id).single();
+      if (cur?.logo_url?.includes('/storage/v1/object/public/imagens/logos/')) {
+        const fp = cur.logo_url.split('/public/imagens/')[1];
+        if (fp) await sb.storage.from('imagens').remove([fp]);
       }
-
       const { error } = await sb.from('usuarios_clientes').delete().eq('id', id);
-      if(error) throw error;
-
+      if (error) throw error;
       showToast('Cliente excluído permanentemente!', 'success');
       closeModal('modalConfirmDelete');
       carregarClientes();
-
-    } catch (e) {
-      showToast('Erro ao excluir: ' + e.message, 'error');
-    } finally {
-      btn.textContent = "Sim, Excluir Definitivamente"; btn.disabled = false;
+    } catch (e) { showToast('Erro ao excluir: ' + e.message, 'error'); }
+    finally {
+      btn.textContent = 'Sim, Excluir Definitivamente';
+      btn.disabled = false;
     }
   }
 
-  // ==========================================
-  // GESTÃO DA LOGO DA TELA DE LOGIN
-  // ==========================================
+  // ── Logo ──
   function openModalLogo(id, currentLogo) {
     document.getElementById('editLogoId').value = id;
     document.getElementById('previewAdminLogo').src = currentLogo || DEFAULT_LOGO;
@@ -988,52 +1360,42 @@
     openModal('modalLogoAdmin');
   }
 
-  function previewLogoLocal(event) {
-    const file = event.target.files[0];
+  function previewLogoLocal(e) {
+    const file = e.target.files[0];
     if (file) {
-       const reader = new FileReader();
-       reader.onload = function(e) { document.getElementById('previewAdminLogo').src = e.target.result; }
-       reader.readAsDataURL(file);
+      const r = new FileReader();
+      r.onload = ev => { document.getElementById('previewAdminLogo').src = ev.target.result; };
+      r.readAsDataURL(file);
     }
   }
 
-  async function uploadFileToSupabase(file, folderName) {
-    if (!file) return null;
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-    const { data, error } = await sb.storage.from('imagens').upload(fileName, file);
-    if (error) throw new Error('Erro ao enviar imagem: ' + error.message);
-    return sb.storage.from('imagens').getPublicUrl(fileName).data.publicUrl;
+  async function uploadFileToSupabase(file, folder) {
+    const ext  = file.name.split('.').pop();
+    const name = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2,9)}.${ext}`;
+    const { error } = await sb.storage.from('imagens').upload(name, file);
+    if (error) throw new Error('Erro ao enviar: ' + error.message);
+    return sb.storage.from('imagens').getPublicUrl(name).data.publicUrl;
   }
 
   async function saveAdminLogo() {
-    const id = document.getElementById('editLogoId').value;
-    const fileInput = document.getElementById('adminLogoUpload');
-    const file = fileInput.files[0];
-    const btn = document.getElementById('btnSalvarLogo');
-    
-    if(!file) { showToast('Selecione uma imagem primeiro.', 'warning'); return; }
-
-    btn.textContent = 'Enviando imagem...'; btn.disabled = true;
-
+    const id   = document.getElementById('editLogoId').value;
+    const file = document.getElementById('adminLogoUpload').files[0];
+    const btn  = document.getElementById('btnSalvarLogo');
+    if (!file) { showToast('Selecione uma imagem primeiro.', 'warning'); return; }
+    btn.textContent = 'Enviando…'; btn.disabled = true;
     try {
-      const { data: currentData } = await sb.from('usuarios_clientes').select('logo_url').eq('id', id).single();
-      if (currentData && currentData.logo_url && currentData.logo_url.includes('/storage/v1/object/public/imagens/logos/')) {
-        const filePath = currentData.logo_url.split('/public/imagens/')[1];
-        if (filePath) await sb.storage.from('imagens').remove([filePath]);
+      const { data: cur } = await sb.from('usuarios_clientes').select('logo_url').eq('id', id).single();
+      if (cur?.logo_url?.includes('/storage/v1/object/public/imagens/logos/')) {
+        const fp = cur.logo_url.split('/public/imagens/')[1];
+        if (fp) await sb.storage.from('imagens').remove([fp]);
       }
-
       const url = await uploadFileToSupabase(file, 'logos');
       await sb.from('usuarios_clientes').update({ logo_url: url }).eq('id', id);
-      
-      showToast('Logótipo da tela de login atualizado!', 'success');
+      showToast('Logótipo atualizado com sucesso!', 'success');
       closeModal('modalLogoAdmin');
-      carregarClientes(); 
-    } catch(e) {
-      showToast("Erro: " + e.message, 'error');
-    } finally {
-      btn.textContent = 'Salvar Nova Logo'; btn.disabled = false;
-    }
+      carregarClientes();
+    } catch (e) { showToast('Erro: ' + e.message, 'error'); }
+    finally { btn.textContent = 'Salvar Logo'; btn.disabled = false; }
   }
 </script>
 </body>
