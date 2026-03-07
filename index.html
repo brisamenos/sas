@@ -1777,6 +1777,103 @@
   </div>
 </div>
 
+<!-- MODAL NOVA NOTIFICAÇÃO -->
+<div class="modal-overlay" id="modalNovaNotif">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header">
+      <h3>Nova Notificação</h3>
+      <button class="modal-close" onclick="closeModal('modalNovaNotif')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Título *</label>
+          <input type="text" id="notifTitulo" placeholder="Ex: Parcela vencendo amanhã" />
+        </div>
+        <div class="form-group">
+          <label>Tipo</label>
+          <select id="notifTipo">
+            <option value="manual">Manual</option>
+            <option value="cobranca">Cobrança</option>
+            <option value="vencimento">Vencimento</option>
+            <option value="atraso">Atraso</option>
+            <option value="sistema">Sistema</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Prioridade</label>
+          <select id="notifPrioridade">
+            <option value="normal">Normal</option>
+            <option value="alta">Alta</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Mensagem</label>
+          <textarea id="notifMensagem" placeholder="Descreva o conteúdo da notificação..."></textarea>
+        </div>
+        <div class="form-group full">
+          <label>Cliente Relacionado (opcional)</label>
+          <select id="notifClienteId"><option value="">— Nenhum —</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalNovaNotif')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNotificacao()" id="btnSaveNotif">Salvar Notificação</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WHATSAPP CLIENTE -->
+<div class="modal-overlay" id="modalWhatsApp">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#1a7a4a,#25d366);border-radius:var(--radius) var(--radius) 0 0;">
+      <h3 style="color:#fff;display:flex;align-items:center;gap:10px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+        WhatsApp — <span id="waClienteNome" style="font-weight:400;font-size:15px;"></span>
+      </h3>
+      <button class="modal-close" onclick="closeModal('modalWhatsApp')" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.3);">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Número</label>
+        <input type="text" id="waTelefone" readonly style="background:var(--surface-2);font-weight:700;font-family:'Outfit',sans-serif;" />
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--text-secondary);display:block;margin-bottom:8px;font-family:'Outfit',sans-serif;">Modelo de Mensagem</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="aplicarModelo('saudacao')" class="btn btn-outline btn-sm" style="font-size:11px;">👋 Saudação</button>
+          <button onclick="aplicarModelo('cobranca')" class="btn btn-outline btn-sm" style="font-size:11px;">💰 Cobrança</button>
+          <button onclick="aplicarModelo('vencimento')" class="btn btn-outline btn-sm" style="font-size:11px;">📅 Vencimento</button>
+          <button onclick="aplicarModelo('confirmacao')" class="btn btn-outline btn-sm" style="font-size:11px;">✅ Confirmação</button>
+          <button onclick="aplicarModelo('acordo')" class="btn btn-outline btn-sm" style="font-size:11px;">🤝 Acordo</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Mensagem</label>
+        <textarea id="waMensagem" style="min-height:150px;line-height:1.6;" placeholder="Digite ou selecione um modelo acima..."></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;">
+          <span id="waCharCount" style="font-size:11px;color:var(--text-light);">0 caracteres</span>
+          <button onclick="document.getElementById('waMensagem').value='';atualizarPreviewWA()" style="font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;">Limpar</button>
+        </div>
+      </div>
+      <div style="background:#e5ddd5;border-radius:10px;padding:12px;">
+        <div style="font-size:10px;font-weight:700;color:#667781;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Preview</div>
+        <div id="waPreview" style="background:#fff;border-radius:0 8px 8px 8px;padding:10px 14px;font-size:13px;line-height:1.6;color:#111;white-space:pre-wrap;box-shadow:0 1px 2px rgba(0,0,0,0.1);max-height:120px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalWhatsApp')">Cancelar</button>
+      <button class="btn btn-success" onclick="enviarWhatsAppCliente()" style="background:linear-gradient(135deg,#1a7a4a,#25d366);box-shadow:0 4px 15px rgba(37,211,102,0.35);gap:8px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+        Abrir no WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+
+
 <script>
   // =============================================
   // SUPABASE CLIENT & STATE (SaaS)
@@ -2320,96 +2417,7 @@
           ${c.doc_frente ? `<h3>Doc (Frente)</h3><img src="${c.doc_frente}" class="doc-img"/>` : ''}
           ${c.doc_verso ? `<h3>Doc (Verso)</h3><img src="${c.doc_verso}" class="doc-img"/>` : ''}
           <script>setTimeout(() => { window.print(); window.close(); }, 1000);<\/script>
-        
-<!-- MODAL NOVA NOTIFICAÇÃO -->
-<div class="modal-overlay" id="modalNovaNotif">
-  <div class="modal" style="max-width:480px;">
-    <div class="modal-header">
-      <h3 id="modalNovaNotifTitle">Nova Notificação</h3>
-      <button class="modal-close" onclick="closeModal('modalNovaNotif')">&times;</button>
-    </div>
-    <div class="modal-body">
-      <div class="form-grid">
-        <div class="form-group full"><label>Título *</label><input type="text" id="notifTitulo" placeholder="Ex: Parcela vencendo amanhã" /></div>
-        <div class="form-group"><label>Tipo</label>
-          <select id="notifTipo">
-            <option value="manual">Manual</option>
-            <option value="cobranca">Cobrança</option>
-            <option value="vencimento">Vencimento</option>
-            <option value="atraso">Atraso</option>
-            <option value="sistema">Sistema</option>
-          </select>
-        </div>
-        <div class="form-group"><label>Prioridade</label>
-          <select id="notifPrioridade">
-            <option value="normal">Normal</option>
-            <option value="alta">Alta</option>
-            <option value="urgente">Urgente</option>
-          </select>
-        </div>
-        <div class="form-group full"><label>Mensagem *</label><textarea id="notifMensagem" style="min-height:100px;" placeholder="Descreva o conteúdo da notificação..."></textarea></div>
-        <div class="form-group full"><label>Cliente Relacionado (opcional)</label><select id="notifClienteId"><option value="">— Nenhum —</option></select></div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalNovaNotif')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveNotificacao()" id="btnSaveNotif">Salvar</button>
-    </div>
-  </div>
-</div>
-
-<!-- MODAL WHATSAPP CLIENTE -->
-<div class="modal-overlay" id="modalWhatsApp">
-  <div class="modal" style="max-width:520px;">
-    <div class="modal-header" style="background:linear-gradient(135deg,#1a7a4a,#25d366);border-radius:var(--radius) var(--radius) 0 0;">
-      <h3 style="color:#fff;display:flex;align-items:center;gap:10px;">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
-        WhatsApp — <span id="waClienteNome" style="font-weight:400;"></span>
-      </h3>
-      <button class="modal-close" onclick="closeModal('modalWhatsApp')" style="color:rgba(255,255,255,0.7);">&times;</button>
-    </div>
-    <div class="modal-body" style="padding:20px;">
-      <div style="margin-bottom:14px;">
-        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);display:block;margin-bottom:6px;">Número</label>
-        <input type="text" id="waTelefone" readonly style="background:var(--surface-2);border:1.5px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13.5px;font-weight:700;width:100%;color:var(--text);font-family:'Outfit',sans-serif;" />
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);display:block;margin-bottom:6px;">Modelo de Mensagem</label>
-        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-          <button onclick="aplicarModelo('saudacao')" class="btn btn-outline btn-sm" style="font-size:11px;">👋 Saudação</button>
-          <button onclick="aplicarModelo('cobranca')" class="btn btn-outline btn-sm" style="font-size:11px;">💰 Cobrança</button>
-          <button onclick="aplicarModelo('vencimento')" class="btn btn-outline btn-sm" style="font-size:11px;">📅 Vencimento</button>
-          <button onclick="aplicarModelo('confirmacao')" class="btn btn-outline btn-sm" style="font-size:11px;">✅ Confirmação</button>
-          <button onclick="aplicarModelo('acordo')" class="btn btn-outline btn-sm" style="font-size:11px;">🤝 Acordo</button>
-        </div>
-      </div>
-
-      <div style="margin-bottom:14px;">
-        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);display:block;margin-bottom:6px;">Mensagem</label>
-        <textarea id="waMensagem" style="width:100%;min-height:160px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13.5px;font-family:inherit;resize:vertical;background:var(--surface);color:var(--text);line-height:1.6;" placeholder="Digite ou selecione um modelo acima..."></textarea>
-        <div style="display:flex;justify-content:space-between;margin-top:5px;">
-          <span id="waCharCount" style="font-size:11px;color:var(--text-light);">0 caracteres</span>
-          <button onclick="document.getElementById('waMensagem').value=''" style="font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;">Limpar</button>
-        </div>
-      </div>
-
-      <!-- Preview estilo bolha WhatsApp -->
-      <div style="background:#e5ddd5;border-radius:10px;padding:14px;margin-bottom:10px;">
-        <div style="font-size:10px;font-weight:700;color:#667781;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Preview</div>
-        <div id="waPreview" style="background:#fff;border-radius:0 8px 8px 8px;padding:10px 14px;font-size:13px;line-height:1.6;color:#111;white-space:pre-wrap;box-shadow:0 1px 2px rgba(0,0,0,0.1);max-height:140px;overflow-y:auto;"></div>
-      </div>
-    </div>
-    <div class="modal-footer" style="gap:10px;">
-      <button class="btn btn-outline" onclick="closeModal('modalWhatsApp')">Cancelar</button>
-      <button class="btn btn-success" onclick="enviarWhatsAppCliente()" style="background:linear-gradient(135deg,#1a7a4a,#25d366);box-shadow:0 4px 15px rgba(37,211,102,0.35);gap:8px;">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
-        Abrir no WhatsApp
-      </button>
-    </div>
-  </div>
-</div>
-</body>
+        </body>
       </html>`);
     printWindow.document.close();
   }
@@ -3375,7 +3383,7 @@ Estamos abertos para encontrar a melhor opção para você. Pode nos chamar!`,
   const _origInitApp = typeof initApp !== 'undefined' ? null : null;
 
   // =============================================
-  // Inicializa o Software  // Inicializa o Software
+  // Inicializa o Software
   initApp();
 </script>
 </body>
