@@ -797,10 +797,10 @@
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Dashboard
       </div>
-      <div class="nav-item" data-page="notificacoes" onclick="navigate('notificacoes')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-        Notificações
-        <span id="notifBadge" style="margin-left:auto;background:#ff3d57;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;display:none;font-family:'Outfit',sans-serif;line-height:1.4;"></span>
+      <div class="nav-item" data-page="tarefas" onclick="navigate('tarefas')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+        Tarefas
+        <span id="tarefaBadge" style="margin-left:auto;background:#ff3d57;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;display:none;font-family:'Outfit',sans-serif;line-height:1.4;"></span>
       </div>
 
       <div class="nav-section">Cadastros</div>
@@ -886,25 +886,24 @@
         <div style="width:1px;height:24px;background:var(--border);"></div>
         <div class="conn-badge" id="connStatus">Online</div>
 
-        <!-- Sino de notificações -->
+        <!-- Sino de tarefas -->
         <div style="position:relative;">
-          <button id="btnNotifSino" onclick="toggleNotifDropdown()" style="width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;" title="Notificações"
+          <button id="btnTarefaSino" onclick="toggleTarefaDropdown()" style="width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;" title="Tarefas"
             onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='var(--surface)'">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             <span id="sinoBadge" style="display:none;position:absolute;top:2px;right:2px;width:16px;height:16px;background:#ff3d57;border-radius:50%;font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;border:2px solid #fff;"></span>
           </button>
-          <!-- Dropdown de notificações -->
+          <!-- Dropdown de tarefas -->
           <div id="notifDropdown" style="display:none;position:absolute;top:46px;right:0;width:360px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.14);z-index:9999;overflow:hidden;">
             <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;color:var(--text);">Notificações</span>
+              <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;color:var(--text);">Tarefas</span>
               <div style="display:flex;gap:8px;align-items:center;">
-                <button onclick="marcarTodasLidas()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Marcar todas lidas</button>
-                <button onclick="navigate('notificacoes');toggleNotifDropdown()" style="font-size:11px;color:var(--text-secondary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Ver todas →</button>
+                <button onclick="navigate('tarefas');toggleTarefaDropdown()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Ver todas →</button>
               </div>
             </div>
             <div id="notifDropList" style="max-height:320px;overflow-y:auto;"></div>
             <div style="padding:10px 18px;border-top:1px solid var(--border-light);text-align:center;">
-              <button onclick="navigate('notificacoes');toggleNotifDropdown()" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;">Gerenciar Notificações</button>
+              <button onclick="navigate('tarefas');toggleTarefaDropdown()" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;">Gerenciar Tarefas</button>
             </div>
           </div>
         </div>
@@ -1006,48 +1005,46 @@
                 </div>
                 <span style="font-size:12.5px;font-weight:700;color:var(--text);">Relatórios</span>
               </button>
-              <button onclick="navigate('notificacoes')" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(0,188,212,0.08),rgba(0,188,212,0.04));border:1.5px solid rgba(0,188,212,0.25);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+              <button onclick="navigate('tarefas')" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(0,188,212,0.08),rgba(0,188,212,0.04));border:1.5px solid rgba(0,188,212,0.25);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
                 <div style="width:40px;height:40px;background:linear-gradient(135deg,#0097a7,#00bcd4);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
                 </div>
-                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Notificações</span>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Tarefas</span>
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div class="page-section" id="page-notificacoes">
+      <div class="page-section" id="page-tarefas">
         <div class="card">
           <div class="card-header">
             <h3>
-              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-              Central de Notificações
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+              Gestão de Tarefas
             </h3>
             <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
-              <select id="notifFiltroTipo" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
-                <option value="">Todos os tipos</option>
-                <option value="atraso">Atraso</option>
-                <option value="vencimento">Vencimento</option>
-                <option value="cobranca">Cobrança</option>
-                <option value="sistema">Sistema</option>
-                <option value="manual">Manual</option>
+              <select id="tarefaFiltroStatus" onchange="loadTarefas()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
+                <option value="">Todos os status</option>
+                <option value="pendente">Pendente</option>
+                <option value="em_andamento">Em andamento</option>
+                <option value="concluida">Concluída</option>
               </select>
-              <select id="notifFiltroLida" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
-                <option value="">Todas</option>
-                <option value="false">Não lidas</option>
-                <option value="true">Lidas</option>
+              <select id="tarefaFiltroPrioridade" onchange="loadTarefas()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
+                <option value="">Todas as prioridades</option>
+                <option value="urgente">Urgente</option>
+                <option value="alta">Alta</option>
+                <option value="normal">Normal</option>
               </select>
-              <button class="btn btn-outline btn-sm" onclick="marcarTodasLidas()">✓ Marcar todas lidas</button>
-              <button class="btn btn-primary btn-sm" onclick="openNovaNotifModal()">
+              <button class="btn btn-primary btn-sm" onclick="openNovaTarefaModal()">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-                Nova Notificação
+                Nova Tarefa
               </button>
             </div>
           </div>
           <div class="card-body" style="padding:16px;">
-            <div id="notifList" style="display:flex;flex-direction:column;gap:10px;">
-              <div style="text-align:center;padding:40px;color:var(--text-light);">Carregando notificações...</div>
+            <div id="tarefaList" style="display:flex;flex-direction:column;gap:10px;">
+              <div style="text-align:center;padding:40px;color:var(--text-light);">Carregando tarefas...</div>
             </div>
           </div>
         </div>
@@ -1778,49 +1775,43 @@
 </div>
 
 <!-- MODAL NOVA NOTIFICAÇÃO -->
-<div class="modal-overlay" id="modalNovaNotif">
-  <div class="modal" style="max-width:500px;">
+<div class="modal-overlay" id="modalNovaTarefa">
+  <div class="modal" style="max-width:520px;">
     <div class="modal-header">
-      <h3>Nova Notificação</h3>
-      <button class="modal-close" onclick="closeModal('modalNovaNotif')">&times;</button>
+      <h3>Nova Tarefa</h3>
+      <button class="modal-close" onclick="closeModal('modalNovaTarefa')">&times;</button>
     </div>
     <div class="modal-body">
       <div class="form-grid">
         <div class="form-group full">
           <label>Título *</label>
-          <input type="text" id="notifTitulo" placeholder="Ex: Parcela vencendo amanhã" />
-        </div>
-        <div class="form-group">
-          <label>Tipo</label>
-          <select id="notifTipo">
-            <option value="manual">Manual</option>
-            <option value="cobranca">Cobrança</option>
-            <option value="vencimento">Vencimento</option>
-            <option value="atraso">Atraso</option>
-            <option value="sistema">Sistema</option>
-          </select>
+          <input type="text" id="tarefaTitulo" placeholder="Ex: Ligar para cliente sobre parcela" />
         </div>
         <div class="form-group">
           <label>Prioridade</label>
-          <select id="notifPrioridade">
+          <select id="tarefaPrioridade">
             <option value="normal">Normal</option>
             <option value="alta">Alta</option>
             <option value="urgente">Urgente</option>
           </select>
         </div>
+        <div class="form-group">
+          <label>Prazo</label>
+          <input type="date" id="tarefaPrazo" />
+        </div>
         <div class="form-group full">
-          <label>Mensagem</label>
-          <textarea id="notifMensagem" placeholder="Descreva o conteúdo da notificação..."></textarea>
+          <label>Descrição</label>
+          <textarea id="tarefaDescricao" placeholder="Descreva o que precisa ser feito..."></textarea>
         </div>
         <div class="form-group full">
           <label>Cliente Relacionado (opcional)</label>
-          <select id="notifClienteId"><option value="">— Nenhum —</option></select>
+          <select id="tarefaClienteId"><option value="">— Nenhum —</option></select>
         </div>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="closeModal('modalNovaNotif')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveNotificacao()" id="btnSaveNotif">Salvar Notificação</button>
+      <button class="btn btn-outline" onclick="closeModal('modalNovaTarefa')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveTarefa()" id="btnSaveTarefa">Salvar Tarefa</button>
     </div>
   </div>
 </div>
@@ -1944,7 +1935,7 @@
   // NAVIGATION & MOBILE FIX
   // =============================================
   const pageTitles = {
-    dashboard: 'Dashboard', notificacoes: 'Notificações', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
+    dashboard: 'Dashboard', tarefas: 'Tarefas', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
     avaliacao: 'Avaliação Financeira', fluxo: 'Fluxo de Caixa', operacoes: 'Operações',
     parcelas: 'Parcelas', inadimplencia: 'Inadimplência', renovacoes: 'Renovações', relatorios: 'Relatórios',
     plano: 'Identidade e Plano'
@@ -1981,7 +1972,7 @@
           break;
       case 'renovacoes': loadRenovacoes(); break;
       case 'relatorios': loadRelatorios(); break;
-      case 'notificacoes': loadNotificacoes(); break;
+      case 'tarefas': loadTarefas(); break;
       case 'plano': loadPlano(); break;
     }
   }
@@ -2233,7 +2224,7 @@
     if (alertsEl) {
       let alertHtml = '';
       if (totalAtrasadas > 0) alertHtml += `<div class="alert-banner alert-danger"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span>⚠️ <strong>${totalAtrasadas} parcela${totalAtrasadas>1?'s':''} em atraso!</strong> <a onclick="navigate('inadimplencia')">Ver inadimplência →</a></span></div>`;
-      if (venceHoje > 0) alertHtml += `<div class="alert-banner alert-warning"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>🕐 <strong>${venceHoje} parcela${venceHoje>1?'s':''} vencem hoje.</strong> <a onclick="navigate('notificacoes')">Ver agenda →</a></span></div>`;
+      if (venceHoje > 0) alertHtml += `<div class="alert-banner alert-warning"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>🕐 <strong>${venceHoje} parcela${venceHoje>1?'s':''} vencem hoje.</strong> <a onclick="navigate('tarefas')">Ver agenda →</a></span></div>`;
       if (venceAmanha > 0) alertHtml += `<div class="alert-banner alert-warning" style="background:rgba(255,171,0,0.06);"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>📅 <strong>${venceAmanha} parcela${venceAmanha>1?'s':''} vencem amanhã.</strong></span></div>`;
       alertsEl.innerHTML = alertHtml;
 
@@ -3143,156 +3134,166 @@
 
 
   // =============================================
-  // SISTEMA DE NOTIFICAÇÕES
+  // SISTEMA DE TAREFAS
   // =============================================
 
-  let notifDropOpen = false;
+  let tarefaDropOpen = false;
 
-  function toggleNotifDropdown() {
+  function toggleTarefaDropdown() {
     const dd = document.getElementById('notifDropdown');
-    notifDropOpen = !notifDropOpen;
-    dd.style.display = notifDropOpen ? 'block' : 'none';
-    if (notifDropOpen) loadNotifDropdown();
+    tarefaDropOpen = !tarefaDropOpen;
+    dd.style.display = tarefaDropOpen ? 'block' : 'none';
+    if (tarefaDropOpen) loadTarefaDropdown();
   }
-  // Fechar dropdown ao clicar fora
   document.addEventListener('click', function(e) {
-    if (!document.getElementById('btnNotifSino').contains(e.target) &&
-        !document.getElementById('notifDropdown').contains(e.target)) {
-      document.getElementById('notifDropdown').style.display = 'none';
-      notifDropOpen = false;
+    const btn = document.getElementById('btnTarefaSino');
+    const dd  = document.getElementById('notifDropdown');
+    if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
+      dd.style.display = 'none';
+      tarefaDropOpen = false;
     }
   });
 
-  async function loadNotifDropdown() {
-    const { data } = await sb.from('notificacoes')
-      .select('*')
+  async function loadTarefaDropdown() {
+    const { data } = await sb.from('tarefas')
+      .select('*,cliente:clientes(nome)')
       .eq('empresa_id', EMPRESA_ID)
-      .order('created_at', { ascending: false })
+      .neq('status', 'concluida')
+      .order('prazo', { ascending: true })
       .limit(8);
     const list = document.getElementById('notifDropList');
-    const naoLidas = (data||[]).filter(n => !n.lida).length;
-    // Badge sino
+    const pendentes = (data||[]).length;
     const badge = document.getElementById('sinoBadge');
-    if (badge) { badge.textContent = naoLidas; badge.style.display = naoLidas > 0 ? 'flex' : 'none'; }
-    const notifBadge = document.getElementById('notifBadge');
-    if (notifBadge) { notifBadge.textContent = naoLidas; notifBadge.style.display = naoLidas > 0 ? 'inline' : 'none'; }
+    if (badge) { badge.textContent = pendentes; badge.style.display = pendentes > 0 ? 'flex' : 'none'; }
+    const tb = document.getElementById('tarefaBadge');
+    if (tb) { tb.textContent = pendentes; tb.style.display = pendentes > 0 ? 'inline' : 'none'; }
     if (!data || data.length === 0) {
-      list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-light);font-size:13px;">✅ Nenhuma notificação</div>';
+      list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-light);font-size:13px;">✅ Nenhuma tarefa pendente</div>';
       return;
     }
-    const icons = { atraso:'🔴', vencimento:'📅', cobranca:'💰', sistema:'⚙️', manual:'📝' };
-    list.innerHTML = data.map(n => `
-      <div class="notif-drop-item ${n.lida ? '' : 'nao-lida'}" onclick="marcarLida('${n.id}');toggleNotifDropdown();">
-        <div style="font-size:20px;flex-shrink:0;margin-top:1px;">${icons[n.tipo]||'🔔'}</div>
+    const priorIcon = { urgente:'🔴', alta:'🟡', normal:'🔵' };
+    list.innerHTML = data.map(t => `
+      <div class="notif-drop-item" onclick="navigate('tarefas');toggleTarefaDropdown();">
+        <div style="font-size:18px;flex-shrink:0;margin-top:1px;">${priorIcon[t.prioridade]||'🔵'}</div>
         <div style="flex:1;min-width:0;">
-          <div style="font-size:13px;font-weight:${n.lida?'500':'700'};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.titulo}</div>
-          <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.mensagem||''}</div>
-          <div style="font-size:10.5px;color:var(--text-light);margin-top:3px;">${timeAgo(n.created_at)}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${t.titulo}</div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:3px;">${t.prazo ? '📅 ' + new Date(t.prazo + 'T00:00:00').toLocaleDateString('pt-BR') : 'Sem prazo'} ${t.cliente?.nome ? '· 👤 ' + t.cliente.nome : ''}</div>
         </div>
-        ${!n.lida ? '<div style="width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0;margin-top:6px;"></div>' : ''}
+        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;background:${t.status==='em_andamento'?'rgba(41,121,255,0.12)':'rgba(255,171,0,0.12)'};color:${t.status==='em_andamento'?'var(--info-text)':'var(--warning-text)'};">${t.status==='em_andamento'?'Em andamento':'Pendente'}</span>
       </div>`).join('');
   }
 
-  async function loadNotificacoes() {
-    const tipo  = document.getElementById('notifFiltroTipo')?.value || '';
-    const lida  = document.getElementById('notifFiltroLida')?.value || '';
-    let query = sb.from('notificacoes').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false });
-    if (tipo) query = query.eq('tipo', tipo);
-    if (lida !== '') query = query.eq('lida', lida === 'true');
+  async function loadTarefas() {
+    const status    = document.getElementById('tarefaFiltroStatus')?.value || '';
+    const prioridade = document.getElementById('tarefaFiltroPrioridade')?.value || '';
+    let query = sb.from('tarefas').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('prazo', { ascending: true });
+    if (status)     query = query.eq('status', status);
+    if (prioridade) query = query.eq('prioridade', prioridade);
     const { data } = await query.limit(100);
-    const listEl = document.getElementById('notifList');
+    const listEl = document.getElementById('tarefaList');
     if (!listEl) return;
-    // Atualizar badge
-    await atualizarBadgeNotif();
+    await atualizarBadgeTarefa();
     if (!data || data.length === 0) {
-      listEl.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text-light);font-size:14px;">Nenhuma notificação encontrada 🔔</div>';
+      listEl.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text-light);font-size:14px;">Nenhuma tarefa encontrada ✅</div>';
       return;
     }
-    const icons   = { atraso:'🔴', vencimento:'📅', cobranca:'💰', sistema:'⚙️', manual:'📝' };
-    const iconBg  = { atraso:'linear-gradient(135deg,#e53935,#ff5252)', vencimento:'linear-gradient(135deg,#ff8f00,#ffab00)', cobranca:'linear-gradient(135deg,#1565c0,#2979ff)', sistema:'linear-gradient(135deg,#546e7a,#90a4ae)', manual:'linear-gradient(135deg,#6a1b9a,#ab47bc)' };
-    const priorBadge = { urgente:'<span class="badge badge-danger" style="font-size:9px;">URGENTE</span>', alta:'<span class="badge badge-warning" style="font-size:9px;">ALTA</span>', normal:'' };
-    listEl.innerHTML = data.map(n => `
-      <div class="notif-item ${n.lida ? '' : 'nao-lida'} ${n.prioridade === 'urgente' ? 'urgente' : n.prioridade === 'alta' ? 'alta' : ''}">
-        ${!n.lida ? '<div class="notif-unread-dot"></div>' : '<div style="width:8px;"></div>'}
-        <div class="notif-icon" style="background:${iconBg[n.tipo]||'linear-gradient(135deg,#546e7a,#90a4ae)'};">
-          <span style="font-size:18px;">${icons[n.tipo]||'🔔'}</span>
+    const priorBadge = {
+      urgente: '<span class="badge badge-danger"  style="font-size:9px;">URGENTE</span>',
+      alta:    '<span class="badge badge-warning" style="font-size:9px;">ALTA</span>',
+      normal:  ''
+    };
+    const statusBadge = {
+      pendente:     '<span class="badge badge-warning" style="font-size:10px;">Pendente</span>',
+      em_andamento: '<span class="badge badge-info"    style="font-size:10px;">Em andamento</span>',
+      concluida:    '<span class="badge badge-success" style="font-size:10px;">Concluída</span>',
+    };
+    const statusBg = {
+      pendente:     'linear-gradient(135deg,#ff8f00,#ffab00)',
+      em_andamento: 'linear-gradient(135deg,#1565c0,#2979ff)',
+      concluida:    'linear-gradient(135deg,#00b248,#00c853)',
+    };
+    const statusIcon = { pendente:'⏳', em_andamento:'🔄', concluida:'✅' };
+    listEl.innerHTML = data.map(t => {
+      const atrasada = t.prazo && t.status !== 'concluida' && new Date(t.prazo + 'T00:00:00') < new Date();
+      return `
+      <div class="notif-item ${t.status === 'concluida' ? '' : 'nao-lida'} ${t.prioridade === 'urgente' ? 'urgente' : t.prioridade === 'alta' ? 'alta' : ''}">
+        <div class="notif-icon" style="background:${statusBg[t.status]||statusBg.pendente};">
+          <span style="font-size:18px;">${statusIcon[t.status]||'⏳'}</span>
         </div>
         <div class="notif-body">
-          <div class="notif-title">${n.titulo} ${priorBadge[n.prioridade]||''}</div>
-          ${n.mensagem ? `<div class="notif-msg">${n.mensagem}</div>` : ''}
+          <div class="notif-title">${t.titulo} ${priorBadge[t.prioridade]||''} ${statusBadge[t.status]||''}</div>
+          ${t.descricao ? `<div class="notif-msg">${t.descricao}</div>` : ''}
           <div class="notif-meta">
-            <span>${timeAgo(n.created_at)}</span>
-            ${n.cliente?.nome ? `<span>·</span><span>👤 ${n.cliente.nome}</span>` : ''}
-            <span>·</span><span style="text-transform:capitalize;">${n.tipo}</span>
+            ${t.prazo ? `<span${atrasada ? ' style="color:var(--danger);font-weight:700;"' : ''}>📅 ${new Date(t.prazo + 'T00:00:00').toLocaleDateString('pt-BR')}${atrasada ? ' ⚠️ Atrasada' : ''}</span>` : '<span>Sem prazo</span>'}
+            ${t.cliente?.nome ? `<span>·</span><span>👤 ${t.cliente.nome}</span>` : ''}
           </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
-          ${!n.lida ? `<button onclick="marcarLida('${n.id}')" class="btn btn-outline btn-sm" style="font-size:10px;padding:3px 8px;">✓ Lida</button>` : '<span style="font-size:11px;color:var(--text-light);">Lida</span>'}
-          <button onclick="deleteNotificacao('${n.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);padding:2px 4px;border-radius:4px;font-size:11px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
+          ${t.status !== 'concluida' ? `
+            <select onchange="updateTarefaStatus('${t.id}', this.value)" class="btn btn-outline btn-sm" style="font-size:10px;padding:3px 8px;cursor:pointer;">
+              <option value="pendente"     ${t.status==='pendente'     ?'selected':''}>⏳ Pendente</option>
+              <option value="em_andamento" ${t.status==='em_andamento' ?'selected':''}>🔄 Em andamento</option>
+              <option value="concluida"    ${t.status==='concluida'    ?'selected':''}>✅ Concluída</option>
+            </select>` : '<span style="font-size:11px;color:var(--text-light);">✅ Concluída</span>'}
+          <button onclick="deleteTarefa('${t.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);padding:2px 4px;border-radius:4px;font-size:11px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 
-  async function atualizarBadgeNotif() {
-    const { count } = await sb.from('notificacoes').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID).eq('lida', false);
+  async function atualizarBadgeTarefa() {
+    const { count } = await sb.from('tarefas').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID).neq('status', 'concluida');
     const n = count || 0;
     const badge = document.getElementById('sinoBadge');
     if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
-    const nb = document.getElementById('notifBadge');
-    if (nb) { nb.textContent = n; nb.style.display = n > 0 ? 'inline' : 'none'; }
+    const tb = document.getElementById('tarefaBadge');
+    if (tb) { tb.textContent = n; tb.style.display = n > 0 ? 'inline' : 'none'; }
   }
 
-  async function marcarLida(id) {
-    await sb.from('notificacoes').update({ lida: true }).eq('id', id).eq('empresa_id', EMPRESA_ID);
-    loadNotificacoes();
+  async function updateTarefaStatus(id, status) {
+    await sb.from('tarefas').update({ status }).eq('id', id).eq('empresa_id', EMPRESA_ID);
+    loadTarefas();
+    atualizarBadgeTarefa();
   }
 
-  async function marcarTodasLidas() {
-    await sb.from('notificacoes').update({ lida: true }).eq('empresa_id', EMPRESA_ID).eq('lida', false);
-    showToast('Todas notificações marcadas como lidas.', 'success');
-    loadNotificacoes();
-    atualizarBadgeNotif();
+  async function deleteTarefa(id) {
+    await sb.from('tarefas').delete().eq('id', id).eq('empresa_id', EMPRESA_ID);
+    loadTarefas();
+    atualizarBadgeTarefa();
   }
 
-  async function deleteNotificacao(id) {
-    await sb.from('notificacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID);
-    loadNotificacoes();
-  }
-
-  async function openNovaNotifModal() {
-    // Popular select de clientes
+  async function openNovaTarefaModal() {
     const { data } = await sb.from('clientes').select('id,nome').eq('empresa_id', EMPRESA_ID).eq('status', 'ativo').order('nome');
-    const sel = document.getElementById('notifClienteId');
+    const sel = document.getElementById('tarefaClienteId');
     sel.innerHTML = '<option value="">— Nenhum —</option>' + (data||[]).map(cl => `<option value="${cl.id}">${cl.nome}</option>`).join('');
-    document.getElementById('notifTitulo').value = '';
-    document.getElementById('notifMensagem').value = '';
-    document.getElementById('notifTipo').value = 'manual';
-    document.getElementById('notifPrioridade').value = 'normal';
-    openModal('modalNovaNotif');
+    document.getElementById('tarefaTitulo').value = '';
+    document.getElementById('tarefaDescricao').value = '';
+    document.getElementById('tarefaPrioridade').value = 'normal';
+    document.getElementById('tarefaPrazo').value = '';
+    openModal('modalNovaTarefa');
   }
 
-  async function saveNotificacao() {
-    const titulo   = document.getElementById('notifTitulo').value.trim();
-    const mensagem = document.getElementById('notifMensagem').value.trim();
-    if (!titulo) return showToast('Informe o título da notificação.', 'warning');
-    const btn = document.getElementById('btnSaveNotif');
+  async function saveTarefa() {
+    const titulo = document.getElementById('tarefaTitulo').value.trim();
+    if (!titulo) return showToast('Informe o título da tarefa.', 'warning');
+    const btn = document.getElementById('btnSaveTarefa');
     btn.textContent = 'Salvando...'; btn.disabled = true;
     try {
-      await sb.from('notificacoes').insert({
+      await sb.from('tarefas').insert({
         empresa_id:  EMPRESA_ID,
         titulo,
-        mensagem,
-        tipo:        document.getElementById('notifTipo').value,
-        prioridade:  document.getElementById('notifPrioridade').value,
-        cliente_id:  document.getElementById('notifClienteId').value || null,
-        lida:        false,
+        descricao:   document.getElementById('tarefaDescricao').value.trim() || null,
+        prioridade:  document.getElementById('tarefaPrioridade').value,
+        prazo:       document.getElementById('tarefaPrazo').value || null,
+        cliente_id:  document.getElementById('tarefaClienteId').value || null,
+        status:      'pendente',
       });
-      showToast('Notificação criada!', 'success');
-      closeModal('modalNovaNotif');
-      loadNotificacoes();
-      atualizarBadgeNotif();
+      showToast('Tarefa criada!', 'success');
+      closeModal('modalNovaTarefa');
+      loadTarefas();
+      atualizarBadgeTarefa();
     } catch(e) { showToast('Erro: ' + e.message, 'error'); }
-    finally { btn.textContent = 'Salvar'; btn.disabled = false; }
+    finally { btn.textContent = 'Salvar Tarefa'; btn.disabled = false; }
   }
 
   function timeAgo(dateStr) {
@@ -3379,7 +3380,7 @@ Estamos abertos para encontrar a melhor opção para você. Pode nos chamar!`,
     if (waMsg) waMsg.addEventListener('input', atualizarPreviewWA);
   });
 
-  // Ao iniciar o app, carregar badge de notificações
+  // Ao iniciar o app, carregar badge de tarefas
   const _origInitApp = typeof initApp !== 'undefined' ? null : null;
 
   // =============================================
