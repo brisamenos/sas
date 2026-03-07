@@ -742,6 +742,42 @@
       #dashBottomGrid > .card:last-child { display: none; }
     }
   
+
+    /* ── NOTIFICAÇÕES ── */
+    .notif-item {
+      display:flex; align-items:flex-start; gap:14px;
+      padding:14px 18px; background:var(--surface);
+      border:1.5px solid var(--border); border-radius:14px;
+      transition:all 0.2s; cursor:default; position:relative;
+    }
+    .notif-item.nao-lida {
+      background:linear-gradient(90deg,rgba(255,87,34,0.03),var(--surface));
+      border-left:3px solid var(--primary);
+    }
+    .notif-item.urgente { border-left:3px solid var(--danger); background:linear-gradient(90deg,rgba(229,57,53,0.04),var(--surface)); }
+    .notif-item.alta    { border-left:3px solid var(--warning); background:linear-gradient(90deg,rgba(255,171,0,0.04),var(--surface)); }
+    .notif-item:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); transform:translateY(-1px); }
+    .notif-icon {
+      width:40px; height:40px; border-radius:12px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .notif-body { flex:1; min-width:0; }
+    .notif-title { font-size:13.5px; font-weight:700; color:var(--text); margin-bottom:3px; }
+    .notif-msg   { font-size:12.5px; color:var(--text-secondary); line-height:1.5; }
+    .notif-meta  { font-size:11px; color:var(--text-light); margin-top:5px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .notif-unread-dot {
+      width:8px; height:8px; background:var(--primary); border-radius:50%; flex-shrink:0; margin-top:6px;
+    }
+    /* Dropdown sino */
+    .notif-drop-item {
+      display:flex; align-items:flex-start; gap:10px;
+      padding:11px 16px; border-bottom:1px solid var(--border-light);
+      cursor:pointer; transition:background 0.15s;
+    }
+    .notif-drop-item:last-child { border-bottom:none; }
+    .notif-drop-item:hover { background:var(--surface-2); }
+    .notif-drop-item.nao-lida { background:rgba(255,87,34,0.03); }
+  
   </style>
 </head>
 <body>
@@ -761,10 +797,10 @@
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
         Dashboard
       </div>
-      <div class="nav-item" data-page="agenda" onclick="navigate('agenda')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
-        Agenda
-        <span id="agendaBadge" style="margin-left:auto;background:#ff3d57;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;display:none;font-family:'Outfit',sans-serif;line-height:1.4;"></span>
+      <div class="nav-item" data-page="notificacoes" onclick="navigate('notificacoes')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+        Notificações
+        <span id="notifBadge" style="margin-left:auto;background:#ff3d57;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;display:none;font-family:'Outfit',sans-serif;line-height:1.4;"></span>
       </div>
 
       <div class="nav-section">Cadastros</div>
@@ -849,6 +885,29 @@
         </button>
         <div style="width:1px;height:24px;background:var(--border);"></div>
         <div class="conn-badge" id="connStatus">Online</div>
+
+        <!-- Sino de notificações -->
+        <div style="position:relative;">
+          <button id="btnNotifSino" onclick="toggleNotifDropdown()" style="width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;" title="Notificações"
+            onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='var(--surface)'">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span id="sinoBadge" style="display:none;position:absolute;top:2px;right:2px;width:16px;height:16px;background:#ff3d57;border-radius:50%;font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;border:2px solid #fff;"></span>
+          </button>
+          <!-- Dropdown de notificações -->
+          <div id="notifDropdown" style="display:none;position:absolute;top:46px;right:0;width:360px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.14);z-index:9999;overflow:hidden;">
+            <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;color:var(--text);">Notificações</span>
+              <div style="display:flex;gap:8px;align-items:center;">
+                <button onclick="marcarTodasLidas()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Marcar todas lidas</button>
+                <button onclick="navigate('notificacoes');toggleNotifDropdown()" style="font-size:11px;color:var(--text-secondary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Ver todas →</button>
+              </div>
+            </div>
+            <div id="notifDropList" style="max-height:320px;overflow-y:auto;"></div>
+            <div style="padding:10px 18px;border-top:1px solid var(--border-light);text-align:center;">
+              <button onclick="navigate('notificacoes');toggleNotifDropdown()" class="btn btn-outline btn-sm" style="width:100%;justify-content:center;">Gerenciar Notificações</button>
+            </div>
+          </div>
+        </div>
         <div id="userChip" style="display:none;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:5px 12px 5px 6px;border-radius:100px;cursor:default;">
           <div id="userAvatar" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#ff5722,#ff8a50);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;flex-shrink:0;"></div>
           <span id="userEmailDisplay" style="font-size:12.5px;font-weight:600;color:var(--text-secondary);"></span>
@@ -947,11 +1006,11 @@
                 </div>
                 <span style="font-size:12.5px;font-weight:700;color:var(--text);">Relatórios</span>
               </button>
-              <button onclick="navigate('agenda')" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(0,188,212,0.08),rgba(0,188,212,0.04));border:1.5px solid rgba(0,188,212,0.25);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
+              <button onclick="navigate('notificacoes')" class="quick-action-btn" style="background:linear-gradient(135deg,rgba(0,188,212,0.08),rgba(0,188,212,0.04));border:1.5px solid rgba(0,188,212,0.25);border-radius:14px;padding:16px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;transition:all 0.2s;font-family:'Outfit',sans-serif;">
                 <div style="width:40px;height:40px;background:linear-gradient(135deg,#0097a7,#00bcd4);border-radius:12px;display:flex;align-items:center;justify-content:center;">
-                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01"/></svg>
+                  <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                 </div>
-                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Agenda</span>
+                <span style="font-size:12.5px;font-weight:700;color:var(--text);">Notificações</span>
               </button>
             </div>
           </div>
@@ -1246,38 +1305,41 @@
 
     </div> </div>
 
-      <!-- AGENDA DE COBRANÇAS -->
-      <div class="page-section" id="page-agenda">
-        <div class="stats-grid" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));margin-bottom:20px;" id="agendaStats"></div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;" id="agendaGrid">
-          <div class="card" style="margin-bottom:0;border-top:3px solid var(--danger);">
-            <div class="card-header">
-              <h3><svg width="16" height="16" fill="none" stroke="var(--danger)" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v4m0 4h.01"/></svg> Vencidas (Atraso)</h3>
-              <span id="cntAtrasadas" class="badge badge-danger">0</span>
+      <!-- NOTIFICAÇÕES -->
+      <div class="page-section" id="page-notificacoes">
+        <!-- Filtros e ações -->
+        <div class="card" style="margin-bottom:20px;">
+          <div class="card-header">
+            <h3>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+              Central de Notificações
+            </h3>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+              <select id="notifFiltroTipo" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
+                <option value="">Todos os tipos</option>
+                <option value="atraso">Atraso</option>
+                <option value="vencimento">Vencimento</option>
+                <option value="cobranca">Cobrança</option>
+                <option value="sistema">Sistema</option>
+                <option value="manual">Manual</option>
+              </select>
+              <select id="notifFiltroLida" onchange="loadNotificacoes()" style="padding:7px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);color:var(--text);font-family:inherit;outline:none;cursor:pointer;">
+                <option value="">Todas</option>
+                <option value="false">Não lidas</option>
+                <option value="true">Lidas</option>
+              </select>
+              <button class="btn btn-outline btn-sm" onclick="marcarTodasLidas()">✓ Marcar todas lidas</button>
+              <button class="btn btn-primary btn-sm" onclick="openNovaNotifModal()">
+                <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                Nova Notificação
+              </button>
             </div>
-            <div id="listaAtrasadas"><div class="empty-state">Carregando...</div></div>
           </div>
-          <div class="card" style="margin-bottom:0;border-top:3px solid var(--warning);">
-            <div class="card-header">
-              <h3><svg width="16" height="16" fill="none" stroke="var(--warning)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Vencem Hoje</h3>
-              <span id="cntHoje" class="badge badge-warning">0</span>
-            </div>
-            <div id="listaHoje"><div class="empty-state">Carregando...</div></div>
-          </div>
-          <div class="card" style="margin-bottom:0;border-top:3px solid var(--info);">
-            <div class="card-header">
-              <h3><svg width="16" height="16" fill="none" stroke="var(--info)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg> Vencem Amanhã</h3>
-              <span id="cntAmanha" class="badge badge-info">0</span>
-            </div>
-            <div id="listaAmanha"><div class="empty-state">Carregando...</div></div>
-          </div>
-          <div class="card" style="margin-bottom:0;border-top:3px solid var(--success);">
-            <div class="card-header">
-              <h3><svg width="16" height="16" fill="none" stroke="var(--success)" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/></svg> Próximos 7 Dias</h3>
-              <span id="cnt7dias" class="badge badge-neutral">0</span>
-            </div>
-            <div id="lista7dias"><div class="empty-state">Carregando...</div></div>
-          </div>
+        </div>
+
+        <!-- Lista de notificações -->
+        <div id="notifList" style="display:flex;flex-direction:column;gap:10px;">
+          <div style="text-align:center;padding:40px;color:var(--text-light);">Carregando notificações...</div>
         </div>
       </div>
 
@@ -1785,7 +1847,7 @@
   // NAVIGATION & MOBILE FIX
   // =============================================
   const pageTitles = {
-    dashboard: 'Dashboard', agenda: 'Agenda de Cobranças', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
+    dashboard: 'Dashboard', notificacoes: 'Notificações', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
     avaliacao: 'Avaliação Financeira', fluxo: 'Fluxo de Caixa', operacoes: 'Operações',
     parcelas: 'Parcelas', inadimplencia: 'Inadimplência', renovacoes: 'Renovações', relatorios: 'Relatórios',
     plano: 'Identidade e Plano'
@@ -1822,7 +1884,7 @@
           break;
       case 'renovacoes': loadRenovacoes(); break;
       case 'relatorios': loadRelatorios(); break;
-      case 'agenda': loadAgenda(); break;
+      case 'notificacoes': loadNotificacoes(); break;
       case 'plano': loadPlano(); break;
     }
   }
@@ -2074,7 +2136,7 @@
     if (alertsEl) {
       let alertHtml = '';
       if (totalAtrasadas > 0) alertHtml += `<div class="alert-banner alert-danger"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg><span>⚠️ <strong>${totalAtrasadas} parcela${totalAtrasadas>1?'s':''} em atraso!</strong> <a onclick="navigate('inadimplencia')">Ver inadimplência →</a></span></div>`;
-      if (venceHoje > 0) alertHtml += `<div class="alert-banner alert-warning"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>🕐 <strong>${venceHoje} parcela${venceHoje>1?'s':''} vencem hoje.</strong> <a onclick="navigate('agenda')">Ver agenda →</a></span></div>`;
+      if (venceHoje > 0) alertHtml += `<div class="alert-banner alert-warning"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg><span>🕐 <strong>${venceHoje} parcela${venceHoje>1?'s':''} vencem hoje.</strong> <a onclick="navigate('notificacoes')">Ver agenda →</a></span></div>`;
       if (venceAmanha > 0) alertHtml += `<div class="alert-banner alert-warning" style="background:rgba(255,171,0,0.06);"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg><span>📅 <strong>${venceAmanha} parcela${venceAmanha>1?'s':''} vencem amanhã.</strong></span></div>`;
       alertsEl.innerHTML = alertHtml;
 
@@ -2200,6 +2262,10 @@
         <td>${statusBadge(c.status)}</td>
         <td><div class="btn-group">
           <button class="btn btn-info btn-sm" onclick="viewCliente('${c.id}')">Ver</button>
+          ${(c.celular || c.telefone) ? `<button class="btn btn-sm" onclick="openWhatsApp('${c.celular || c.telefone}','${c.nome}')" style="background:linear-gradient(135deg,#1a7a4a,#25d366);color:#fff;border:none;gap:5px;" title="WhatsApp">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+            WA
+          </button>` : ''}
           <button class="btn btn-outline btn-sm" onclick="printCliente('${c.id}')">PDF</button>
           <button class="btn btn-outline btn-sm" onclick="editCliente('${c.id}')">Editar</button>
           <button class="btn btn-danger btn-sm" onclick="deleteCliente('${c.id}')">Apagar</button>
@@ -2254,7 +2320,96 @@
           ${c.doc_frente ? `<h3>Doc (Frente)</h3><img src="${c.doc_frente}" class="doc-img"/>` : ''}
           ${c.doc_verso ? `<h3>Doc (Verso)</h3><img src="${c.doc_verso}" class="doc-img"/>` : ''}
           <script>setTimeout(() => { window.print(); window.close(); }, 1000);<\/script>
-        </body>
+        
+<!-- MODAL NOVA NOTIFICAÇÃO -->
+<div class="modal-overlay" id="modalNovaNotif">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-header">
+      <h3 id="modalNovaNotifTitle">Nova Notificação</h3>
+      <button class="modal-close" onclick="closeModal('modalNovaNotif')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group full"><label>Título *</label><input type="text" id="notifTitulo" placeholder="Ex: Parcela vencendo amanhã" /></div>
+        <div class="form-group"><label>Tipo</label>
+          <select id="notifTipo">
+            <option value="manual">Manual</option>
+            <option value="cobranca">Cobrança</option>
+            <option value="vencimento">Vencimento</option>
+            <option value="atraso">Atraso</option>
+            <option value="sistema">Sistema</option>
+          </select>
+        </div>
+        <div class="form-group"><label>Prioridade</label>
+          <select id="notifPrioridade">
+            <option value="normal">Normal</option>
+            <option value="alta">Alta</option>
+            <option value="urgente">Urgente</option>
+          </select>
+        </div>
+        <div class="form-group full"><label>Mensagem *</label><textarea id="notifMensagem" style="min-height:100px;" placeholder="Descreva o conteúdo da notificação..."></textarea></div>
+        <div class="form-group full"><label>Cliente Relacionado (opcional)</label><select id="notifClienteId"><option value="">— Nenhum —</option></select></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalNovaNotif')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveNotificacao()" id="btnSaveNotif">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL WHATSAPP CLIENTE -->
+<div class="modal-overlay" id="modalWhatsApp">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#1a7a4a,#25d366);border-radius:var(--radius) var(--radius) 0 0;">
+      <h3 style="color:#fff;display:flex;align-items:center;gap:10px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+        WhatsApp — <span id="waClienteNome" style="font-weight:400;"></span>
+      </h3>
+      <button class="modal-close" onclick="closeModal('modalWhatsApp')" style="color:rgba(255,255,255,0.7);">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);display:block;margin-bottom:6px;">Número</label>
+        <input type="text" id="waTelefone" readonly style="background:var(--surface-2);border:1.5px solid var(--border);border-radius:8px;padding:9px 14px;font-size:13.5px;font-weight:700;width:100%;color:var(--text);font-family:'Outfit',sans-serif;" />
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);display:block;margin-bottom:6px;">Modelo de Mensagem</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="aplicarModelo('saudacao')" class="btn btn-outline btn-sm" style="font-size:11px;">👋 Saudação</button>
+          <button onclick="aplicarModelo('cobranca')" class="btn btn-outline btn-sm" style="font-size:11px;">💰 Cobrança</button>
+          <button onclick="aplicarModelo('vencimento')" class="btn btn-outline btn-sm" style="font-size:11px;">📅 Vencimento</button>
+          <button onclick="aplicarModelo('confirmacao')" class="btn btn-outline btn-sm" style="font-size:11px;">✅ Confirmação</button>
+          <button onclick="aplicarModelo('acordo')" class="btn btn-outline btn-sm" style="font-size:11px;">🤝 Acordo</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px;">
+        <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-secondary);display:block;margin-bottom:6px;">Mensagem</label>
+        <textarea id="waMensagem" style="width:100%;min-height:160px;padding:12px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13.5px;font-family:inherit;resize:vertical;background:var(--surface);color:var(--text);line-height:1.6;" placeholder="Digite ou selecione um modelo acima..."></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;">
+          <span id="waCharCount" style="font-size:11px;color:var(--text-light);">0 caracteres</span>
+          <button onclick="document.getElementById('waMensagem').value=''" style="font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;">Limpar</button>
+        </div>
+      </div>
+
+      <!-- Preview estilo bolha WhatsApp -->
+      <div style="background:#e5ddd5;border-radius:10px;padding:14px;margin-bottom:10px;">
+        <div style="font-size:10px;font-weight:700;color:#667781;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">Preview</div>
+        <div id="waPreview" style="background:#fff;border-radius:0 8px 8px 8px;padding:10px 14px;font-size:13px;line-height:1.6;color:#111;white-space:pre-wrap;box-shadow:0 1px 2px rgba(0,0,0,0.1);max-height:140px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="modal-footer" style="gap:10px;">
+      <button class="btn btn-outline" onclick="closeModal('modalWhatsApp')">Cancelar</button>
+      <button class="btn btn-success" onclick="enviarWhatsAppCliente()" style="background:linear-gradient(135deg,#1a7a4a,#25d366);box-shadow:0 4px 15px rgba(37,211,102,0.35);gap:8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+        Abrir no WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
+</body>
       </html>`);
     printWindow.document.close();
   }
@@ -2980,83 +3135,247 @@
 
 
   // =============================================
-  // AGENDA DE COBRANÇAS
+  // SISTEMA DE NOTIFICAÇÕES
   // =============================================
-  async function loadAgenda() {
-    const today = new Date().toISOString().slice(0,10);
-    const tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate()+1);
-    const tomorrowStr = tomorrow.toISOString().slice(0,10);
-    const in7 = new Date(); in7.setDate(in7.getDate()+7);
-    const in7Str = in7.toISOString().slice(0,10);
 
-    // Buscar parcelas pendentes/atrasadas até 7 dias
-    const { data: parcelas } = await sb.from('parcelas')
-      .select('*,operacao:operacoes(numero_contrato,cliente_id,cliente:clientes(nome,celular,telefone))')
-      .eq('empresa_id', EMPRESA_ID)
-      .in('status', ['pendente','atrasada'])
-      .lte('data_vencimento', in7Str)
-      .order('data_vencimento');
+  let notifDropOpen = false;
 
-    const atrasadas = (parcelas||[]).filter(p => p.data_vencimento < today);
-    const hoje = (parcelas||[]).filter(p => p.data_vencimento === today);
-    const amanha = (parcelas||[]).filter(p => p.data_vencimento === tomorrowStr);
-    const prox7 = (parcelas||[]).filter(p => p.data_vencimento > tomorrowStr && p.data_vencimento <= in7Str);
-
-    // Atualizar contadores
-    document.getElementById('cntAtrasadas').textContent = atrasadas.length;
-    document.getElementById('cntHoje').textContent = hoje.length;
-    document.getElementById('cntAmanha').textContent = amanha.length;
-    document.getElementById('cnt7dias').textContent = prox7.length;
-
-    // Badge sidebar
-    const badge = document.getElementById('agendaBadge');
-    const total = atrasadas.length + hoje.length + amanha.length;
-    if (badge) { badge.textContent = total; badge.style.display = total > 0 ? 'inline' : 'none'; }
-
-    function renderList(containerId, items, cor, gradient) {
-      const el = document.getElementById(containerId);
-      if (!el) return;
-      if (items.length === 0) { el.innerHTML = '<div class="empty-state" style="padding:24px!important;">✅ Nenhuma parcela</div>'; return; }
-      el.innerHTML = items.map(p => {
-        const nome = p.operacao?.cliente?.nome || 'Cliente';
-        const tel = p.operacao?.cliente?.celular || p.operacao?.cliente?.telefone || '';
-        const inicial = nome.charAt(0).toUpperCase();
-        return `<div class="agenda-item">
-          <div class="agenda-avatar" style="background:${gradient};">${inicial}</div>
-          <div class="agenda-info">
-            <div class="agenda-name">${nome}</div>
-            <div class="agenda-sub">Contrato: ${p.operacao?.numero_contrato||'-'} · Parcela ${p.numero_parcela}</div>
-          </div>
-          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-            <div class="agenda-valor" style="color:${cor};">${fmt(p.valor_total)}</div>
-            ${tel ? `<button onclick="whatsAppCobrancaRapida('${tel}','${nome}',${p.valor_total},'${p.data_vencimento}')" class="btn btn-success" style="padding:3px 8px;font-size:10px;border-radius:6px;gap:3px;">
-              <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
-              WhatsApp
-            </button>` : ''}
-          </div>
-        </div>`;
-      }).join('');
+  function toggleNotifDropdown() {
+    const dd = document.getElementById('notifDropdown');
+    notifDropOpen = !notifDropOpen;
+    dd.style.display = notifDropOpen ? 'block' : 'none';
+    if (notifDropOpen) loadNotifDropdown();
+  }
+  // Fechar dropdown ao clicar fora
+  document.addEventListener('click', function(e) {
+    if (!document.getElementById('btnNotifSino').contains(e.target) &&
+        !document.getElementById('notifDropdown').contains(e.target)) {
+      document.getElementById('notifDropdown').style.display = 'none';
+      notifDropOpen = false;
     }
+  });
 
-    renderList('listaAtrasadas', atrasadas, '#e53935', 'linear-gradient(135deg,#e53935,#ff5252)');
-    renderList('listaHoje', hoje, '#ff8f00', 'linear-gradient(135deg,#ff8f00,#ffab00)');
-    renderList('listaAmanha', amanha, '#1565c0', 'linear-gradient(135deg,#1565c0,#2979ff)');
-    renderList('lista7dias', prox7, '#00b248', 'linear-gradient(135deg,#00b248,#00c853)');
+  async function loadNotifDropdown() {
+    const { data } = await sb.from('notificacoes')
+      .select('*')
+      .eq('empresa_id', EMPRESA_ID)
+      .order('created_at', { ascending: false })
+      .limit(8);
+    const list = document.getElementById('notifDropList');
+    const naoLidas = (data||[]).filter(n => !n.lida).length;
+    // Badge sino
+    const badge = document.getElementById('sinoBadge');
+    if (badge) { badge.textContent = naoLidas; badge.style.display = naoLidas > 0 ? 'flex' : 'none'; }
+    const notifBadge = document.getElementById('notifBadge');
+    if (notifBadge) { notifBadge.textContent = naoLidas; notifBadge.style.display = naoLidas > 0 ? 'inline' : 'none'; }
+    if (!data || data.length === 0) {
+      list.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-light);font-size:13px;">✅ Nenhuma notificação</div>';
+      return;
+    }
+    const icons = { atraso:'🔴', vencimento:'📅', cobranca:'💰', sistema:'⚙️', manual:'📝' };
+    list.innerHTML = data.map(n => `
+      <div class="notif-drop-item ${n.lida ? '' : 'nao-lida'}" onclick="marcarLida('${n.id}');toggleNotifDropdown();">
+        <div style="font-size:20px;flex-shrink:0;margin-top:1px;">${icons[n.tipo]||'🔔'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:13px;font-weight:${n.lida?'500':'700'};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.titulo}</div>
+          <div style="font-size:11.5px;color:var(--text-secondary);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${n.mensagem||''}</div>
+          <div style="font-size:10.5px;color:var(--text-light);margin-top:3px;">${timeAgo(n.created_at)}</div>
+        </div>
+        ${!n.lida ? '<div style="width:8px;height:8px;background:var(--primary);border-radius:50%;flex-shrink:0;margin-top:6px;"></div>' : ''}
+      </div>`).join('');
   }
 
-  function whatsAppCobrancaRapida(tel, nome, valor, venc) {
-    let p = tel.replace(/\D/g,'');
-    if (p.length === 10 || p.length === 11) p = '55' + p;
-    const primeiroNome = nome.split(' ')[0];
-    const msg = `Olá ${primeiroNome}! 👋
-
-Passamos para informar que sua parcela no valor de *${fmt(valor)}* vence em *${fmtDate(venc)}*.
-
-Qualquer dúvida, estamos à disposição! 😊`;
-    window.open('https://api.whatsapp.com/send?phone=' + p + '&text=' + encodeURIComponent(msg), '_blank');
+  async function loadNotificacoes() {
+    const tipo  = document.getElementById('notifFiltroTipo')?.value || '';
+    const lida  = document.getElementById('notifFiltroLida')?.value || '';
+    let query = sb.from('notificacoes').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false });
+    if (tipo) query = query.eq('tipo', tipo);
+    if (lida !== '') query = query.eq('lida', lida === 'true');
+    const { data } = await query.limit(100);
+    const listEl = document.getElementById('notifList');
+    if (!listEl) return;
+    // Atualizar badge
+    await atualizarBadgeNotif();
+    if (!data || data.length === 0) {
+      listEl.innerHTML = '<div style="text-align:center;padding:50px;color:var(--text-light);font-size:14px;">Nenhuma notificação encontrada 🔔</div>';
+      return;
+    }
+    const icons   = { atraso:'🔴', vencimento:'📅', cobranca:'💰', sistema:'⚙️', manual:'📝' };
+    const iconBg  = { atraso:'linear-gradient(135deg,#e53935,#ff5252)', vencimento:'linear-gradient(135deg,#ff8f00,#ffab00)', cobranca:'linear-gradient(135deg,#1565c0,#2979ff)', sistema:'linear-gradient(135deg,#546e7a,#90a4ae)', manual:'linear-gradient(135deg,#6a1b9a,#ab47bc)' };
+    const priorBadge = { urgente:'<span class="badge badge-danger" style="font-size:9px;">URGENTE</span>', alta:'<span class="badge badge-warning" style="font-size:9px;">ALTA</span>', normal:'' };
+    listEl.innerHTML = data.map(n => `
+      <div class="notif-item ${n.lida ? '' : 'nao-lida'} ${n.prioridade === 'urgente' ? 'urgente' : n.prioridade === 'alta' ? 'alta' : ''}">
+        ${!n.lida ? '<div class="notif-unread-dot"></div>' : '<div style="width:8px;"></div>'}
+        <div class="notif-icon" style="background:${iconBg[n.tipo]||'linear-gradient(135deg,#546e7a,#90a4ae)'};">
+          <span style="font-size:18px;">${icons[n.tipo]||'🔔'}</span>
+        </div>
+        <div class="notif-body">
+          <div class="notif-title">${n.titulo} ${priorBadge[n.prioridade]||''}</div>
+          ${n.mensagem ? `<div class="notif-msg">${n.mensagem}</div>` : ''}
+          <div class="notif-meta">
+            <span>${timeAgo(n.created_at)}</span>
+            ${n.cliente?.nome ? `<span>·</span><span>👤 ${n.cliente.nome}</span>` : ''}
+            <span>·</span><span style="text-transform:capitalize;">${n.tipo}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;align-items:flex-end;flex-shrink:0;">
+          ${!n.lida ? `<button onclick="marcarLida('${n.id}')" class="btn btn-outline btn-sm" style="font-size:10px;padding:3px 8px;">✓ Lida</button>` : '<span style="font-size:11px;color:var(--text-light);">Lida</span>'}
+          <button onclick="deleteNotificacao('${n.id}')" style="background:none;border:none;cursor:pointer;color:var(--text-light);padding:2px 4px;border-radius:4px;font-size:11px;" onmouseover="this.style.color='var(--danger)'" onmouseout="this.style.color='var(--text-light)'">✕</button>
+        </div>
+      </div>`).join('');
   }
 
-  // Inicializa o Software
+  async function atualizarBadgeNotif() {
+    const { count } = await sb.from('notificacoes').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID).eq('lida', false);
+    const n = count || 0;
+    const badge = document.getElementById('sinoBadge');
+    if (badge) { badge.textContent = n; badge.style.display = n > 0 ? 'flex' : 'none'; }
+    const nb = document.getElementById('notifBadge');
+    if (nb) { nb.textContent = n; nb.style.display = n > 0 ? 'inline' : 'none'; }
+  }
+
+  async function marcarLida(id) {
+    await sb.from('notificacoes').update({ lida: true }).eq('id', id).eq('empresa_id', EMPRESA_ID);
+    loadNotificacoes();
+  }
+
+  async function marcarTodasLidas() {
+    await sb.from('notificacoes').update({ lida: true }).eq('empresa_id', EMPRESA_ID).eq('lida', false);
+    showToast('Todas notificações marcadas como lidas.', 'success');
+    loadNotificacoes();
+    atualizarBadgeNotif();
+  }
+
+  async function deleteNotificacao(id) {
+    await sb.from('notificacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID);
+    loadNotificacoes();
+  }
+
+  async function openNovaNotifModal() {
+    // Popular select de clientes
+    const { data } = await sb.from('clientes').select('id,nome').eq('empresa_id', EMPRESA_ID).eq('status', 'ativo').order('nome');
+    const sel = document.getElementById('notifClienteId');
+    sel.innerHTML = '<option value="">— Nenhum —</option>' + (data||[]).map(cl => `<option value="${cl.id}">${cl.nome}</option>`).join('');
+    document.getElementById('notifTitulo').value = '';
+    document.getElementById('notifMensagem').value = '';
+    document.getElementById('notifTipo').value = 'manual';
+    document.getElementById('notifPrioridade').value = 'normal';
+    openModal('modalNovaNotif');
+  }
+
+  async function saveNotificacao() {
+    const titulo   = document.getElementById('notifTitulo').value.trim();
+    const mensagem = document.getElementById('notifMensagem').value.trim();
+    if (!titulo) return showToast('Informe o título da notificação.', 'warning');
+    const btn = document.getElementById('btnSaveNotif');
+    btn.textContent = 'Salvando...'; btn.disabled = true;
+    try {
+      await sb.from('notificacoes').insert({
+        empresa_id:  EMPRESA_ID,
+        titulo,
+        mensagem,
+        tipo:        document.getElementById('notifTipo').value,
+        prioridade:  document.getElementById('notifPrioridade').value,
+        cliente_id:  document.getElementById('notifClienteId').value || null,
+        lida:        false,
+      });
+      showToast('Notificação criada!', 'success');
+      closeModal('modalNovaNotif');
+      loadNotificacoes();
+      atualizarBadgeNotif();
+    } catch(e) { showToast('Erro: ' + e.message, 'error'); }
+    finally { btn.textContent = 'Salvar'; btn.disabled = false; }
+  }
+
+  function timeAgo(dateStr) {
+    if (!dateStr) return '';
+    const diff = Date.now() - new Date(dateStr).getTime();
+    const m = Math.floor(diff / 60000);
+    if (m < 1)  return 'agora mesmo';
+    if (m < 60) return m + ' min atrás';
+    const h = Math.floor(m / 60);
+    if (h < 24) return h + 'h atrás';
+    const d = Math.floor(h / 24);
+    if (d < 7)  return d + 'd atrás';
+    return new Date(dateStr).toLocaleDateString('pt-BR');
+  }
+
+  // =============================================
+  // WHATSAPP — MODAL FORMATADO
+  // =============================================
+
+  let _waClienteAtual = { nome: '', telefone: '' };
+
+  function openWhatsApp(telefone, nome) {
+    _waClienteAtual = { nome, telefone };
+    document.getElementById('waClienteNome').textContent = nome;
+    document.getElementById('waTelefone').value = telefone;
+    document.getElementById('waMensagem').value = '';
+    document.getElementById('waPreview').textContent = '';
+    document.getElementById('waCharCount').textContent = '0 caracteres';
+    openModal('modalWhatsApp');
+  }
+
+  function aplicarModelo(tipo) {
+    const nome = _waClienteAtual.nome.split(' ')[0];
+    const modelos = {
+      saudacao:    `Olá ${nome}! 😊
+
+Tudo bem? Sou da equipe MicroCred e estou entrando em contato para verificar se há algo em que possamos te ajudar.
+
+Fique à vontade para nos chamar quando precisar! 🙏`,
+      cobranca:    `Olá ${nome}! 👋
+
+Identificamos uma pendência no seu contrato conosco. Gostaríamos de conversar para encontrar a melhor solução.
+
+Podemos falar agora? ⏰`,
+      vencimento:  `Olá ${nome}! 📅
+
+Passamos para lembrá-lo(a) que sua parcela está se aproximando do vencimento.
+
+Qualquer dúvida sobre formas de pagamento, pode nos chamar aqui. 😊`,
+      confirmacao: `Olá ${nome}! ✅
+
+Confirmamos o recebimento do seu pagamento. Obrigado pela pontualidade! 🙏
+
+Estamos sempre à disposição.`,
+      acordo:      `Olá ${nome}! 🤝
+
+Gostaríamos de conversar sobre a possibilidade de um acordo para regularizar sua situação.
+
+Estamos abertos para encontrar a melhor opção para você. Pode nos chamar!`,
+    };
+    document.getElementById('waMensagem').value = modelos[tipo] || '';
+    atualizarPreviewWA();
+  }
+
+  function atualizarPreviewWA() {
+    const msg = document.getElementById('waMensagem').value;
+    document.getElementById('waPreview').textContent = msg;
+    document.getElementById('waCharCount').textContent = msg.length + ' caracteres';
+  }
+
+  function enviarWhatsAppCliente() {
+    const msg = document.getElementById('waMensagem').value.trim();
+    let tel = document.getElementById('waTelefone').value.replace(/\D/g, '');
+    if (!msg) return showToast('Digite uma mensagem antes de enviar.', 'warning');
+    if (!tel) return showToast('Número de telefone inválido.', 'error');
+    if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
+    window.open('https://api.whatsapp.com/send?phone=' + tel + '&text=' + encodeURIComponent(msg), '_blank');
+    closeModal('modalWhatsApp');
+  }
+
+  // Atualizar preview em tempo real
+  document.addEventListener('DOMContentLoaded', () => {
+    const waMsg = document.getElementById('waMensagem');
+    if (waMsg) waMsg.addEventListener('input', atualizarPreviewWA);
+  });
+
+  // Ao iniciar o app, carregar badge de notificações
+  const _origInitApp = typeof initApp !== 'undefined' ? null : null;
+
+  // =============================================
+  // Inicializa o Software  // Inicializa o Software
   initApp();
 </script>
 </body>
