@@ -619,7 +619,6 @@
         <h4 class="form-section-title">Dados Pessoais</h4>
         <div class="form-group"><label>Nome Completo</label><input type="text" id="cNome" placeholder="Nome do cliente" /></div>
         <div class="form-group"><label>CPF</label><input type="text" id="cCpf" maxlength="14" oninput="maskCPF(this)" placeholder="000.000.000-00" /></div>
-        <div class="form-group"><label>RG</label><input type="text" id="cRg" placeholder="Número do RG" /></div>
         <div class="form-group"><label>Data Nascimento</label><input type="date" id="cNasc" /></div>
         <div class="form-group">
           <label>Sexo</label>
@@ -646,6 +645,24 @@
         <div class="form-group"><label>Complemento</label><input type="text" id="cComp" placeholder="Apto, Sala, Casa 2" /></div>
         <div class="form-group"><label>Cidade</label><input type="text" id="cCidade" placeholder="Cidade" /></div>
         <div class="form-group"><label>UF</label><input type="text" id="cUf" maxlength="2" placeholder="Sigla do Estado" /></div>
+
+        <div class="form-group full">
+          <label>Localização GPS</label>
+          <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+            <input type="text" id="cLatLng" placeholder="Latitude, Longitude (Ex: -9.3975, -38.9089)" readonly style="flex:1; background:var(--bg); cursor:default;" />
+            <button type="button" class="btn btn-info" onclick="capturarLocalizacao()" id="btnGps" style="white-space:nowrap;">
+              <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Obter Localização
+            </button>
+            <a id="btnAbrirMapa" href="#" target="_blank" class="btn btn-outline" style="display:none; white-space:nowrap;">
+              <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+              Abrir no GPS
+            </a>
+          </div>
+          <input type="hidden" id="cLatitude" />
+          <input type="hidden" id="cLongitude" />
+          <span id="gpsStatus" style="font-size:12px; color:var(--text-light); margin-top:4px;"></span>
+        </div>
 
         <h4 class="form-section-title">Financeiro & Status</h4>
         <div class="form-group"><label>Renda Mensal (R$)</label><input type="text" id="cRenda" oninput="maskMoney(this)" placeholder="0,00" /></div>
@@ -1175,6 +1192,48 @@
     return sb.storage.from('imagens').getPublicUrl(fileName).data.publicUrl;
   }
 
+  function capturarLocalizacao() {
+    const btn = document.getElementById('btnGps');
+    const status = document.getElementById('gpsStatus');
+    if (!navigator.geolocation) {
+      status.textContent = 'GPS não suportado neste dispositivo.';
+      status.style.color = 'var(--danger)';
+      return;
+    }
+    btn.textContent = 'Obtendo...';
+    btn.disabled = true;
+    status.textContent = 'Aguardando permissão de localização...';
+    status.style.color = 'var(--text-light)';
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const lat = pos.coords.latitude.toFixed(6);
+        const lng = pos.coords.longitude.toFixed(6);
+        document.getElementById('cLatitude').value = lat;
+        document.getElementById('cLongitude').value = lng;
+        document.getElementById('cLatLng').value = `${lat}, ${lng}`;
+        
+        const mapUrl = `https://www.google.com/maps?q=${lat},${lng}`;
+        const btnMapa = document.getElementById('btnAbrirMapa');
+        btnMapa.href = mapUrl;
+        btnMapa.style.display = 'inline-flex';
+        
+        status.textContent = `✓ Localização capturada com precisão de ~${Math.round(pos.coords.accuracy)}m`;
+        status.style.color = 'var(--success-text)';
+        btn.innerHTML = '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Atualizar';
+        btn.disabled = false;
+      },
+      (err) => {
+        const msgs = { 1: 'Permissão negada pelo usuário.', 2: 'Posição indisponível.', 3: 'Tempo esgotado.' };
+        status.textContent = '✗ ' + (msgs[err.code] || 'Erro ao obter localização.');
+        status.style.color = 'var(--danger)';
+        btn.innerHTML = '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Tentar Novamente';
+        btn.disabled = false;
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+    );
+  }
+
   async function loadClienteOptions(selectId, selectedId) {
     const { data } = await sb.from('clientes').select('id,nome').eq('empresa_id', EMPRESA_ID).order('nome');
     document.getElementById(selectId).innerHTML = '<option value="">Selecione um cliente</option>' + (data || []).map(c =>
@@ -1427,6 +1486,21 @@
     document.getElementById('cEmail').value = c?.email || ''; document.getElementById('cCep').value = c?.cep || ''; document.getElementById('cEnd').value = c?.endereco || '';
     document.getElementById('cNum').value = c?.numero || ''; document.getElementById('cComp').value = c?.complemento || ''; document.getElementById('cBairro').value = c?.bairro || '';
     document.getElementById('cCidade').value = c?.cidade || ''; document.getElementById('cUf').value = c?.uf || ''; 
+    // Campos GPS
+    document.getElementById('cLatitude').value = c?.latitude || '';
+    document.getElementById('cLongitude').value = c?.longitude || '';
+    document.getElementById('cLatLng').value = (c?.latitude && c?.longitude) ? `${c.latitude}, ${c.longitude}` : '';
+    document.getElementById('gpsStatus').textContent = '';
+    const btnMapa = document.getElementById('btnAbrirMapa');
+    if (c?.latitude && c?.longitude) {
+      btnMapa.href = `https://www.google.com/maps?q=${c.latitude},${c.longitude}`;
+      btnMapa.style.display = 'inline-flex';
+    } else {
+      btnMapa.style.display = 'none';
+    }
+    const btnGps = document.getElementById('btnGps');
+    btnGps.innerHTML = '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg> Obter Localização';
+    btnGps.disabled = false;
     document.getElementById('cRenda').value = toMoneyInput(c?.renda_mensal); document.getElementById('cDespesa').value = toMoneyInput(c?.despesa_mensal);
     document.getElementById('cStatus').value = c?.status || 'ativo'; document.getElementById('cObs').value = c?.observacoes || '';
     openModal('modalCliente');
@@ -1451,6 +1525,8 @@
         escolaridade: document.getElementById('cEscol').value, telefone: document.getElementById('cTel').value, celular: document.getElementById('cCel').value,
         email: document.getElementById('cEmail').value, cep: document.getElementById('cCep').value, endereco: document.getElementById('cEnd').value, numero: document.getElementById('cNum').value,
         complemento: document.getElementById('cComp').value, bairro: document.getElementById('cBairro').value, cidade: document.getElementById('cCidade').value, uf: document.getElementById('cUf').value,
+        latitude: document.getElementById('cLatitude').value ? parseFloat(document.getElementById('cLatitude').value) : null,
+        longitude: document.getElementById('cLongitude').value ? parseFloat(document.getElementById('cLongitude').value) : null,
         renda_mensal: unmaskMoney(document.getElementById('cRenda').value), despesa_mensal: unmaskMoney(document.getElementById('cDespesa').value),
         status: document.getElementById('cStatus').value, observacoes: document.getElementById('cObs').value, doc_frente: urlFrente, doc_verso: urlVerso,
       };
