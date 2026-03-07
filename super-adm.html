@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500;9..40,600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
 
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -646,8 +647,90 @@
     .b-gray  { background: rgba(100,130,160,0.08); color: var(--text-2); border: 1px solid rgba(100,130,160,0.18); }
     .b-gray .badge-dot  { background: var(--text-2); }
 
+    .ibtn.i-import:hover { color: var(--purple); border-color: var(--purple-border); background: var(--purple-dim); }
+    .ibtn.i-import       { color: var(--text-3); }
+
+    .btn-backup-all {
+      background: linear-gradient(135deg, #1a2a3e, #1e3350);
+      color: var(--teal);
+      border: 1px solid var(--teal-border);
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-backup-all:hover {
+      background: var(--teal);
+      color: #051a18;
+      border-color: var(--teal);
+      box-shadow: 0 4px 20px rgba(0,191,165,0.38);
+      transform: translateY(-1px);
+    }
+    .btn-backup-all:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+    /* Progress bar backup all */
+    #backupProgressWrap {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-xs);
+      padding: 10px 14px;
+      margin-top: 10px;
+    }
+    #backupProgressWrap.show { display: block; }
+    .bk-bar-track {
+      height: 5px; border-radius: 100px;
+      background: rgba(255,255,255,0.06);
+      overflow: hidden; margin-top: 6px;
+    }
+    .bk-bar-fill {
+      height: 100%; border-radius: 100px;
+      background: linear-gradient(90deg, var(--teal), #00e5d0);
+      width: 0%; transition: width 0.3s ease;
+      box-shadow: 0 0 10px rgba(0,191,165,0.4);
+    }
+    .bk-bar-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 10px; color: var(--text-2);
+      letter-spacing: 0.5px;
+    }
+
     /* Ações */
     .actions { display: flex; gap: 5px; justify-content: center; flex-wrap: wrap; }
+    .import-drop-zone {
+      border: 2px dashed var(--border-md);
+      border-radius: 12px;
+      padding: 28px 20px;
+      text-align: center;
+      background: rgba(255,255,255,0.018);
+      cursor: pointer;
+      transition: var(--t);
+      margin-bottom: 14px;
+    }
+    .import-drop-zone.drag-over {
+      border-color: var(--purple-border);
+      background: var(--purple-dim);
+    }
+    .import-drop-zone:hover { border-color: var(--purple-border); background: var(--purple-dim); }
+    .import-drop-zone svg { margin-bottom: 8px; color: var(--text-3); }
+    .import-drop-zone .idz-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 13px; font-weight: 700;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .import-drop-zone .idz-sub {
+      font-size: 11.5px; color: var(--text-2);
+    }
+    .import-preview {
+      display: none;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .import-preview.show { display: block; }
+    .ip-row { display: flex; justify-content: space-between; margin-bottom: 5px; }
+    .ip-lbl { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; }
+    .ip-val { font-family: 'DM Mono', monospace; font-size: 11px; color: var(--text); font-weight: 500; }
 
     /* ══════════════════════════════════════════
        MODAIS
@@ -1005,6 +1088,16 @@
           </svg>
           Atualizar
         </button>
+        <button class="btn btn-backup-all" id="btnBackupTodos" style="font-size:11.5px;padding:7px 13px;" onclick="backupTodosClientes()">
+          <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+          </svg>
+          Backup de Todos (.zip)
+        </button>
+      </div>
+      <div id="backupProgressWrap" style="padding:12px 22px 0;">
+        <div class="bk-bar-label" id="bkBarLabel">Processando backups… 0 / 0</div>
+        <div class="bk-bar-track"><div class="bk-bar-fill" id="bkBarFill"></div></div>
       </div>
       <div class="panel-body flush">
         <div class="tbl-wrap">
@@ -1128,9 +1221,61 @@
 </div>
 
 
-<script>
-  // ──────────────────────────────────────────
-  // SUPABASE
+<!-- ══ MODAL: IMPORTAR BACKUP ══ -->
+<div class="modal-overlay" id="modalImportar">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <h3>Importar Backup</h3>
+      <p>Restaurar dados de <strong id="impNomeEmpresa" style="color:var(--purple);"></strong></p>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="impClienteId">
+
+      <div class="import-drop-zone" id="importDropZone" onclick="document.getElementById('importFileInput').click()">
+        <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;">
+          <path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4 4m0 0l-4 4m0-4V4"/>
+        </svg>
+        <div class="idz-title">Solte o arquivo JSON aqui</div>
+        <div class="idz-sub">ou clique para selecionar · apenas .json</div>
+        <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="handleImportFile(event)">
+      </div>
+
+      <div class="import-preview" id="importPreview">
+        <div class="ip-row">
+          <span class="ip-lbl">Arquivo</span>
+          <span class="ip-val" id="impFileName">—</span>
+        </div>
+        <div class="ip-row">
+          <span class="ip-lbl">Cliente no backup</span>
+          <span class="ip-val" id="impClienteNome">—</span>
+        </div>
+        <div class="ip-row">
+          <span class="ip-lbl">Data de extração</span>
+          <span class="ip-val" id="impDataExtracao">—</span>
+        </div>
+        <div class="ip-row" style="margin-bottom:0;">
+          <span class="ip-lbl">Tabelas encontradas</span>
+          <span class="ip-val" id="impTabelas">—</span>
+        </div>
+      </div>
+
+      <div id="importWarning" style="display:none;background:var(--amber-dim);border:1px solid var(--amber-border);border-radius:9px;padding:11px 14px;font-size:12px;color:var(--amber);line-height:1.6;">
+        ⚠️ Esta operação irá <strong>substituir</strong> os dados existentes das tabelas encontradas no backup. Dados não incluídos no arquivo não serão alterados.
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1;padding:11px;" onclick="closeModal('modalImportar');resetImportModal()">Cancelar</button>
+      <button class="btn" id="btnConfirmarImport" style="flex:2;padding:11px;background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple-border);" disabled onclick="executarImportacao()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4 4m0 0l-4 4m0-4V4"/>
+        </svg>
+        Importar Dados
+      </button>
+    </div>
+  </div>
+</div>
+
+
   // ──────────────────────────────────────────
   const SUPABASE_URL      = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
@@ -1208,6 +1353,7 @@
     let stats   = { total: data.length, ativos: 0, vencidos: 0 };
 
     const ic = (d) => `<svg style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">${d}</svg>`;
+    const iImport   = ic(`<path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4 4m0 0l-4 4m0-4V4"/>`);
     const iPhoto    = ic(`<path stroke-linecap="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>`);
     const iCal      = ic(`<rect x="3" y="4" width="18" height="18" rx="2"/><path stroke-linecap="round" d="M16 2v4M8 2v4M3 10h18"/>`);
     const iLock     = ic(`<path stroke-linecap="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>`);
@@ -1246,7 +1392,8 @@
             <button class="ibtn i-pic"  title="Alterar Logo"       onclick="openModalLogo('${c.id}','${logoSafe}')">${iPhoto}</button>
             <button class="ibtn i-cal"  title="Renovar Assinatura" onclick="openModalRenovar('${c.id}','${c.nome_empresa}','${c.vencimento}')">${iCal}</button>
             ${btnLock}
-            <button class="ibtn i-dl"   title="Backup JSON"        onclick="gerarBackup('${c.id}','${c.nome_empresa}')">${iDl}</button>
+            <button class="ibtn i-import" title="Importar Backup"   onclick="openModalImportar('${c.id}','${c.nome_empresa}')">${iImport}</button>
+            <button class="ibtn i-dl"   title="Exportar Backup JSON" onclick="gerarBackup('${c.id}','${c.nome_empresa}')">${iDl}</button>
             <button class="ibtn i-del"  title="Excluir"            onclick="openModalExcluir('${c.id}','${c.nome_empresa}')">${iTrash}</button>
           </div>
         </td>
@@ -1396,6 +1543,176 @@
       carregarClientes();
     } catch (e) { showToast('Erro: ' + e.message, 'error'); }
     finally { btn.textContent = 'Salvar Logo'; btn.disabled = false; }
+  }
+
+  // ── Backup de Todos (ZIP) ──
+  async function backupTodosClientes() {
+    const btn = document.getElementById('btnBackupTodos');
+    const wrap = document.getElementById('backupProgressWrap');
+    const fill = document.getElementById('bkBarFill');
+    const label = document.getElementById('bkBarLabel');
+
+    const { data, error } = await sb.from('usuarios_clientes').select('*').order('created_at', { ascending: false });
+    if (error || !data || data.length === 0) {
+      showToast('Nenhum cliente encontrado.', 'warning'); return;
+    }
+
+    btn.disabled = true;
+    btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Gerando…`;
+    wrap.classList.add('show');
+
+    const tabelas = ['clientes','avalistas','micro_negocios','operacoes','parcelas','avaliacao_financeira','fluxo_caixa','renovacoes','historico_cobrancas','inadimplencia'];
+    const zip = new JSZip();
+    const folder = zip.folder(`backup_todos_${new Date().toISOString().slice(0,10)}`);
+    const total = data.length;
+
+    for (let i = 0; i < total; i++) {
+      const c = data[i];
+      label.textContent = `Processando ${i + 1} de ${total}: ${c.nome_empresa}`;
+      fill.style.width = `${Math.round(((i + 1) / total) * 100)}%`;
+
+      try {
+        let bk = { cliente: c.nome_empresa, id_tenant: c.id, data_extracao: new Date().toISOString(), dados: {} };
+        bk.dados['conta_acesso'] = c;
+        const res = await Promise.all(tabelas.map(t => sb.from(t).select('*').eq('empresa_id', c.id)));
+        tabelas.forEach((t, ti) => { bk.dados[t] = res[ti].data || []; });
+        const nomeArquivo = `backup_${c.nome_empresa.replace(/[^a-zA-Z0-9]/g,'_').toLowerCase()}.json`;
+        folder.file(nomeArquivo, JSON.stringify(bk, null, 2));
+      } catch (e) {
+        console.warn(`Erro no backup de ${c.nome_empresa}:`, e.message);
+      }
+    }
+
+    label.textContent = 'Compactando arquivos…';
+    fill.style.width = '100%';
+
+    const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE', compressionOptions: { level: 6 } });
+    const url = URL.createObjectURL(blob);
+    const a = Object.assign(document.createElement('a'), {
+      href: url,
+      download: `backup_todos_microcred_${new Date().toISOString().slice(0,10)}.zip`
+    });
+    document.body.appendChild(a); a.click();
+    document.body.removeChild(a); URL.revokeObjectURL(url);
+
+    showToast(`Backup de ${total} clientes baixado com sucesso!`, 'success');
+
+    setTimeout(() => {
+      wrap.classList.remove('show');
+      fill.style.width = '0%';
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Backup de Todos (.zip)`;
+    }, 1500);
+  }
+
+  // ── Importar Backup ──
+  let _importData = null;
+
+  function openModalImportar(id, nome) {
+    document.getElementById('impClienteId').value = id;
+    document.getElementById('impNomeEmpresa').textContent = nome;
+    resetImportModal();
+    openModal('modalImportar');
+  }
+
+  function resetImportModal() {
+    _importData = null;
+    document.getElementById('importFileInput').value = '';
+    document.getElementById('importPreview').classList.remove('show');
+    document.getElementById('importWarning').style.display = 'none';
+    document.getElementById('btnConfirmarImport').disabled = true;
+    const dz = document.getElementById('importDropZone');
+    dz.style.borderColor = '';
+    dz.innerHTML = `
+      <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="display:block;margin:0 auto 10px;">
+        <path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4 4m0 0l-4 4m0-4V4"/>
+      </svg>
+      <div class="idz-title">Solte o arquivo JSON aqui</div>
+      <div class="idz-sub">ou clique para selecionar · apenas .json</div>
+      <input type="file" id="importFileInput" accept=".json" style="display:none;" onchange="handleImportFile(event)">
+    `;
+  }
+
+  function handleImportFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    processImportFile(file, file.name);
+  }
+
+  function processImportFile(file, fileName) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        if (!data.dados || !data.id_tenant) {
+          showToast('Arquivo JSON inválido ou formato não reconhecido.', 'error'); return;
+        }
+        _importData = data;
+        const tabelasEncontradas = Object.keys(data.dados).filter(k => k !== 'conta_acesso');
+        document.getElementById('impFileName').textContent = fileName;
+        document.getElementById('impClienteNome').textContent = data.cliente || '—';
+        document.getElementById('impDataExtracao').textContent = data.data_extracao ? new Date(data.data_extracao).toLocaleString('pt-BR') : '—';
+        document.getElementById('impTabelas').textContent = tabelasEncontradas.length + ' tabela(s)';
+        document.getElementById('importPreview').classList.add('show');
+        document.getElementById('importWarning').style.display = 'block';
+        document.getElementById('btnConfirmarImport').disabled = false;
+      } catch (err) {
+        showToast('Erro ao ler o arquivo: ' + err.message, 'error');
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  // Drag and drop
+  document.addEventListener('DOMContentLoaded', () => {
+    const dz = document.getElementById('importDropZone');
+    if (!dz) return;
+    dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+    dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+    dz.addEventListener('drop', (e) => {
+      e.preventDefault(); dz.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (file && file.name.endsWith('.json')) processImportFile(file, file.name);
+      else showToast('Apenas arquivos .json são aceitos.', 'warning');
+    });
+  });
+
+  async function executarImportacao() {
+    if (!_importData) return;
+    const tenantId = document.getElementById('impClienteId').value;
+    const btn = document.getElementById('btnConfirmarImport');
+    btn.textContent = 'Importando…'; btn.disabled = true;
+
+    const tabelas = ['clientes','avalistas','micro_negocios','operacoes','parcelas','avaliacao_financeira','fluxo_caixa','renovacoes','historico_cobrancas','inadimplencia'];
+    let erros = 0;
+
+    try {
+      for (const tabela of tabelas) {
+        const registros = _importData.dados[tabela];
+        if (!registros || registros.length === 0) continue;
+        // Remove registros existentes e reinsere
+        await sb.from(tabela).delete().eq('empresa_id', tenantId);
+        const chunks = [];
+        for (let i = 0; i < registros.length; i += 100) chunks.push(registros.slice(i, i + 100));
+        for (const chunk of chunks) {
+          const { error } = await sb.from(tabela).insert(chunk);
+          if (error) { erros++; console.warn(`Erro em ${tabela}:`, error.message); }
+        }
+      }
+
+      if (erros === 0) {
+        showToast('Backup importado com sucesso!', 'success');
+      } else {
+        showToast(`Importação concluída com ${erros} erro(s). Verifique o console.`, 'warning');
+      }
+      closeModal('modalImportar');
+      resetImportModal();
+      carregarClientes();
+    } catch (e) {
+      showToast('Erro na importação: ' + e.message, 'error');
+    } finally {
+      btn.textContent = 'Importar Dados'; btn.disabled = false;
+    }
   }
 </script>
 </body>
