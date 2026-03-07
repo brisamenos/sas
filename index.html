@@ -1480,7 +1480,7 @@
     document.getElementById('cDocFrente').value = ''; document.getElementById('cDocVerso').value = '';
     document.getElementById('cDocFrenteUrl').value = c?.doc_frente || ''; document.getElementById('cDocVersoUrl').value = c?.doc_verso || '';
 
-    document.getElementById('cNome').value = c?.nome || ''; document.getElementById('cCpf').value = c?.cpf || ''; document.getElementById('cRg').value = c?.rg || '';
+    document.getElementById('cNome').value = c?.nome || ''; document.getElementById('cCpf').value = c?.cpf || '';
     document.getElementById('cNasc').value = c?.data_nascimento || ''; document.getElementById('cSexo').value = c?.sexo || ''; document.getElementById('cEstCivil').value = c?.estado_civil || '';
     document.getElementById('cEscol').value = c?.escolaridade || ''; document.getElementById('cTel').value = c?.telefone || ''; document.getElementById('cCel').value = c?.celular || '';
     document.getElementById('cEmail').value = c?.email || ''; document.getElementById('cCep').value = c?.cep || ''; document.getElementById('cEnd').value = c?.endereco || '';
@@ -1520,7 +1520,7 @@
       const fileVerso = document.getElementById('cDocVerso').files[0]; if (fileVerso) urlVerso = await uploadFileToSupabase(fileVerso, 'clientes');
 
       const obj = {
-        empresa_id: EMPRESA_ID, nome: document.getElementById('cNome').value, cpf: document.getElementById('cCpf').value, rg: document.getElementById('cRg').value,
+        empresa_id: EMPRESA_ID, nome: document.getElementById('cNome').value, cpf: document.getElementById('cCpf').value,
         data_nascimento: document.getElementById('cNasc').value || null, sexo: document.getElementById('cSexo').value, estado_civil: document.getElementById('cEstCivil').value,
         escolaridade: document.getElementById('cEscol').value, telefone: document.getElementById('cTel').value, celular: document.getElementById('cCel').value,
         email: document.getElementById('cEmail').value, cep: document.getElementById('cCep').value, endereco: document.getElementById('cEnd').value, numero: document.getElementById('cNum').value,
