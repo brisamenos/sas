@@ -908,6 +908,10 @@
         Tarefas
         <span id="tarefaBadge" style="margin-left:auto;background:#ff3d57;color:#fff;font-size:9px;font-weight:800;padding:2px 7px;border-radius:100px;display:none;font-family:'Outfit',sans-serif;line-height:1.4;"></span>
       </div>
+      <div class="nav-item" data-page="avaliacao" onclick="navigate('avaliacao')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Leads
+      </div>
 
       <div class="nav-section">Cadastros</div>
       <div class="nav-item" data-page="clientes" onclick="navigate('clientes')">
@@ -921,16 +925,6 @@
       <div class="nav-item" data-page="negocios" onclick="navigate('negocios')">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
         Micro Negócios
-      </div>
-
-      <div class="nav-section">Financeiro</div>
-      <div class="nav-item" data-page="avaliacao" onclick="navigate('avaliacao')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Leads
-      </div>
-      <div class="nav-item" data-page="fluxo" onclick="navigate('fluxo')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline stroke-linecap="round" stroke-linejoin="round" points="17 6 23 6 23 12"/></svg>
-        Fluxo de Caixa
       </div>
 
       <div class="nav-section">Operações</div>
@@ -949,6 +943,10 @@
       <div class="nav-item" data-page="renovacoes" onclick="navigate('renovacoes')">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
         Renovações
+      </div>
+      <div class="nav-item" data-page="fluxo" onclick="navigate('fluxo')">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline stroke-linecap="round" stroke-linejoin="round" points="17 6 23 6 23 12"/></svg>
+        Fluxo de Caixa
       </div>
 
       <div class="nav-section">Relatórios</div>
@@ -1220,7 +1218,7 @@
           <div class="card-body no-padding">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>Cidade</th><th>Status</th><th>Ações</th></tr></thead>
+                <thead><tr><th>Nome / Ações</th><th>CPF</th><th>Telefone</th><th>Cidade</th><th>Status</th></tr></thead>
                 <tbody id="tblClientes"></tbody>
               </table>
             </div>
@@ -1572,6 +1570,16 @@
 
         <h4 class="form-section-title">Avalista do Cliente</h4>
         <input type="hidden" id="cAvId" />
+        <!-- Buscar avalista existente -->
+        <div class="form-group full" style="margin-bottom:10px;">
+          <label>Selecionar Avalista Já Cadastrado</label>
+          <div style="display:flex;gap:8px;">
+            <select id="cAvSelect" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);" onchange="preencherAvalistaSelecionado()">
+              <option value="">— Criar novo ou digitar manualmente —</option>
+            </select>
+          </div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:4px;">Ao selecionar, os campos abaixo serão preenchidos automaticamente.</div>
+        </div>
         <div class="form-group"><label>Nome do Avalista</label><input type="text" id="cAvNome" placeholder="Nome completo" /></div>
         <div class="form-group"><label>CPF do Avalista</label><input type="text" id="cAvCpf" maxlength="14" oninput="maskCPF(this)" placeholder="000.000.000-00" /></div>
         <div class="form-group"><label>Celular / WhatsApp</label><input type="text" id="cAvCel" placeholder="(00) 00000-0000" /></div>
@@ -1585,25 +1593,35 @@
         
         <div class="form-group">
           <label>Doc Frente (Opcional)</label>
-          <div class="file-upload-box">
-            <span>
-              <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-              Escolher Imagem (Frente)
-            </span>
-            <input type="file" id="cDocFrente" accept="image/*" />
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <div class="file-upload-box" style="flex:1;min-width:140px;position:relative;">
+              <span><svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Arquivo</span>
+              <input type="file" id="cDocFrente" accept="image/*" onchange="previewDoc('cDocFrente','prevDocFrente')" />
+            </div>
+            <button type="button" class="btn btn-info btn-sm" onclick="document.getElementById('cDocFrenteCamera').click()" style="white-space:nowrap;gap:6px;">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+              Câmera
+            </button>
+            <input type="file" id="cDocFrenteCamera" accept="image/*" capture="environment" style="display:none;" onchange="previewDoc('cDocFrenteCamera','prevDocFrente')" />
           </div>
+          <div id="prevDocFrente" style="display:none;"><img style="max-width:100%;max-height:150px;border-radius:8px;border:1.5px solid var(--border);object-fit:cover;" /></div>
           <input type="hidden" id="cDocFrenteUrl" />
         </div>
         
         <div class="form-group">
           <label>Doc Verso (Opcional)</label>
-          <div class="file-upload-box">
-            <span>
-              <svg style="width:24px;height:24px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
-              Escolher Imagem (Verso)
-            </span>
-            <input type="file" id="cDocVerso" accept="image/*" />
+          <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:6px;">
+            <div class="file-upload-box" style="flex:1;min-width:140px;position:relative;">
+              <span><svg style="width:20px;height:20px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg> Arquivo</span>
+              <input type="file" id="cDocVerso" accept="image/*" onchange="previewDoc('cDocVerso','prevDocVerso')" />
+            </div>
+            <button type="button" class="btn btn-info btn-sm" onclick="document.getElementById('cDocVersoCamera').click()" style="white-space:nowrap;gap:6px;">
+              <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+              Câmera
+            </button>
+            <input type="file" id="cDocVersoCamera" accept="image/*" capture="environment" style="display:none;" onchange="previewDoc('cDocVersoCamera','prevDocVerso')" />
           </div>
+          <div id="prevDocVerso" style="display:none;"><img style="max-width:100%;max-height:150px;border-radius:8px;border:1.5px solid var(--border);object-fit:cover;" /></div>
           <input type="hidden" id="cDocVersoUrl" />
         </div>
         
@@ -2548,32 +2566,46 @@
       const ini = (c.nome||'?').charAt(0).toUpperCase();
       const colors = ['#ff5722','#2979ff','#00b248','#ff8f00','#9c27b0','#00bcd4'];
       const cor = colors[(c.nome||'').charCodeAt(0) % colors.length];
+      const tel = c.celular || c.telefone || '';
+      const nomeEsc = (c.nome||'').replace(/'/g,"\\'");
       return `<tr>
-        <td>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:34px;height:34px;border-radius:10px;background:${cor};display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;flex-shrink:0;">${ini}</div>
+        <td style="min-width:220px;">
+          <div style="display:flex;align-items:flex-start;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:10px;background:${cor};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;flex-shrink:0;margin-top:2px;">${ini}</div>
             <div>
-              <div style="font-weight:700;font-size:13.5px;">${c.nome}</div>
-              <div style="font-size:11px;color:var(--text-light);">${c.email||''}</div>
+              <div style="font-weight:700;font-size:13.5px;margin-bottom:2px;">${c.nome}</div>
+              <div style="font-size:11px;color:var(--text-light);margin-bottom:6px;">${c.email||''}</div>
+              <div style="display:flex;flex-wrap:wrap;gap:5px;">
+                <button class="btn btn-info btn-sm" style="font-size:11px;padding:3px 9px;" onclick="viewCliente('${c.id}')">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Ver
+                </button>
+                ${tel ? `<button class="btn btn-sm" style="font-size:11px;padding:3px 9px;background:linear-gradient(135deg,#1a7a4a,#25d366);color:#fff;border:none;gap:4px;" onclick="openWhatsApp('${tel}','${nomeEsc}')">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+                  WA
+                </button>` : ''}
+                <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 9px;" onclick="printCliente('${c.id}')">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                  PDF
+                </button>
+                <button class="btn btn-outline btn-sm" style="font-size:11px;padding:3px 9px;" onclick="editCliente('${c.id}')">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                  Editar
+                </button>
+                <button class="btn btn-danger btn-sm" style="font-size:11px;padding:3px 9px;" onclick="deleteCliente('${c.id}')">
+                  <svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                  Apagar
+                </button>
+              </div>
             </div>
           </div>
         </td>
         <td style="font-family:'Outfit',sans-serif;font-size:13px;">${c.cpf}</td>
-        <td>${c.celular ? `<a href="https://api.whatsapp.com/send?phone=55${c.celular.replace(/\D/g,'')}" target="_blank" style="color:var(--success-text);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>${c.celular}</a>` : '-'}</td>
+        <td>${tel ? `<a href="https://api.whatsapp.com/send?phone=55${tel.replace(/\D/g,'')}" target="_blank" style="color:var(--success-text);text-decoration:none;font-weight:600;display:flex;align-items:center;gap:4px;"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>${tel}</a>` : '-'}</td>
         <td>${c.cidade||'-'}/${c.uf||'-'}</td>
         <td>${statusBadge(c.status)}</td>
-        <td><div class="btn-group">
-          <button class="btn btn-info btn-sm" onclick="viewCliente('${c.id}')">Ver</button>
-          ${(c.celular || c.telefone) ? `<button class="btn btn-sm" onclick="openWhatsApp('${c.celular || c.telefone}','${c.nome}')" style="background:linear-gradient(135deg,#1a7a4a,#25d366);color:#fff;border:none;gap:5px;" title="WhatsApp">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
-            WA
-          </button>` : ''}
-          <button class="btn btn-outline btn-sm" onclick="printCliente('${c.id}')">PDF</button>
-          <button class="btn btn-outline btn-sm" onclick="editCliente('${c.id}')">Editar</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteCliente('${c.id}')">Apagar</button>
-        </div></td>
       </tr>`;
-    }).join('') || '<tr><td colspan="6" class="empty-state">Nenhum cliente encontrado</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="empty-state">Nenhum cliente encontrado</td></tr>';
   }
 
   async function viewCliente(id) {
@@ -2708,6 +2740,13 @@
     btnGps.disabled = false;
     document.getElementById('cRenda').value = toMoneyInput(c?.renda_mensal); document.getElementById('cDespesa').value = toMoneyInput(c?.despesa_mensal);
     document.getElementById('cStatus').value = c?.status || 'ativo'; document.getElementById('cObs').value = c?.observacoes || '';
+    // Reset doc previews
+    ['prevDocFrente','prevDocVerso'].forEach(id => { const d = document.getElementById(id); if(d) d.style.display='none'; });
+    document.getElementById('cDocFrente').value = ''; document.getElementById('cDocVerso').value = '';
+    if(document.getElementById('cDocFrenteCamera')) document.getElementById('cDocFrenteCamera').value = '';
+    if(document.getElementById('cDocVersoCamera')) document.getElementById('cDocVersoCamera').value = '';
+    if(c?.doc_frente) { const d=document.getElementById('prevDocFrente'); if(d){d.querySelector('img').src=c.doc_frente;d.style.display='block';} }
+    if(c?.doc_verso) { const d=document.getElementById('prevDocVerso'); if(d){d.querySelector('img').src=c.doc_verso;d.style.display='block';} }
     // Foto atividade
     document.getElementById('cFotoAtivUrl').value = c?.foto_atividade || '';
     document.getElementById('cFotoAtiv').value = '';
@@ -2737,6 +2776,9 @@
         document.getElementById('cAvEnd').value = av.endereco || '';
       }
     }
+    // Reset select avalista e carregar lista
+    document.getElementById('cAvSelect').value = '';
+    carregarAvalistasSelect();
     openModal('modalCliente');
   }
 
@@ -2750,8 +2792,10 @@
 
     try {
       let urlFrente = document.getElementById('cDocFrenteUrl').value; let urlVerso = document.getElementById('cDocVersoUrl').value;
-      const fileFrente = document.getElementById('cDocFrente').files[0]; if (fileFrente) urlFrente = await uploadFileToSupabase(fileFrente, 'clientes');
-      const fileVerso = document.getElementById('cDocVerso').files[0]; if (fileVerso) urlVerso = await uploadFileToSupabase(fileVerso, 'clientes');
+      const fileFrente = document.getElementById('cDocFrente').files[0] || document.getElementById('cDocFrenteCamera')?.files[0];
+      if (fileFrente) urlFrente = await uploadFileToSupabase(fileFrente, 'clientes');
+      const fileVerso = document.getElementById('cDocVerso').files[0] || document.getElementById('cDocVersoCamera')?.files[0];
+      if (fileVerso) urlVerso = await uploadFileToSupabase(fileVerso, 'clientes');
       // Foto atividade
       let urlFotoAtiv = document.getElementById('cFotoAtivUrl').value;
       const fileFotoAtiv = document.getElementById('cFotoAtiv').files[0] || document.getElementById('cFotoAtivCamera').files[0];
@@ -3658,6 +3702,45 @@
       document.getElementById('previewFotoAtivDiv').style.display = 'block';
     };
     reader.readAsDataURL(file);
+  }
+
+  function previewDoc(inputId, previewDivId) {
+    const input = document.getElementById(inputId);
+    const div = document.getElementById(previewDivId);
+    const file = input?.files?.[0];
+    if (!file || !div) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      div.querySelector('img').src = e.target.result;
+      div.style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // Cache global de avalistas para o select
+  let _avalistasCache = [];
+
+  async function carregarAvalistasSelect() {
+    const sel = document.getElementById('cAvSelect');
+    if (!sel) return;
+    const { data } = await sb.from('avalistas').select('id,nome,cpf,celular,telefone,parentesco,endereco').eq('empresa_id', EMPRESA_ID).order('nome');
+    _avalistasCache = data || [];
+    sel.innerHTML = '<option value="">— Criar novo ou digitar manualmente —</option>' +
+      (_avalistasCache.map(a => `<option value="${a.id}">${a.nome}${a.cpf ? ' — '+a.cpf : ''}</option>`).join(''));
+  }
+
+  function preencherAvalistaSelecionado() {
+    const sel = document.getElementById('cAvSelect');
+    const id = sel?.value;
+    if (!id) return;
+    const av = _avalistasCache.find(a => a.id === id);
+    if (!av) return;
+    document.getElementById('cAvId').value = av.id;
+    document.getElementById('cAvNome').value = av.nome || '';
+    document.getElementById('cAvCpf').value = av.cpf || '';
+    document.getElementById('cAvCel').value = av.celular || av.telefone || '';
+    document.getElementById('cAvParent').value = av.parentesco || '';
+    document.getElementById('cAvEnd').value = av.endereco || '';
   }
 
   // =============================================
