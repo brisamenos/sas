@@ -2082,6 +2082,7 @@
 </div>
 
 
+<script>
   const SUPABASE_URL = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
 
@@ -2651,7 +2652,7 @@
           ${c.doc_frente ? `<h2>Doc (Frente)</h2><img src="${c.doc_frente}" class="doc-img"/>` : ''}
           ${c.doc_verso ? `<h2>Doc (Verso)</h2><img src="${c.doc_verso}" class="doc-img"/>` : ''}
           ${c.foto_atividade ? `<h2>Foto da Atividade Comercial</h2><img src="${c.foto_atividade}" class="doc-img"/>` : ''}
-          <script>setTimeout(() => { window.print(); window.close(); }, 1000);<\/script>
+          <scr' + 'ipt>setTimeout(() => { window.print(); window.close(); }, 1000);<\/scr' + 'ipt>
         </body>
       </html>`);
     printWindow.document.close();
@@ -2672,7 +2673,7 @@
       return `<tr><td>${negMap[f.micro_negocio_id]||'-'}</td><td>${f.mes_referencia||'-'}</td><td style="color:var(--success-text)">${fmt(receitas)}</td><td style="color:var(--danger-text)">${fmt(despesas)}</td><td style="font-weight:700;color:${saldo>=0?'var(--success-text)':'var(--danger-text)'}">${fmt(saldo)}</td></tr>`;
     }).join('');
     const w = window.open('','_blank');
-    w.document.write(`<html><head><style>body{font-family:sans-serif;padding:30px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ddd;padding:10px;} th{background:#f8fafc;} h1{color:#ea580c;}</style></head><body><h1>Fluxo de Caixa</h1><table><thead><tr><th>Negócio</th><th>Mês</th><th>Receitas</th><th>Despesas</th><th>Saldo</th></tr></thead><tbody>${rows}</tbody></table><script>setTimeout(()=>{window.print();window.close();},800);<\/script></body></html>`);
+    w.document.write(`<html><head><style>body{font-family:sans-serif;padding:30px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ddd;padding:10px;} th{background:#f8fafc;} h1{color:#ea580c;}</style></head><body><h1>Fluxo de Caixa</h1><table><thead><tr><th>Negócio</th><th>Mês</th><th>Receitas</th><th>Despesas</th><th>Saldo</th></tr></thead><tbody>${rows}</tbody></table><scr` + `ipt>setTimeout(()=>{window.print();window.close();},800);<\/scr` + `ipt></body></html>`);
     w.document.close();
   }
 
