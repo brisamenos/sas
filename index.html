@@ -925,8 +925,8 @@
 
       <div class="nav-section">Financeiro</div>
       <div class="nav-item" data-page="avaliacao" onclick="navigate('avaliacao')">
-        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-        Avaliação Financeira
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Leads
       </div>
       <div class="nav-item" data-page="fluxo" onclick="navigate('fluxo')">
         <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline stroke-linecap="round" stroke-linejoin="round" points="17 6 23 6 23 12"/></svg>
@@ -1272,14 +1272,33 @@
       <div class="page-section" id="page-avaliacao">
         <div class="card">
           <div class="card-header">
-            <h3>Avaliações Financeiras</h3>
-            <button class="btn btn-primary" onclick="openAvaliacaoModal()">Nova Avaliação</button>
+            <h3>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="color:var(--primary)"><path stroke-linecap="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+              Leads
+            </h3>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+              <input type="text" id="searchLeads" placeholder="Buscar lead..." oninput="loadLeads()" style="padding:8px 14px;border:1.5px solid var(--border);border-radius:var(--radius-sm);font-size:13px;background:var(--surface);color:var(--text);outline:none;min-width:180px;" />
+              <button class="btn btn-primary" onclick="openLeadModal()">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
+                Novo Lead
+              </button>
+            </div>
+          </div>
+          <!-- Etiquetas de filtro -->
+          <div style="padding:12px 22px;border-bottom:1px solid var(--border-light);display:flex;flex-wrap:wrap;gap:8px;align-items:center;">
+            <span style="font-size:11px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.5px;">Filtrar por etiqueta:</span>
+            <button onclick="filtrarLeadEtiqueta('')" class="badge badge-neutral badge-btn" id="etiqAll">Todos</button>
+            <button onclick="filtrarLeadEtiqueta('quente')" class="badge badge-btn" style="background:#fff0e6;color:#bf360c;border:1px solid #ffccbc;" id="etiqQuente">🔥 Quente</button>
+            <button onclick="filtrarLeadEtiqueta('morno')" class="badge badge-btn" style="background:#fff8e1;color:#f57f17;border:1px solid #ffecb3;" id="etiqMorno">🌡️ Morno</button>
+            <button onclick="filtrarLeadEtiqueta('frio')" class="badge badge-btn" style="background:#e3f2fd;color:#1565c0;border:1px solid #bbdefb;" id="etiqFrio">❄️ Frio</button>
+            <button onclick="filtrarLeadEtiqueta('contatado')" class="badge badge-btn" style="background:#e8f5e9;color:#2e7d32;border:1px solid #c8e6c9;" id="etiqContatado">✅ Contatado</button>
+            <button onclick="filtrarLeadEtiqueta('perdido')" class="badge badge-btn" style="background:#fce4ec;color:#880e4f;border:1px solid #f8bbd0;" id="etiqPerdido">❌ Perdido</button>
           </div>
           <div class="card-body no-padding">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Cliente</th><th>Renda Familiar</th><th>Capacidade Pgto</th><th>Aprovado</th><th>Data</th><th>Ações</th></tr></thead>
-                <tbody id="tblAvaliacao"></tbody>
+                <thead><tr><th>Nome</th><th>Telefone</th><th>Interesse</th><th>Etiqueta</th><th>Observações</th><th>Ações</th></tr></thead>
+                <tbody id="tblLeads"></tbody>
               </table>
             </div>
           </div>
@@ -1523,13 +1542,43 @@
           <span id="gpsStatus" style="font-size:12px; color:var(--text-light); margin-top:4px;"></span>
         </div>
 
-        <h4 class="form-section-title">Financeiro & Status</h4>
+        <h4 class="form-section-title">Dados Financeiros</h4>
         <div class="form-group"><label>Renda Mensal (R$)</label><input type="text" id="cRenda" oninput="maskMoney(this)" placeholder="0,00" /></div>
         <div class="form-group"><label>Despesa Mensal (R$)</label><input type="text" id="cDespesa" oninput="maskMoney(this)" placeholder="0,00" /></div>
+        <input type="hidden" id="cStatus" value="ativo" />
+
+        <h4 class="form-section-title">Foto da Atividade Comercial</h4>
         <div class="form-group full">
-          <label>Status do Cliente</label>
-          <select id="cStatus"><option value="ativo">Ativo</option><option value="inativo">Inativo</option></select>
+          <label>Foto do Negócio / Ponto Comercial</label>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
+            <div class="file-upload-box" style="flex:1;min-width:160px;position:relative;">
+              <span>
+                <svg style="width:22px;height:22px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"></path></svg>
+                Anexar Arquivo
+              </span>
+              <input type="file" id="cFotoAtiv" accept="image/*" onchange="previewFotoAtiv(this)" />
+            </div>
+            <button type="button" class="btn btn-info" onclick="document.getElementById('cFotoAtivCamera').click()" style="white-space:nowrap;gap:7px;">
+              <svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3"/></svg>
+              Abrir Câmera
+            </button>
+            <input type="file" id="cFotoAtivCamera" accept="image/*" capture="environment" style="display:none;" onchange="previewFotoAtiv(this)" />
+          </div>
+          <div id="previewFotoAtivDiv" style="display:none;margin-top:6px;">
+            <img id="previewFotoAtivImg" style="max-width:100%;max-height:200px;border-radius:10px;border:1.5px solid var(--border);object-fit:cover;" />
+          </div>
+          <input type="hidden" id="cFotoAtivUrl" />
         </div>
+
+        <h4 class="form-section-title">Avalista do Cliente</h4>
+        <input type="hidden" id="cAvId" />
+        <div class="form-group"><label>Nome do Avalista</label><input type="text" id="cAvNome" placeholder="Nome completo" /></div>
+        <div class="form-group"><label>CPF do Avalista</label><input type="text" id="cAvCpf" maxlength="14" oninput="maskCPF(this)" placeholder="000.000.000-00" /></div>
+        <div class="form-group"><label>Celular / WhatsApp</label><input type="text" id="cAvCel" placeholder="(00) 00000-0000" /></div>
+        <div class="form-group"><label>Parentesco</label>
+          <select id="cAvParent"><option value="">Selecione</option><option>Cônjuge</option><option>Familiar</option><option>Amigo(a)</option><option>Outro</option></select>
+        </div>
+        <div class="form-group full"><label>Endereço do Avalista</label><input type="text" id="cAvEnd" placeholder="Rua, Av., Bairro, Cidade..." /></div>
 
         <h4 class="form-section-title">Anexos e Observações</h4>
         <div class="form-group full"><label>Observações</label><textarea id="cObs" placeholder="Informações adicionais relevantes..."></textarea></div>
@@ -1573,13 +1622,28 @@
       <h3 id="viewNome">Detalhes do Cliente</h3>
       <button class="modal-close" onclick="closeModal('modalViewCliente')">&times;</button>
     </div>
+    <!-- Botões abaixo do nome do cliente -->
+    <div style="padding:12px 26px;border-bottom:1px solid var(--border-light);display:flex;flex-wrap:wrap;gap:8px;background:var(--surface-2);">
+      <button class="btn btn-primary btn-sm" id="btnViewPrint" onclick="" style="gap:6px;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Gerar PDF
+      </button>
+      <button class="btn btn-info btn-sm" id="btnViewFluxo" onclick="" style="gap:6px;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline stroke-linecap="round" stroke-linejoin="round" points="23 6 13.5 15.5 8.5 10.5 1 18"/></svg>
+        Ver Fluxo de Caixa
+      </button>
+      <button class="btn btn-sm" id="btnViewPrintFluxo" onclick="" style="background:linear-gradient(135deg,#0097a7,#00bcd4);color:#fff;border:none;gap:6px;">
+        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        Imprimir Fluxo
+      </button>
+      <button class="btn btn-sm" id="btnViewWA" onclick="" style="background:linear-gradient(135deg,#1a7a4a,#25d366);color:#fff;border:none;gap:6px;">
+        <svg style="width:14px;height:14px;" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+        WhatsApp
+      </button>
+    </div>
     <div class="modal-body" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;" id="viewClienteBody"></div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalViewCliente')">Fechar</button>
-      <button class="btn btn-primary" id="btnViewPrint" onclick="">
-        <svg style="width:18px;height:18px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-        Gerar PDF / Imprimir
-      </button>
     </div>
   </div>
 </div>
@@ -1755,40 +1819,34 @@
 </div>
 
 <div class="modal-overlay" id="modalAvaliacao">
-  <div class="modal">
+  <div class="modal" style="max-width:560px;">
     <div class="modal-header">
-      <h3 id="modalAvaliacaoTitle">Avaliação</h3>
+      <h3 id="modalAvaliacaoTitle">Novo Lead</h3>
       <button class="modal-close" onclick="closeModal('modalAvaliacao')">&times;</button>
     </div>
     <div class="modal-body">
       <input type="hidden" id="avaliacaoId" />
       <div class="form-grid">
-        <h4 class="form-section-title">Dados Iniciais</h4>
-        <div class="form-group full"><label>Cliente</label><select id="avCliente"></select></div>
-        
-        <h4 class="form-section-title">Receitas e Despesas</h4>
-        <div class="form-group"><label>Renda Familiar</label><input type="text" id="avRendaFam" oninput="maskMoney(this)" /></div>
-        <div class="form-group"><label>Outras Rendas</label><input type="text" id="avOutrasRendas" oninput="maskMoney(this)" /></div>
-        <div class="form-group"><label>Desp. Fixas</label><input type="text" id="avDespFixas" oninput="maskMoney(this)" /></div>
-        <div class="form-group"><label>Desp. Variáveis</label><input type="text" id="avDespVar" oninput="maskMoney(this)" /></div>
-        
-        <h4 class="form-section-title">Análise de Risco</h4>
-        <div class="form-group"><label>Prestações Atuais</label><input type="text" id="avPrestacoes" oninput="maskMoney(this)" /></div>
-        <div class="form-group"><label>Patrimônio Estimado</label><input type="text" id="avPatrimonio" oninput="maskMoney(this)" /></div>
-        <div class="form-group"><label>Dívidas Ativas</label><input type="text" id="avDividas" oninput="maskMoney(this)" /></div>
-        <div class="form-group"><label>Capacidade de Pgto</label><input type="text" id="avCapacidade" oninput="maskMoney(this)" /></div>
-        
-        <h4 class="form-section-title">Conclusão</h4>
-        <div class="form-group full"><label>Avaliador</label><input type="text" id="avAvaliador" /></div>
-        <div class="form-group full"><label>Status de Aprovação</label>
-          <select id="avAprovado"><option value="false">Não Aprovado</option><option value="true">Aprovado</option></select>
+        <h4 class="form-section-title">Dados do Lead</h4>
+        <div class="form-group"><label>Nome *</label><input type="text" id="avCliente" placeholder="Nome do lead" /></div>
+        <div class="form-group"><label>Telefone / WhatsApp</label><input type="text" id="avTelefone" placeholder="(00) 00000-0000" /></div>
+        <div class="form-group"><label>Interesse / Produto</label><input type="text" id="avRendaFam" placeholder="Ex: Empréstimo R$5.000" /></div>
+        <div class="form-group"><label>Etiqueta</label>
+          <select id="avEtiqueta">
+            <option value="">Sem etiqueta</option>
+            <option value="quente">🔥 Quente</option>
+            <option value="morno">🌡️ Morno</option>
+            <option value="frio">❄️ Frio</option>
+            <option value="contatado">✅ Contatado</option>
+            <option value="perdido">❌ Perdido</option>
+          </select>
         </div>
-        <div class="form-group full"><label>Parecer Técnico</label><textarea id="avParecer"></textarea></div>
+        <div class="form-group full"><label>Observações / Anotações</label><textarea id="avParecer" placeholder="Informações relevantes sobre este lead..."></textarea></div>
       </div>
     </div>
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="closeModal('modalAvaliacao')">Cancelar</button>
-      <button class="btn btn-primary" onclick="saveAvaliacao()" id="btnSaveAvaliacao">Salvar Avaliação</button>
+      <button class="btn btn-primary" onclick="saveLead()" id="btnSaveAvaliacao">Salvar Lead</button>
     </div>
   </div>
 </div>
@@ -1820,7 +1878,7 @@
         <div class="form-group"><label>Água</label><input type="text" id="fAgua" oninput="maskMoney(this)" /></div>
         <div class="form-group"><label>Telefone/Internet</label><input type="text" id="fTelefone" oninput="maskMoney(this)" /></div>
         <div class="form-group"><label>Transporte</label><input type="text" id="fTransporte" oninput="maskMoney(this)" /></div>
-        <div class="form-group full"><label>Outras Despesas</label><input type="text" id="fOutrasDesp" oninput="maskMoney(this)" /></div>
+        <div class="form-group full"><label>Obrigações para Instituições Financeiras</label><input type="text" id="fOutrasDesp" oninput="maskMoney(this)" /></div>
       </div>
     </div>
     <div class="modal-footer">
@@ -1976,11 +2034,54 @@
   </div>
 </div>
 
+<!-- MODAL WHATSAPP AVALISTA -->
+<div class="modal-overlay" id="modalWhatsAppAvalista">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-header" style="background:linear-gradient(135deg,#1a7a4a,#25d366);border-radius:var(--radius) var(--radius) 0 0;">
+      <h3 style="color:#fff;display:flex;align-items:center;gap:10px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+        WhatsApp Avalista — <span id="waAvalistaNome" style="font-weight:400;font-size:15px;"></span>
+      </h3>
+      <button class="modal-close" onclick="closeModal('modalWhatsAppAvalista')" style="color:rgba(255,255,255,0.7);border-color:rgba(255,255,255,0.3);">&times;</button>
+    </div>
+    <div class="modal-body" style="padding:20px;">
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Número</label>
+        <input type="text" id="waAvalistaTelefone" readonly style="background:var(--surface-2);font-weight:700;font-family:'Outfit',sans-serif;" />
+      </div>
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.3px;color:var(--text-secondary);display:block;margin-bottom:8px;font-family:'Outfit',sans-serif;">Modelo de Mensagem</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button onclick="aplicarModeloAvalista('saudacao')" class="btn btn-outline btn-sm" style="font-size:11px;">👋 Saudação</button>
+          <button onclick="aplicarModeloAvalista('cobranca')" class="btn btn-outline btn-sm" style="font-size:11px;">💰 Cobrança</button>
+          <button onclick="aplicarModeloAvalista('vencimento')" class="btn btn-outline btn-sm" style="font-size:11px;">📅 Vencimento</button>
+          <button onclick="aplicarModeloAvalista('confirmacao')" class="btn btn-outline btn-sm" style="font-size:11px;">✅ Confirmação</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:14px;">
+        <label>Mensagem</label>
+        <textarea id="waAvalistaMensagem" style="min-height:150px;line-height:1.6;" placeholder="Digite ou selecione um modelo acima..." oninput="atualizarPreviewAvalistaWA()"></textarea>
+        <div style="display:flex;justify-content:space-between;margin-top:5px;">
+          <span id="waAvalistaCharCount" style="font-size:11px;color:var(--text-light);">0 caracteres</span>
+          <button onclick="document.getElementById('waAvalistaMensagem').value='';atualizarPreviewAvalistaWA()" style="font-size:11px;color:var(--danger);background:none;border:none;cursor:pointer;">Limpar</button>
+        </div>
+      </div>
+      <div style="background:#e5ddd5;border-radius:10px;padding:12px;">
+        <div style="font-size:10px;font-weight:700;color:#667781;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px;">Preview</div>
+        <div id="waAvalistaPreview" style="background:#fff;border-radius:0 8px 8px 8px;padding:10px 14px;font-size:13px;line-height:1.6;color:#111;white-space:pre-wrap;box-shadow:0 1px 2px rgba(0,0,0,0.1);max-height:120px;overflow-y:auto;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal('modalWhatsAppAvalista')">Cancelar</button>
+      <button class="btn btn-success" onclick="enviarWhatsAppAvalistaModal()" style="background:linear-gradient(135deg,#1a7a4a,#25d366);box-shadow:0 4px 15px rgba(37,211,102,0.35);gap:8px;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>
+        Abrir no WhatsApp
+      </button>
+    </div>
+  </div>
+</div>
 
-<script>
-  // =============================================
-  // SUPABASE CLIENT & STATE (SaaS)
-  // =============================================
+
   const SUPABASE_URL = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
 
@@ -2048,7 +2149,7 @@
   // =============================================
   const pageTitles = {
     dashboard: 'Dashboard', tarefas: 'Tarefas', clientes: 'Clientes', avalistas: 'Avalistas', negocios: 'Micro Negócios',
-    avaliacao: 'Avaliação Financeira', fluxo: 'Fluxo de Caixa', operacoes: 'Operações',
+    avaliacao: 'Leads', fluxo: 'Fluxo de Caixa', operacoes: 'Operações',
     parcelas: 'Parcelas', inadimplencia: 'Inadimplência', renovacoes: 'Renovações', relatorios: 'Relatórios',
     plano: 'Meu Perfil'
   };
@@ -2074,7 +2175,7 @@
       case 'clientes': loadClientes(); break;
       case 'avalistas': loadAvalistas(); break;
       case 'negocios': loadNegocios(); break;
-      case 'avaliacao': loadAvaliacoes(); break;
+      case 'avaliacao': loadLeads(); break;
       case 'fluxo': loadFluxos(); break;
       case 'operacoes': loadOperacoes(); break;
       case 'parcelas': loadParcelas(); break; 
@@ -2477,55 +2578,107 @@
   async function viewCliente(id) {
      const { data: c } = await sb.from('clientes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
      if(!c) return;
+     // Buscar avalista
+     const { data: avs } = await sb.from('avalistas').select('*').eq('cliente_id', id).eq('empresa_id', EMPRESA_ID).order('nome').limit(1);
+     const av = avs?.[0];
 
      document.getElementById('viewNome').textContent = c.nome;
      let docsHtml = '';
      if(c.doc_frente) docsHtml += `<div style="margin-top:10px;"><p style="font-size:12px;color:var(--text-light)">Doc Frente:</p><img src="${c.doc_frente}" style="max-width:100%; border-radius:6px; margin-top:5px; border:1px solid #ccc; max-height:200px;" /></div>`;
      if(c.doc_verso) docsHtml += `<div style="margin-top:10px;"><p style="font-size:12px;color:var(--text-light)">Doc Verso:</p><img src="${c.doc_verso}" style="max-width:100%; border-radius:6px; margin-top:5px; border:1px solid #ccc; max-height:200px;" /></div>`;
+     if(c.foto_atividade) docsHtml += `<div style="margin-top:10px;"><p style="font-size:12px;color:var(--text-light)">Foto Atividade Comercial:</p><img src="${c.foto_atividade}" style="max-width:100%; border-radius:6px; margin-top:5px; border:1px solid #ccc; max-height:200px;" /></div>`;
+
+     const avHtml = av ? `
+        <div class="detail-item" style="grid-column:1/-1;border-top:2px solid var(--primary);margin-top:10px;padding-top:14px;">
+          <div class="detail-label" style="color:var(--primary);font-size:11px;font-weight:800;margin-bottom:8px;">AVALISTA</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+            <div><div class="detail-label">Nome</div><div class="detail-value">${av.nome}</div></div>
+            <div><div class="detail-label">CPF</div><div class="detail-value">${av.cpf || '-'}</div></div>
+            <div><div class="detail-label">Celular</div><div class="detail-value">${av.celular || av.telefone || '-'}</div></div>
+            <div><div class="detail-label">Parentesco</div><div class="detail-value">${av.parentesco || '-'}</div></div>
+            ${av.endereco ? `<div style="grid-column:1/-1"><div class="detail-label">Endereço</div><div class="detail-value">${av.endereco}</div></div>` : ''}
+          </div>
+        </div>` : '';
 
      const html = `
         <div class="detail-item"><div class="detail-label">CPF</div><div class="detail-value">${c.cpf}</div></div>
-        <div class="detail-item"><div class="detail-label">RG</div><div class="detail-value">${c.rg || '-'}</div></div>
         <div class="detail-item"><div class="detail-label">Nascimento</div><div class="detail-value">${fmtDate(c.data_nascimento)}</div></div>
         <div class="detail-item"><div class="detail-label">Telefone / Celular</div><div class="detail-value">${c.celular || c.telefone || '-'}</div></div>
         <div class="detail-item" style="grid-column: 1 / -1;"><div class="detail-label">Endereço</div><div class="detail-value">${c.endereco || '-'}, ${c.numero || '-'} - ${c.cidade || '-'}/${c.uf || '-'}</div></div>
         <div class="detail-item"><div class="detail-label">E-mail</div><div class="detail-value">${c.email || '-'}</div></div>
         <div class="detail-item"><div class="detail-label">Renda Mensal</div><div class="detail-value" style="color:var(--success-text)">${fmt(c.renda_mensal)}</div></div>
+        <div class="detail-item"><div class="detail-label">Despesa Mensal</div><div class="detail-value" style="color:var(--danger-text)">${fmt(c.despesa_mensal)}</div></div>
         <div class="detail-item" style="grid-column: 1 / -1;"><div class="detail-label">Observações</div><div class="detail-value">${c.observacoes || '-'}</div></div>
+        ${avHtml}
         <div style="grid-column: 1 / -1; display:flex; flex-wrap: wrap; gap:10px;">${docsHtml}</div>
      `;
      document.getElementById('viewClienteBody').innerHTML = html;
-     document.getElementById('btnViewPrint').setAttribute('onclick', "printCliente('" + id + "')");
+     document.getElementById('btnViewPrint').setAttribute('onclick', `printCliente('${id}')`);
+     document.getElementById('btnViewFluxo').setAttribute('onclick', `verFluxoCliente('${id}')`);
+     document.getElementById('btnViewPrintFluxo').setAttribute('onclick', `printFluxoCliente('${id}')`);
+     const tel = c.celular || c.telefone;
+     if (tel) {
+       document.getElementById('btnViewWA').setAttribute('onclick', `openWhatsApp('${tel}','${c.nome.replace(/'/g,"\\'")}'); closeModal('modalViewCliente');`);
+       document.getElementById('btnViewWA').style.display = '';
+     } else {
+       document.getElementById('btnViewWA').style.display = 'none';
+     }
      openModal('modalViewCliente');
   }
 
   async function printCliente(id) {
     const { data: c } = await sb.from('clientes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
     if (!c) { showToast('Cliente não encontrado', 'error'); return; }
+    const { data: avs } = await sb.from('avalistas').select('*').eq('cliente_id', id).eq('empresa_id', EMPRESA_ID).limit(1);
+    const av = avs?.[0];
     
     const printWindow = window.open('', '_blank');
+    const avHtml = av ? `<h2 style="color:#ea580c;margin-top:30px;">Avalista</h2><table><tr><th>Nome</th><td>${av.nome}</td></tr><tr><th>CPF</th><td>${av.cpf||'-'}</td></tr><tr><th>Celular</th><td>${av.celular||av.telefone||'-'}</td></tr><tr><th>Parentesco</th><td>${av.parentesco||'-'}</td></tr>${av.endereco?`<tr><th>Endereço</th><td>${av.endereco}</td></tr>`:''}</table>` : '';
     printWindow.document.write(`
       <html>
-        <head><title>Ficha - ${c.nome}</title><style>body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; line-height: 1.6; } h1 { border-bottom: 2px solid #ea580c; color: #ea580c; padding-bottom: 10px; margin-bottom: 20px; } table { width: 100%; border-collapse: collapse; margin-top: 20px; } th { text-align: left; padding: 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; width: 30%; } td { padding: 12px; border-bottom: 1px solid #e2e8f0; } .doc-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; display: block; }</style></head>
+        <head><title>Ficha - ${c.nome}</title><style>body { font-family: 'Inter', sans-serif; padding: 40px; color: #0f172a; line-height: 1.6; } h1 { border-bottom: 2px solid #ea580c; color: #ea580c; padding-bottom: 10px; margin-bottom: 20px; } h2 { color: #ea580c; margin-top: 28px; border-bottom: 1px solid #ffd7c9; padding-bottom: 6px; } table { width: 100%; border-collapse: collapse; margin-top: 10px; } th { text-align: left; padding: 10px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; width: 30%; } td { padding: 10px; border-bottom: 1px solid #e2e8f0; } .doc-img { max-width: 100%; max-height: 250px; border-radius: 8px; margin-top: 10px; border: 1px solid #ccc; display: block; }</style></head>
         <body>
           <h1>Ficha de Cadastro: ${c.nome}</h1>
           <table>
-            <tr><th>CPF</th><td>${c.cpf}</td></tr><tr><th>RG</th><td>${c.rg || '-'}</td></tr><tr><th>Data Nasc.</th><td>${fmtDate(c.data_nascimento)}</td></tr>
+            <tr><th>CPF</th><td>${c.cpf}</td></tr><tr><th>Data Nasc.</th><td>${fmtDate(c.data_nascimento)}</td></tr>
             <tr><th>Estado Civil</th><td>${c.estado_civil || '-'}</td></tr><tr><th>Escolaridade</th><td>${c.escolaridade || '-'}</td></tr>
             <tr><th>Telefone</th><td>${c.telefone || '-'}</td></tr><tr><th>Celular</th><td>${c.celular || '-'}</td></tr>
             <tr><th>E-mail</th><td>${c.email || '-'}</td></tr>
             <tr><th>Endereço</th><td>${c.endereco || '-'}, ${c.numero || '-'} ${c.complemento ? ' - ' + c.complemento : ''}<br>${c.bairro || '-'} - ${c.cidade || '-'}/${c.uf || '-'} (CEP: ${c.cep || '-'})</td></tr>
             <tr><th>Renda Mensal</th><td>${fmt(c.renda_mensal)}</td></tr><tr><th>Despesa Mensal</th><td>${fmt(c.despesa_mensal)}</td></tr><tr><th>Observações</th><td>${c.observacoes || '-'}</td></tr>
           </table>
-          ${c.doc_frente ? `<h3>Doc (Frente)</h3><img src="${c.doc_frente}" class="doc-img"/>` : ''}
-          ${c.doc_verso ? `<h3>Doc (Verso)</h3><img src="${c.doc_verso}" class="doc-img"/>` : ''}
+          ${avHtml}
+          ${c.doc_frente ? `<h2>Doc (Frente)</h2><img src="${c.doc_frente}" class="doc-img"/>` : ''}
+          ${c.doc_verso ? `<h2>Doc (Verso)</h2><img src="${c.doc_verso}" class="doc-img"/>` : ''}
+          ${c.foto_atividade ? `<h2>Foto da Atividade Comercial</h2><img src="${c.foto_atividade}" class="doc-img"/>` : ''}
           <script>setTimeout(() => { window.print(); window.close(); }, 1000);<\/script>
         </body>
       </html>`);
     printWindow.document.close();
   }
 
-  function openClienteModal(c) {
+  // Ver fluxo de caixa do cliente em modal
+  async function verFluxoCliente(clienteId) {
+    const { data: negs } = await sb.from('micro_negocios').select('id,nome_fantasia').eq('cliente_id', clienteId).eq('empresa_id', EMPRESA_ID);
+    if (!negs || negs.length === 0) { showToast('Nenhum negócio cadastrado para este cliente.', 'info'); return; }
+    const negIds = negs.map(n => n.id);
+    const negMap = {}; negs.forEach(n => negMap[n.id] = n.nome_fantasia);
+    const { data: fluxos } = await sb.from('fluxo_caixa').select('*').in('micro_negocio_id', negIds).eq('empresa_id', EMPRESA_ID).order('mes_referencia', { ascending: false });
+    if (!fluxos || fluxos.length === 0) { showToast('Nenhum fluxo de caixa registrado.', 'info'); return; }
+    const rows = fluxos.map(f => {
+      const receitas = (f.rec_vendas||0) + (f.rec_servicos||0) + (f.outras_receitas||0);
+      const despesas = (f.custo_mercadorias||0) + (f.custo_materiais||0) + (f.aluguel||0) + (f.salarios||0) + (f.energia||0) + (f.agua||0) + (f.telefone_internet||0) + (f.transporte||0) + (f.outras_despesas||0);
+      const saldo = receitas - despesas;
+      return `<tr><td>${negMap[f.micro_negocio_id]||'-'}</td><td>${f.mes_referencia||'-'}</td><td style="color:var(--success-text)">${fmt(receitas)}</td><td style="color:var(--danger-text)">${fmt(despesas)}</td><td style="font-weight:700;color:${saldo>=0?'var(--success-text)':'var(--danger-text)'}">${fmt(saldo)}</td></tr>`;
+    }).join('');
+    const w = window.open('','_blank');
+    w.document.write(`<html><head><style>body{font-family:sans-serif;padding:30px;} table{width:100%;border-collapse:collapse;} th,td{border:1px solid #ddd;padding:10px;} th{background:#f8fafc;} h1{color:#ea580c;}</style></head><body><h1>Fluxo de Caixa</h1><table><thead><tr><th>Negócio</th><th>Mês</th><th>Receitas</th><th>Despesas</th><th>Saldo</th></tr></thead><tbody>${rows}</tbody></table><script>setTimeout(()=>{window.print();window.close();},800);<\/script></body></html>`);
+    w.document.close();
+  }
+
+  async function printFluxoCliente(clienteId) { verFluxoCliente(clienteId); }
+
+  async function openClienteModal(c) {
     document.getElementById('modalClienteTitle').textContent = c ? 'Editar Cliente' : 'Novo Cliente';
     document.getElementById('clienteId').value = c ? c.id : '';
     document.getElementById('cDocFrente').value = ''; document.getElementById('cDocVerso').value = '';
@@ -2554,6 +2707,35 @@
     btnGps.disabled = false;
     document.getElementById('cRenda').value = toMoneyInput(c?.renda_mensal); document.getElementById('cDespesa').value = toMoneyInput(c?.despesa_mensal);
     document.getElementById('cStatus').value = c?.status || 'ativo'; document.getElementById('cObs').value = c?.observacoes || '';
+    // Foto atividade
+    document.getElementById('cFotoAtivUrl').value = c?.foto_atividade || '';
+    document.getElementById('cFotoAtiv').value = '';
+    document.getElementById('cFotoAtivCamera').value = '';
+    if (c?.foto_atividade) {
+      document.getElementById('previewFotoAtivImg').src = c.foto_atividade;
+      document.getElementById('previewFotoAtivDiv').style.display = 'block';
+    } else {
+      document.getElementById('previewFotoAtivDiv').style.display = 'none';
+    }
+    // Avalista do cliente
+    document.getElementById('cAvId').value = '';
+    document.getElementById('cAvNome').value = '';
+    document.getElementById('cAvCpf').value = '';
+    document.getElementById('cAvCel').value = '';
+    document.getElementById('cAvParent').value = '';
+    document.getElementById('cAvEnd').value = '';
+    if (c?.id) {
+      const { data: avs } = await sb.from('avalistas').select('*').eq('cliente_id', c.id).eq('empresa_id', EMPRESA_ID).order('nome').limit(1);
+      if (avs?.[0]) {
+        const av = avs[0];
+        document.getElementById('cAvId').value = av.id || '';
+        document.getElementById('cAvNome').value = av.nome || '';
+        document.getElementById('cAvCpf').value = av.cpf || '';
+        document.getElementById('cAvCel').value = av.celular || av.telefone || '';
+        document.getElementById('cAvParent').value = av.parentesco || '';
+        document.getElementById('cAvEnd').value = av.endereco || '';
+      }
+    }
     openModal('modalCliente');
   }
 
@@ -2569,6 +2751,10 @@
       let urlFrente = document.getElementById('cDocFrenteUrl').value; let urlVerso = document.getElementById('cDocVersoUrl').value;
       const fileFrente = document.getElementById('cDocFrente').files[0]; if (fileFrente) urlFrente = await uploadFileToSupabase(fileFrente, 'clientes');
       const fileVerso = document.getElementById('cDocVerso').files[0]; if (fileVerso) urlVerso = await uploadFileToSupabase(fileVerso, 'clientes');
+      // Foto atividade
+      let urlFotoAtiv = document.getElementById('cFotoAtivUrl').value;
+      const fileFotoAtiv = document.getElementById('cFotoAtiv').files[0] || document.getElementById('cFotoAtivCamera').files[0];
+      if (fileFotoAtiv) urlFotoAtiv = await uploadFileToSupabase(fileFotoAtiv, 'clientes');
 
       const obj = {
         empresa_id: EMPRESA_ID, nome: document.getElementById('cNome').value, cpf: document.getElementById('cCpf').value,
@@ -2579,11 +2765,36 @@
         latitude: document.getElementById('cLatitude').value ? parseFloat(document.getElementById('cLatitude').value) : null,
         longitude: document.getElementById('cLongitude').value ? parseFloat(document.getElementById('cLongitude').value) : null,
         renda_mensal: unmaskMoney(document.getElementById('cRenda').value), despesa_mensal: unmaskMoney(document.getElementById('cDespesa').value),
-        status: document.getElementById('cStatus').value, observacoes: document.getElementById('cObs').value, doc_frente: urlFrente, doc_verso: urlVerso,
+        status: 'ativo', observacoes: document.getElementById('cObs').value, doc_frente: urlFrente, doc_verso: urlVerso,
+        foto_atividade: urlFotoAtiv || null,
       };
 
-      const { error } = id ? await sb.from('clientes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : await sb.from('clientes').insert(obj);
+      let clienteId = id;
+      const { data: savedCliente, error } = id
+        ? await sb.from('clientes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID).select('id').single()
+        : await sb.from('clientes').insert(obj).select('id').single();
       if (error) throw error;
+      if (!id && savedCliente) clienteId = savedCliente.id;
+
+      // Salvar/atualizar avalista embutido
+      const avNome = document.getElementById('cAvNome').value.trim();
+      const avId = document.getElementById('cAvId').value;
+      if (avNome && clienteId) {
+        const avObj = {
+          empresa_id: EMPRESA_ID, cliente_id: clienteId,
+          nome: avNome,
+          cpf: document.getElementById('cAvCpf').value,
+          celular: document.getElementById('cAvCel').value,
+          parentesco: document.getElementById('cAvParent').value,
+          endereco: document.getElementById('cAvEnd').value,
+        };
+        if (avId) {
+          await sb.from('avalistas').update(avObj).eq('id', avId).eq('empresa_id', EMPRESA_ID);
+        } else {
+          await sb.from('avalistas').insert(avObj);
+        }
+      }
+
       showToast(id ? 'Cliente atualizado!' : 'Cliente registado com sucesso!', 'success');
       closeModal('modalCliente'); loadClientes();
     } catch (e) { showToast('Erro: ' + e.message, 'error'); } finally { btnSave.textContent = 'Salvar Cliente'; btnSave.disabled = false; }
@@ -2599,7 +2810,7 @@
     let q = sb.from('avalistas').select('*,cliente:clientes(nome)').eq('empresa_id', EMPRESA_ID).order('nome');
     if (search) q = q.or(`nome.ilike.%${search}%,cpf.ilike.%${search}%`);
     const { data } = await q;
-    document.getElementById('tblAvalistas').innerHTML = (data || []).map(a => `<tr><td><div style="display:flex; align-items:center; gap:10px;">${a.foto_perfil ? `<img src="${a.foto_perfil}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ccc;" />` : ''}<strong>${a.nome}</strong></div></td><td>${a.cpf}</td><td>${a.cliente?.nome || '-'}</td><td>${a.celular || a.telefone || '-'}</td><td>${a.parentesco || '-'}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvalista('${a.id}')">Editar</button><button class="btn btn-danger btn-sm" onclick="deleteAvalista('${a.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum avalista registado</td></tr>';
+    document.getElementById('tblAvalistas').innerHTML = (data || []).map(a => `<tr><td><div style="display:flex; align-items:center; gap:10px;">${a.foto_perfil ? `<img src="${a.foto_perfil}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ccc;" />` : ''}<strong>${a.nome}</strong></div></td><td>${a.cpf}</td><td>${a.cliente?.nome || '-'}</td><td>${a.celular || a.telefone || '-'}</td><td>${a.parentesco || '-'}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvalista('${a.id}')">Editar</button>${(a.celular || a.telefone) ? `<button class="btn btn-sm" onclick="openWhatsAppAvalista('${a.celular || a.telefone}','${a.nome}')" style="background:linear-gradient(135deg,#1a7a4a,#25d366);color:#fff;border:none;gap:5px;" title="WhatsApp Avalista"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg> WA</button>` : ''}<button class="btn btn-danger btn-sm" onclick="deleteAvalista('${a.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum avalista registado</td></tr>';
   }
   async function openAvalistaModal(a) { document.getElementById('modalAvalistaTitle').textContent = a ? 'Editar Avalista' : 'Novo Avalista'; await loadClienteOptions('aCliente', a?.cliente_id); document.getElementById('avalistaId').value = a?.id || ''; document.getElementById('aFoto').value = ''; document.getElementById('aFotoUrl').value = a?.foto_perfil || ''; document.getElementById('aNome').value = a?.nome || ''; document.getElementById('aCpf').value = a?.cpf || ''; document.getElementById('aRg').value = a?.rg || ''; document.getElementById('aTel').value = a?.telefone || ''; document.getElementById('aCel').value = a?.celular || ''; document.getElementById('aEmail').value = a?.email || ''; document.getElementById('aEnd').value = a?.endereco || ''; document.getElementById('aNum').value = a?.numero || ''; document.getElementById('aBairro').value = a?.bairro || ''; document.getElementById('aCidade').value = a?.cidade || ''; document.getElementById('aUf').value = a?.uf || ''; document.getElementById('aCep').value = a?.cep || ''; document.getElementById('aRenda').value = toMoneyInput(a?.renda_mensal); document.getElementById('aParent').value = a?.parentesco || ''; document.getElementById('aObs').value = a?.observacoes || ''; openModal('modalAvalista'); }
   async function editAvalista(id) { const { data } = await sb.from('avalistas').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openAvalistaModal(data); }
@@ -3433,6 +3644,160 @@
     if (d < 7)  return d + 'd atrás';
     return new Date(dateStr).toLocaleDateString('pt-BR');
   }
+
+  // =============================================
+  // FOTO ATIVIDADE COMERCIAL
+  // =============================================
+  function previewFotoAtiv(input) {
+    const file = input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      document.getElementById('previewFotoAtivImg').src = e.target.result;
+      document.getElementById('previewFotoAtivDiv').style.display = 'block';
+    };
+    reader.readAsDataURL(file);
+  }
+
+  // =============================================
+  // WHATSAPP AVALISTA
+  // =============================================
+  let _waAvalistaAtual = { nome: '', telefone: '' };
+
+  function openWhatsAppAvalista(telefone, nome) {
+    _waAvalistaAtual = { nome, telefone };
+    document.getElementById('waAvalistaNome').textContent = nome;
+    document.getElementById('waAvalistaTelefone').value = telefone;
+    document.getElementById('waAvalistaMensagem').value = '';
+    document.getElementById('waAvalistaPreview').textContent = '';
+    document.getElementById('waAvalistaCharCount').textContent = '0 caracteres';
+    openModal('modalWhatsAppAvalista');
+  }
+
+  function aplicarModeloAvalista(tipo) {
+    const nome = _waAvalistaAtual.nome.split(' ')[0];
+    const modelos = {
+      saudacao:    `Olá ${nome}! 😊\n\nTudo bem? Sou da equipe MicroCred. Estamos entrando em contato pois você figura como avalista em um contrato conosco.\n\nFique à vontade para nos chamar! 🙏`,
+      cobranca:    `Olá ${nome}! 👋\n\nIdentificamos uma pendência no contrato em que você é avalista. Gostaríamos de conversar para encontrar a melhor solução.\n\nPodemos falar agora? ⏰`,
+      vencimento:  `Olá ${nome}! 📅\n\nPassamos para lembrá-lo(a) que uma parcela do contrato em que você é avalista está se aproximando do vencimento.\n\nQualquer dúvida, pode nos chamar. 😊`,
+      confirmacao: `Olá ${nome}! ✅\n\nConfirmamos o recebimento do pagamento relacionado ao contrato em que você é avalista. Obrigado pela atenção! 🙏`,
+    };
+    document.getElementById('waAvalistaMensagem').value = modelos[tipo] || '';
+    atualizarPreviewAvalistaWA();
+  }
+
+  function atualizarPreviewAvalistaWA() {
+    const msg = document.getElementById('waAvalistaMensagem').value;
+    document.getElementById('waAvalistaPreview').textContent = msg;
+    document.getElementById('waAvalistaCharCount').textContent = msg.length + ' caracteres';
+  }
+
+  function enviarWhatsAppAvalistaModal() {
+    const msg = document.getElementById('waAvalistaMensagem').value.trim();
+    let tel = document.getElementById('waAvalistaTelefone').value.replace(/\D/g, '');
+    if (!msg) return showToast('Digite uma mensagem antes de enviar.', 'warning');
+    if (!tel) return showToast('Número de telefone inválido.', 'error');
+    if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
+    window.open('https://api.whatsapp.com/send?phone=' + tel + '&text=' + encodeURIComponent(msg), '_blank');
+    closeModal('modalWhatsAppAvalista');
+  }
+
+  // =============================================
+  // LEADS (substitui Avaliação Financeira)
+  // =============================================
+  let _leadEtiqFiltro = '';
+
+  function filtrarLeadEtiqueta(etiq) {
+    _leadEtiqFiltro = etiq;
+    loadLeads();
+  }
+
+  async function loadLeads() {
+    const search = (document.getElementById('searchLeads')?.value || '').trim().toLowerCase();
+    let q = sb.from('avaliacoes').select('*').eq('empresa_id', EMPRESA_ID).order('created_at', { ascending: false });
+    if (_leadEtiqFiltro) q = q.eq('etiqueta', _leadEtiqFiltro);
+    const { data } = await q;
+    let leads = data || [];
+    if (search) leads = leads.filter(l => (l.nome||'').toLowerCase().includes(search) || (l.telefone||'').includes(search));
+    const etiqMap = {
+      quente: { label: '🔥 Quente', color: '#bf360c', bg: '#fff0e6', border: '#ffccbc' },
+      morno:  { label: '🌡️ Morno', color: '#f57f17', bg: '#fff8e1', border: '#ffecb3' },
+      frio:   { label: '❄️ Frio',  color: '#1565c0', bg: '#e3f2fd', border: '#bbdefb' },
+      contatado: { label: '✅ Contatado', color: '#2e7d32', bg: '#e8f5e9', border: '#c8e6c9' },
+      perdido:   { label: '❌ Perdido',  color: '#880e4f', bg: '#fce4ec', border: '#f8bbd0' },
+    };
+    document.getElementById('tblLeads').innerHTML = leads.map(l => {
+      const etiq = etiqMap[l.etiqueta];
+      const etiqBadge = etiq ? `<span style="padding:3px 10px;border-radius:100px;background:${etiq.bg};color:${etiq.color};border:1px solid ${etiq.border};font-size:11px;font-weight:700;">${etiq.label}</span>` : '<span style="color:var(--text-light);font-size:12px;">—</span>';
+      const tel = l.telefone || '';
+      return `<tr>
+        <td><strong>${l.nome||'-'}</strong></td>
+        <td>${tel ? `<a href="https://api.whatsapp.com/send?phone=55${tel.replace(/\D/g,'')}" target="_blank" style="color:var(--success-text);font-weight:600;">${tel}</a>` : '-'}</td>
+        <td>${l.interesse||l.renda_familiar||'-'}</td>
+        <td>${etiqBadge}</td>
+        <td style="font-size:12px;color:var(--text-secondary);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.parecer||'-'}</td>
+        <td><div class="btn-group">
+          ${tel ? `<button class="btn btn-sm" onclick="openWhatsAppLead('${tel}','${(l.nome||'').replace(/'/g,"\\'")}'); " style="background:linear-gradient(135deg,#1a7a4a,#25d366);color:#fff;border:none;gap:4px;" title="WhatsApp">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg>WA
+          </button>` : ''}
+          <button class="btn btn-outline btn-sm" onclick="editLead('${l.id}')">Editar</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteLead('${l.id}')">Apagar</button>
+        </div></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="6" class="empty-state">Nenhum lead encontrado</td></tr>';
+  }
+
+  function openLeadModal(l) {
+    document.getElementById('modalAvaliacaoTitle').textContent = l ? 'Editar Lead' : 'Novo Lead';
+    document.getElementById('avaliacaoId').value = l?.id || '';
+    document.getElementById('avCliente').value = l?.nome || '';
+    document.getElementById('avTelefone').value = l?.telefone || '';
+    document.getElementById('avRendaFam').value = l?.interesse || l?.renda_familiar || '';
+    document.getElementById('avEtiqueta').value = l?.etiqueta || '';
+    document.getElementById('avParecer').value = l?.parecer || '';
+    openModal('modalAvaliacao');
+  }
+
+  async function editLead(id) {
+    const { data } = await sb.from('avaliacoes').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single();
+    if (data) openLeadModal(data);
+  }
+
+  async function saveLead() {
+    const id = document.getElementById('avaliacaoId').value;
+    const btn = document.getElementById('btnSaveAvaliacao');
+    const nome = document.getElementById('avCliente').value.trim();
+    if (!nome) return showToast('Nome é obrigatório.', 'warning');
+    btn.textContent = 'Salvando...'; btn.disabled = true;
+    try {
+      const obj = {
+        empresa_id: EMPRESA_ID,
+        nome,
+        telefone: document.getElementById('avTelefone').value,
+        interesse: document.getElementById('avRendaFam').value,
+        etiqueta: document.getElementById('avEtiqueta').value || null,
+        parecer: document.getElementById('avParecer').value,
+      };
+      const { error } = id
+        ? await sb.from('avaliacoes').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID)
+        : await sb.from('avaliacoes').insert(obj);
+      if (error) throw error;
+      showToast(id ? 'Lead atualizado!' : 'Lead salvo com sucesso!', 'success');
+      closeModal('modalAvaliacao');
+      loadLeads();
+    } catch(e) { showToast('Erro: ' + e.message, 'error'); } finally { btn.textContent = 'Salvar Lead'; btn.disabled = false; }
+  }
+
+  async function deleteLead(id) {
+    if (!confirm('Apagar este lead?')) return;
+    await sb.from('avaliacoes').delete().eq('id', id).eq('empresa_id', EMPRESA_ID);
+    showToast('Lead apagado.', 'success'); loadLeads();
+  }
+
+  function openWhatsAppLead(telefone, nome) { openWhatsApp(telefone, nome); }
+
+  // Stub para compatibilidade
+  async function loadAvaliacoes() { loadLeads(); }
 
   // =============================================
   // WHATSAPP — MODAL FORMATADO
