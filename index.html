@@ -1421,11 +1421,18 @@
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                 Baixar Backup Completo (.json)
               </button>
+              <div style="height:1px;background:var(--border-light);margin:16px 0;"></div>
+              <button class="btn btn-danger" id="btnExcluirTodosClientes" style="width:100%;justify-content:center;padding:14px;" onclick="confirmarExcluirTodosClientes()">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Excluir Todos os Clientes
+              </button>
             </div>
           </div>
 
         </div>
       </div>
+
+      <div class="page-section" id="page-clientes">
         <div class="card">
           <div class="card-header">
             <h3>
@@ -1439,10 +1446,6 @@
                 <option value="cliente">Clientes</option>
                 <option value="avalista">Avalistas</option>
               </select>
-              <button class="btn btn-danger" onclick="confirmarExcluirTodosClientes()" title="Excluir todos os clientes" style="gap:5px;">
-                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                Excluir Todos
-              </button>
               <button class="btn btn-primary" onclick="openClienteModal(null,'cliente')">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
                 Novo Cadastro
@@ -3491,7 +3494,7 @@
     const ok2 = confirm('Tem a certeza absoluta? Todos os dados de clientes serão perdidos.');
     if (!ok2) return;
 
-    const btn = document.querySelector('[onclick="confirmarExcluirTodosClientes()"]');
+    const btn = document.getElementById('btnExcluirTodosClientes');
     if (btn) { btn.textContent = 'Excluindo...'; btn.disabled = true; }
     try {
       const { error } = await sb.from('clientes').delete().eq('empresa_id', EMPRESA_ID);
@@ -3501,7 +3504,7 @@
     } catch(e) {
       showToast('Erro ao excluir: ' + e.message, 'error');
     } finally {
-      if (btn) { btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Excluir Todos'; btn.disabled = false; }
+      if (btn) { btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Excluir Todos os Clientes'; btn.disabled = false; }
     }
   }
 
@@ -4763,11 +4766,26 @@
 
         const { data: ex } = await sb.from('inadimplencia').select('id').eq('empresa_id', EMPRESA_ID).eq('cliente_id', clienteId).is('parcela_id', null).eq('status', 'pendente');
         if (ex && ex.length > 0) {
-          const { error: eu } = await sb.from('inadimplencia').update({ especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0, parcelas_info: row.parcelas, prox_vencimento: row.proxVenc }).eq('id', ex[0].id);
-          if (eu) throw new Error('Atualizar: ' + eu.message);
+          // Tenta atualizar com colunas extras; se falhar, atualiza só os campos base
+          const updFull = { especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0, parcelas_info: row.parcelas, prox_vencimento: row.proxVenc };
+          const { error: eu1 } = await sb.from('inadimplencia').update(updFull).eq('id', ex[0].id);
+          if (eu1) {
+            // Fallback sem colunas novas
+            const { error: eu2 } = await sb.from('inadimplencia').update({ especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0 }).eq('id', ex[0].id);
+            if (eu2) throw new Error('Atualizar inadimplência: ' + eu2.message);
+            console.warn('[Importar] Salvo sem parcelas_info/prox_vencimento — execute o SQL de colunas no Supabase');
+          }
         } else {
-          const { error: ei } = await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente', parcelas_info: row.parcelas, prox_vencimento: row.proxVenc });
-          if (ei) throw new Error('Inserir: ' + ei.message);
+          // Tenta inserir com colunas extras; se falhar, insere só os campos base
+          const insFull = { empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente', parcelas_info: row.parcelas, prox_vencimento: row.proxVenc };
+          const { error: ei1 } = await sb.from('inadimplencia').insert(insFull);
+          if (ei1) {
+            // Fallback sem colunas novas
+            const insBase = { empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente' };
+            const { error: ei2 } = await sb.from('inadimplencia').insert(insBase);
+            if (ei2) throw new Error('Inserir inadimplência: ' + ei2.message);
+            console.warn('[Importar] Salvo sem parcelas_info/prox_vencimento — execute o SQL de colunas no Supabase');
+          }
         }
 
         await sb.from('historico_cobrancas').insert({ empresa_id: EMPRESA_ID, cliente_id: clienteId, data_registro: hoje, tipo: 'Importação Planilha', mensagem: `📥 Especialista: ${row.especialista} | Parcelas: ${row.parcelas||'-'} | Venc: ${row.proxVenc||'-'} | Valor: ${row.valorParcela||'-'} | Atraso: ${row.atraso||'-'}` });
