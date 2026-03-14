@@ -710,7 +710,7 @@
     e.preventDefault();
 
     const user       = document.getElementById('username').value.trim();
-    const pass       = document.getElementById('password').value; // sem trim — preserva senha exata
+    const pass       = document.getElementById('password').value;
     const btnSubmit  = document.getElementById('btnSubmit');
     const btnText    = document.getElementById('btnText');
     const spinner    = document.getElementById('btnSpinner');
@@ -727,14 +727,46 @@
     arrow.style.display   = 'none';
 
     try {
-      const { data, error } = await sb
-        .from('usuarios_clientes')
-        .select('*')
-        .eq('usuario', user)
-        .eq('senha', pass)
-        .single();
 
-      if (error || !data) throw new Error('Utilizador ou palavra-passe incorretos.');
+      // PASSO 1 — testa se consegue ler a tabela
+      const { data: teste, error: errTeste } = await sb
+        .from('usuarios_clientes')
+        .select('id, usuario')
+        .limit(1);
+
+      if (errTeste) {
+        console.error('[Login] ERRO ao acessar tabela:', errTeste);
+        throw new Error('Erro de acesso ao banco: ' + errTeste.message + ' | Código: ' + errTeste.code);
+      }
+      console.log('[Login] Tabela acessível. Registos encontrados:', teste?.length, teste);
+
+      // PASSO 2 — busca só pelo usuário
+      const { data: porUsuario, error: errUser } = await sb
+        .from('usuarios_clientes')
+        .select('id, usuario, senha, status, vencimento, nome_empresa, logo_url')
+        .eq('usuario', user);
+
+      if (errUser) {
+        console.error('[Login] ERRO ao buscar usuário:', errUser);
+        throw new Error('Erro ao buscar usuário: ' + errUser.message);
+      }
+
+      console.log('[Login] Resultado busca por usuario="' + user + '":', porUsuario);
+
+      if (!porUsuario || porUsuario.length === 0) {
+        throw new Error('Utilizador "' + user + '" não encontrado. Verifique o cadastro no super-adm.');
+      }
+
+      const registro = porUsuario[0];
+      console.log('[Login] Senha no banco:', JSON.stringify(registro.senha));
+      console.log('[Login] Senha digitada:', JSON.stringify(pass));
+      console.log('[Login] Senhas iguais?', registro.senha === pass);
+
+      if (registro.senha !== pass) {
+        throw new Error('Palavra-passe incorreta. Senha esperada tem ' + (registro.senha?.length || 0) + ' caracteres, digitada tem ' + pass.length + '.');
+      }
+
+      const data = registro;
 
       if (data.status !== 'ativo')
         throw new Error('Acesso bloqueado. Contacte o suporte.');
@@ -757,6 +789,7 @@
       setTimeout(() => { window.location.href = 'index.html'; }, 1200);
 
     } catch (err) {
+      console.error('[Login] Falha final:', err.message);
       showToast(err.message, 'error');
       btnSubmit.disabled    = false;
       btnText.textContent   = 'Acessar o Sistema';
