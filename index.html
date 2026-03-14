@@ -8,13 +8,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
   
-  <!-- Polyfill navigator.locks — necessário para Easypanel/iframe onde a API é bloqueada -->
+  <!-- Polyfill navigator.locks — Easypanel/iframe -->
   <script>
     if (!navigator.locks) {
       navigator.locks = {
-        request: (name, optionsOrCallback, callback) => {
-          const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
-          return Promise.resolve().then(() => cb({ name }));
+        request: (name, optOrCb, cb) => {
+          const fn = typeof optOrCb === 'function' ? optOrCb : cb;
+          return Promise.resolve().then(() => fn({ name }));
         },
         query: () => Promise.resolve({ held: [], pending: [] }),
       };
@@ -1563,7 +1563,7 @@
                   <option value="">Todos os Registos</option>
                </select>
                <button class="btn btn-outline" onclick="printInadimplenciaGeral()">Gerar PDF</button>
-               <button class="btn btn-outline" onclick="openImportarPlanilha()" style="background:linear-gradient(135deg,rgba(41,121,255,0.08),rgba(41,121,255,0.04));border-color:rgba(41,121,255,0.3);color:var(--vivid-blue);gap:6px;" title="Importar planilha Excel de inadimplência">
+               <button class="btn btn-outline" onclick="openImportarPlanilha()" style="background:linear-gradient(135deg,rgba(41,121,255,0.08),rgba(41,121,255,0.04));border-color:rgba(41,121,255,0.3);color:var(--vivid-blue);gap:6px;">
                  <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
                  Importar Planilha
                </button>
@@ -1647,29 +1647,18 @@
 
     </div> </div>
 
-      <!-- NOTIFICAÇÕES -->
-
-    </div>
-
-<!-- ═══════════════════════════════════════════════════
-     MODAL — IMPORTAR PLANILHA DE INADIMPLÊNCIA
-════════════════════════════════════════════════════ -->
+<!-- MODAL IMPORTAR PLANILHA -->
 <div class="modal-overlay" id="modalImportarPlanilha">
   <div class="modal" style="max-width:860px;">
     <div class="modal-header">
-      <h3>
-        <svg style="width:18px;height:18px;color:var(--vivid-blue);margin-right:6px;vertical-align:middle;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        Importar Planilha de Inadimplência
-      </h3>
+      <h3>Importar Planilha de Inadimplência</h3>
       <button class="modal-close" onclick="closeModal('modalImportarPlanilha')">&times;</button>
     </div>
     <div class="modal-body">
-
-      <!-- Passo 1: upload -->
       <div id="importStep1">
         <p style="font-size:13.5px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
-          Selecione o arquivo <strong>.xlsx</strong> exportado do sistema. As colunas esperadas são:<br>
-          <code style="background:var(--surface-2);padding:2px 8px;border-radius:6px;font-size:12px;">Especialista · Nome completo · Telefone · Situação · Saldo Devedor · Parcelas · Próx. Venc. · Valor Parcela · Atraso Contr.</code>
+          Selecione o arquivo <strong>.xlsx</strong> com as colunas:<br>
+          <code style="background:var(--surface-2);padding:2px 8px;border-radius:6px;font-size:12px;">Especialista · Nome completo · Saldo Devedor · Parcelas · Próx. Venc. · Valor Parcela · Atraso Contr.</code>
         </p>
         <div class="file-upload-box" id="importDropZone" style="padding:36px;border:2px dashed #a0b0d0;" ondragover="event.preventDefault();" ondrop="handleImportDrop(event)">
           <span style="flex-direction:column;align-items:center;gap:10px;display:flex;">
@@ -1681,8 +1670,6 @@
           <input type="file" id="importFileInput" accept=".xlsx,.xls" onchange="handleImportFile(this)" style="position:absolute;inset:0;opacity:0;cursor:pointer;" />
         </div>
       </div>
-
-      <!-- Passo 2: preview -->
       <div id="importStep2" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
           <div>
@@ -1690,39 +1677,32 @@
             <div id="importMatchInfo" style="font-size:12px;color:var(--text-secondary);margin-top:3px;"></div>
           </div>
           <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <span style="font-size:12px;padding:4px 12px;background:var(--success-bg);color:var(--success-text);border-radius:100px;font-weight:700;">● Encontrado no sistema</span>
-            <span style="font-size:12px;padding:4px 12px;background:var(--warning-bg);color:var(--warning-text);border-radius:100px;font-weight:700;">● Não vinculado</span>
+            <span style="font-size:12px;padding:4px 12px;background:var(--success-bg);color:var(--success-text);border-radius:100px;font-weight:700;">● Vinculado</span>
+            <span style="font-size:12px;padding:4px 12px;background:var(--warning-bg);color:var(--warning-text);border-radius:100px;font-weight:700;">● Novo cadastro</span>
           </div>
         </div>
         <div style="max-height:340px;overflow-y:auto;border-radius:var(--radius-sm);border:1px solid var(--border);">
           <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
             <thead style="position:sticky;top:0;z-index:2;">
               <tr style="background:linear-gradient(90deg,#1e2b40,#1a2436);color:#e8edf5;">
-                <th style="padding:10px 12px;text-align:left;font-weight:700;white-space:nowrap;">Especialista</th>
-                <th style="padding:10px 12px;text-align:left;font-weight:700;">Nome Completo</th>
-                <th style="padding:10px 12px;text-align:left;font-weight:700;white-space:nowrap;">Parcelas</th>
-                <th style="padding:10px 12px;text-align:left;font-weight:700;white-space:nowrap;">Próx. Venc.</th>
-                <th style="padding:10px 12px;text-align:right;font-weight:700;white-space:nowrap;">Saldo Devedor</th>
-                <th style="padding:10px 12px;text-align:center;font-weight:700;white-space:nowrap;">Atraso</th>
-                <th style="padding:10px 12px;text-align:center;font-weight:700;">Situação</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:700;">Especialista</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:700;">Nome</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:700;">Parcelas</th>
+                <th style="padding:10px 12px;text-align:left;font-weight:700;">Próx. Venc.</th>
+                <th style="padding:10px 12px;text-align:right;font-weight:700;">Saldo</th>
+                <th style="padding:10px 12px;text-align:center;font-weight:700;">Atraso</th>
+                <th style="padding:10px 12px;text-align:center;font-weight:700;">Status</th>
               </tr>
             </thead>
             <tbody id="importPreviewBody"></tbody>
           </table>
         </div>
-        <div style="margin-top:12px;padding:10px 14px;background:var(--info-bg);border-radius:var(--radius-xs);font-size:12.5px;color:var(--info-text);border:1px solid rgba(41,121,255,0.2);">
-          <strong>ℹ️ Atenção:</strong> Clientes marcados como <em>"Encontrado"</em> terão inadimplência vinculada ao cadastro existente. Os <em>"Não vinculados"</em> serão importados como referências externas para acompanhamento.
-        </div>
       </div>
-
     </div>
     <div class="modal-footer">
-      <button class="btn btn-outline" onclick="resetImportModal()">
-        <svg style="width:14px;height:14px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
-        Trocar Arquivo
-      </button>
+      <button class="btn btn-outline" onclick="resetImportModal()">Trocar Arquivo</button>
       <button class="btn btn-outline" onclick="closeModal('modalImportarPlanilha')">Cancelar</button>
-      <button class="btn btn-primary" id="btnConfirmarImport" onclick="confirmarImportacao()" style="display:none;" >
+      <button class="btn btn-primary" id="btnConfirmarImport" onclick="confirmarImportacao()" style="display:none;">
         <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
         Confirmar Importação
       </button>
@@ -1730,7 +1710,9 @@
   </div>
 </div>
 
-<div class="modal-overlay" id="modalConfirmDeleteLogo">
+      <!-- NOTIFICAÇÕES -->
+
+    </div> <div class="modal-overlay" id="modalConfirmDeleteLogo">
   <div class="modal" style="max-width: 400px; text-align: center; padding: 40px 30px;">
     <svg style="width:50px;height:50px;color:var(--warning);margin-bottom:15px; display:inline-block;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
     <h3 style="margin-bottom:10px;">Opções de Logótipo</h3>
@@ -2435,16 +2417,7 @@
       return;
     }
     sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: {
-        persistSession: false,
-        autoRefreshToken: false,
-        detectSessionInUrl: false,
-        lock: undefined,
-      },
-      global: {
-        // Desativa o uso do navigator.locks (incompatível com Easypanel/iframe)
-        fetch: (...args) => fetch(...args),
-      },
+      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
     });
     
     if (sessionStorage.getItem('microcred_auth') !== 'true' || !EMPRESA_ID) {
@@ -4455,8 +4428,7 @@
 
   function openImportarPlanilha() {
     if (typeof XLSX === 'undefined') {
-      showToast('Recarregue a página e tente novamente.', 'error');
-      return;
+      showToast('Recarregue a página e tente novamente.', 'error'); return;
     }
     resetImportModal();
     openModal('modalImportarPlanilha');
@@ -4485,32 +4457,21 @@
   }
 
   function _normCol(s) {
-    return String(s || '')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/[^a-z0-9 ]/gi, '')
-      .trim().toLowerCase();
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/gi, '').trim().toLowerCase();
   }
 
   function processImportFile(file) {
-    if (!file.name.match(/\.xlsx?$/i)) {
-      showToast('Selecione um arquivo .xlsx válido.', 'error');
-      return;
-    }
+    if (!file.name.match(/\.xlsx?$/i)) { showToast('Selecione um arquivo .xlsx válido.', 'error'); return; }
     document.getElementById('importFileName').textContent = '📄 ' + file.name;
-
     const reader = new FileReader();
     reader.onerror = () => showToast('Erro ao ler o arquivo.', 'error');
     reader.onload = async (evt) => {
       try {
         const wb = XLSX.read(new Uint8Array(evt.target.result), { type: 'array', cellDates: true });
         const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null });
-
-        if (!aoa || aoa.length < 2) {
-          showToast('Planilha sem dados.', 'warning'); return;
-        }
+        if (!aoa || aoa.length < 2) { showToast('Planilha sem dados.', 'warning'); return; }
 
         const hdrs = aoa[0].map(h => _normCol(String(h || '')));
-
         const ci = {
           especialista: hdrs.findIndex(h => h.includes('especialista')),
           nome:         hdrs.findIndex(h => h.includes('nome')),
@@ -4521,7 +4482,6 @@
           valorParcela: hdrs.findIndex(h => h.includes('valor') && h.includes('parcela')),
           atraso:       hdrs.findIndex(h => h.includes('atraso')),
         };
-
         if (ci.especialista < 0) ci.especialista = 0;
         if (ci.nome < 0)         ci.nome         = 1;
         if (ci.saldo < 0)        ci.saldo        = 5;
@@ -4530,66 +4490,40 @@
         if (ci.valorParcela < 0) ci.valorParcela = 8;
         if (ci.atraso < 0)       ci.atraso       = 9;
 
-        function g(row, key) {
-          const v = row[ci[key]];
-          return (v === undefined) ? null : v;
-        }
+        const g = (row, key) => { const v = row[ci[key]]; return v === undefined ? null : v; };
 
-        function toDateStr(v) {
+        const toDateStr = (v) => {
           if (!v) return null;
           if (v instanceof Date) return isNaN(v) ? null : v.toISOString().slice(0, 10);
-          if (typeof v === 'string') {
-            if (v.match(/^\d{4}-\d{2}-\d{2}/)) return v.slice(0, 10);
-            if (v.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-              const [d, m, y] = v.split('/'); return `${y}-${m}-${d}`;
-            }
-          }
-          if (typeof v === 'number' && v > 1) {
-            const d = new Date(Math.round((v - 25569) * 86400 * 1000));
-            return isNaN(d) ? null : d.toISOString().slice(0, 10);
-          }
+          if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}/)) return v.slice(0, 10);
+          if (typeof v === 'string' && v.match(/^\d{2}\/\d{2}\/\d{4}/)) { const [d,m,y]=v.split('/'); return `${y}-${m}-${d}`; }
+          if (typeof v === 'number' && v > 1) { const d = new Date(Math.round((v-25569)*86400*1000)); return isNaN(d)?null:d.toISOString().slice(0,10); }
           return null;
-        }
-
-        function toNum(v) {
-          if (v == null) return 0;
-          if (typeof v === 'number') return Math.round(v * 100) / 100;
-          return parseFloat(String(v).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
-        }
-
-        function toDias(v) {
-          const m = String(v || '0').match(/(\d+)/);
-          return m ? parseInt(m[1]) : 0;
-        }
+        };
+        const toNum = (v) => { if (v==null) return 0; if (typeof v==='number') return Math.round(v*100)/100; return parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0; };
+        const toDias = (v) => { const m=String(v||'0').match(/(\d+)/); return m?parseInt(m[1]):0; };
 
         _importData = aoa.slice(1)
-          .filter(row => {
-            const nome = String(g(row, 'nome') || '').trim();
-            return nome && nome.toLowerCase() !== 'total geral';
-          })
+          .filter(row => { const n=String(g(row,'nome')||'').trim(); return n && n.toLowerCase() !== 'total geral'; })
           .map(row => {
-            const atrasoRaw = g(row, 'atraso');
+            const ar = g(row,'atraso');
             return {
-              especialista: String(g(row, 'especialista') || '-').trim(),
-              nome:         String(g(row, 'nome') || '').trim(),
-              telefone:     String(g(row, 'telefone') || '').trim(),
-              saldo:        toNum(g(row, 'saldo')),
-              parcelas:     String(g(row, 'parcelas') || '').trim(),
-              proxVenc:     toDateStr(g(row, 'proxVenc')),
-              valorParcela: String(g(row, 'valorParcela') || '').trim(),
-              atraso:       String(atrasoRaw || '').trim(),
-              diasAtraso:   toDias(atrasoRaw),
+              especialista: String(g(row,'especialista')||'-').trim(),
+              nome:         String(g(row,'nome')||'').trim(),
+              telefone:     String(g(row,'telefone')||'').trim(),
+              saldo:        toNum(g(row,'saldo')),
+              parcelas:     String(g(row,'parcelas')||'').trim(),
+              proxVenc:     toDateStr(g(row,'proxVenc')),
+              valorParcela: String(g(row,'valorParcela')||'').trim(),
+              atraso:       String(ar||'').trim(),
+              diasAtraso:   toDias(ar),
             };
           });
 
-        if (_importData.length === 0) {
-          showToast('Nenhum dado válido encontrado.', 'warning'); return;
-        }
-
+        if (_importData.length === 0) { showToast('Nenhum dado válido encontrado.', 'warning'); return; }
         await buildImportPreview();
-
       } catch (err) {
-        console.error('[Importar] Erro:', err);
+        console.error('[Importar]', err);
         showToast('Erro ao ler arquivo: ' + err.message, 'error');
       }
     };
@@ -4597,9 +4531,7 @@
   }
 
   async function buildImportPreview() {
-    const { data: clientes } = await sb
-      .from('clientes').select('id, nome').eq('empresa_id', EMPRESA_ID);
-
+    const { data: clientes } = await sb.from('clientes').select('id, nome').eq('empresa_id', EMPRESA_ID);
     const clienteMap = {};
     (clientes || []).forEach(c => { if (c.nome) clienteMap[_normCol(c.nome)] = c; });
 
@@ -4609,43 +4541,28 @@
 
     _importData.forEach(row => {
       const match = clienteMap[_normCol(row.nome)];
-      row._clienteId    = match?.id || null;
-      row._clienteMatch = !!match;
+      row._clienteId = match?.id || null;
       if (match) found++; else notFound++;
 
-      const proxVencFmt = row.proxVenc
-        ? (() => { try { return new Date(row.proxVenc + 'T12:00:00').toLocaleDateString('pt-BR'); } catch { return row.proxVenc; } })()
-        : '-';
-
-      const saldoFmt = row.saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-
+      const proxFmt = row.proxVenc ? (() => { try { return new Date(row.proxVenc+'T12:00:00').toLocaleDateString('pt-BR'); } catch { return row.proxVenc; } })() : '-';
+      const saldoFmt = row.saldo.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
       const diasBadge = row.diasAtraso >= 90
         ? `<span style="background:#fff0f2;color:#c0001a;padding:2px 9px;border-radius:100px;font-weight:700;font-size:11px;">${row.diasAtraso}d ⚠️</span>`
         : row.diasAtraso >= 30
           ? `<span style="background:#fff9e6;color:#8a5c00;padding:2px 9px;border-radius:100px;font-weight:700;font-size:11px;">${row.diasAtraso}d</span>`
           : `<span style="background:#f0f2f8;color:#4a5568;padding:2px 9px;border-radius:100px;font-weight:700;font-size:11px;">${row.diasAtraso}d</span>`;
-
       const statusCell = match
         ? `<span style="background:var(--success-bg);color:var(--success-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">✓ Vinculado</span>`
         : `<span style="background:var(--warning-bg);color:var(--warning-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">⚡ Novo</span>`;
 
       const tr = document.createElement('tr');
-      tr.style.cssText = `background:${match ? 'var(--success-bg)' : 'var(--warning-bg)'};border-bottom:1px solid var(--border-light);`;
-      tr.innerHTML = `
-        <td style="padding:9px 12px;font-weight:600;font-size:12px;color:var(--primary);white-space:nowrap;">${row.especialista}</td>
-        <td style="padding:9px 12px;font-weight:600;">${row.nome}</td>
-        <td style="padding:9px 12px;color:var(--text-secondary);white-space:nowrap;">${row.parcelas || '-'}</td>
-        <td style="padding:9px 12px;white-space:nowrap;">${proxVencFmt}</td>
-        <td style="padding:9px 12px;text-align:right;font-weight:700;">${saldoFmt}</td>
-        <td style="padding:9px 12px;text-align:center;">${diasBadge}</td>
-        <td style="padding:9px 12px;text-align:center;">${statusCell}</td>
-      `;
+      tr.style.cssText = `background:${match?'var(--success-bg)':'var(--warning-bg)'};border-bottom:1px solid var(--border-light);`;
+      tr.innerHTML = `<td style="padding:9px 12px;font-weight:600;font-size:12px;color:var(--primary);white-space:nowrap;">${row.especialista}</td><td style="padding:9px 12px;font-weight:600;">${row.nome}</td><td style="padding:9px 12px;white-space:nowrap;">${row.parcelas||'-'}</td><td style="padding:9px 12px;white-space:nowrap;">${proxFmt}</td><td style="padding:9px 12px;text-align:right;font-weight:700;">${saldoFmt}</td><td style="padding:9px 12px;text-align:center;">${diasBadge}</td><td style="padding:9px 12px;text-align:center;">${statusCell}</td>`;
       tbody.appendChild(tr);
     });
 
     document.getElementById('importPreviewTitle').textContent = `${_importData.length} cliente(s) na planilha`;
-    document.getElementById('importMatchInfo').textContent =
-      `${found} vinculado(s) · ${notFound} novo(s)`;
+    document.getElementById('importMatchInfo').textContent = `${found} vinculado(s) · ${notFound} novo(s)`;
     document.getElementById('importStep1').style.display = 'none';
     document.getElementById('importStep2').style.display = 'block';
     document.getElementById('btnConfirmarImport').style.display = 'flex';
@@ -4653,92 +4570,153 @@
 
   async function confirmarImportacao() {
     const btn = document.getElementById('btnConfirmarImport');
-    btn.textContent = 'Importando...';
-    btn.disabled = true;
-
+    btn.textContent = 'Importando...'; btn.disabled = true;
     let ok = 0, fail = 0;
     const hoje = new Date().toISOString().slice(0, 10);
 
     for (const row of _importData) {
       try {
         let clienteId = row._clienteId;
-
         if (!clienteId) {
-          const novoCliente = { empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente', tipo: 'cliente' };
-          if (row.telefone && row.telefone !== 'null' && row.telefone !== '') novoCliente.celular = row.telefone;
-
-          const { data: criado, error: eCli } = await sb
-            .from('clientes').insert(novoCliente).select('id').single();
-
-          if (eCli) {
-            const { data: criado2, error: eCli2 } = await sb
-              .from('clientes').insert({ empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente' }).select('id').single();
-            if (eCli2) throw new Error(`Criar cliente "${row.nome}": ${eCli2.message}`);
-            clienteId = criado2.id;
-          } else {
-            clienteId = criado.id;
-          }
+          const obj = { empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente', tipo: 'cliente' };
+          if (row.telefone && row.telefone !== 'null' && row.telefone !== '') obj.celular = row.telefone;
+          const { data: c1, error: e1 } = await sb.from('clientes').insert(obj).select('id').single();
+          if (e1) {
+            const { data: c2, error: e2 } = await sb.from('clientes').insert({ empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente' }).select('id').single();
+            if (e2) throw new Error('Criar cliente: ' + e2.message);
+            clienteId = c2.id;
+          } else { clienteId = c1.id; }
         }
 
-        const { data: existentes } = await sb
-          .from('inadimplencia')
-          .select('id, status')
-          .eq('empresa_id', EMPRESA_ID)
-          .eq('cliente_id', clienteId)
-          .is('parcela_id', null)
-          .eq('status', 'pendente');
-
-        if (existentes && existentes.length > 0) {
-          const { error: eUp } = await sb.from('inadimplencia').update({
-            especialista:       row.especialista,
-            dias_atraso:        row.diasAtraso,
-            valor_devido:       row.saldo,
-            valor_total_devido: row.saldo,
-            valor_multa:        0,
-            valor_mora:         0,
-          }).eq('id', existentes[0].id);
-          if (eUp) throw new Error(`Atualizar inad: ${eUp.message}`);
+        const { data: ex } = await sb.from('inadimplencia').select('id').eq('empresa_id', EMPRESA_ID).eq('cliente_id', clienteId).is('parcela_id', null).eq('status', 'pendente');
+        if (ex && ex.length > 0) {
+          const { error: eu } = await sb.from('inadimplencia').update({ especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0 }).eq('id', ex[0].id);
+          if (eu) throw new Error('Atualizar: ' + eu.message);
         } else {
-          const inad = {
-            empresa_id:         EMPRESA_ID,
-            cliente_id:         clienteId,
-            especialista:       row.especialista,
-            dias_atraso:        row.diasAtraso,
-            valor_devido:       row.saldo,
-            valor_multa:        0,
-            valor_mora:         0,
-            valor_total_devido: row.saldo,
-            status:             'pendente',
-          };
-          const { error: eIns } = await sb.from('inadimplencia').insert(inad);
-          if (eIns) throw new Error(`Inserir inad: ${eIns.message}`);
+          const { error: ei } = await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente' });
+          if (ei) throw new Error('Inserir: ' + ei.message);
         }
 
-        await sb.from('historico_cobrancas').insert({
-          empresa_id:    EMPRESA_ID,
-          cliente_id:    clienteId,
-          data_registro: hoje,
-          tipo:          'Importação Planilha',
-          mensagem:      `📥 Especialista: ${row.especialista} | Parcelas: ${row.parcelas||'-'} | Venc: ${row.proxVenc||'-'} | Valor: ${row.valorParcela||'-'} | Atraso: ${row.atraso||'-'}`,
-        });
-
+        await sb.from('historico_cobrancas').insert({ empresa_id: EMPRESA_ID, cliente_id: clienteId, data_registro: hoje, tipo: 'Importação Planilha', mensagem: `📥 Especialista: ${row.especialista} | Parcelas: ${row.parcelas||'-'} | Venc: ${row.proxVenc||'-'} | Valor: ${row.valorParcela||'-'} | Atraso: ${row.atraso||'-'}` });
         ok++;
-
-      } catch (e) {
-        console.error(`[Importar] ❌ ${row.nome}:`, e.message);
-        fail++;
-      }
+      } catch (e) { console.error(`[Importar] ❌ ${row.nome}:`, e.message); fail++; }
     }
 
-    btn.textContent = 'Confirmar Importação';
-    btn.disabled = false;
+    btn.textContent = 'Confirmar Importação'; btn.disabled = false;
     closeModal('modalImportarPlanilha');
-
     if (ok > 0)   showToast(`✅ ${ok} cliente(s) importado(s)!`, 'success');
     if (fail > 0) showToast(`⚠️ ${fail} erro(s) — veja o F12.`, 'warning');
-
     await loadInadimplencia();
   }
 
   // =============================================
   // WHATSAPP — MODAL FORMATADO
+  // =============================================
+
+  let _waClienteAtual = { nome: '', telefone: '' };
+
+  function openWhatsApp(telefone, nome) {
+    _waClienteAtual = { nome, telefone };
+    document.getElementById('waClienteNome').textContent = nome;
+    document.getElementById('waTelefone').value = telefone;
+    document.getElementById('waMensagem').value = '';
+    document.getElementById('waPreview').textContent = '';
+    document.getElementById('waCharCount').textContent = '0 caracteres';
+    openModal('modalWhatsApp');
+  }
+
+  function aplicarModelo(tipo) {
+    const nome = _waClienteAtual.nome.split(' ')[0];
+    const modelos = {
+      saudacao:    `Olá ${nome}! 😊
+
+Tudo bem? Sou da equipe MicroCred e estou entrando em contato para verificar se há algo em que possamos te ajudar.
+
+Fique à vontade para nos chamar quando precisar! 🙏`,
+      cobranca:    `Olá ${nome}! 👋
+
+Identificamos uma pendência no seu contrato conosco. Gostaríamos de conversar para encontrar a melhor solução.
+
+Podemos falar agora? ⏰`,
+      vencimento:  `Olá ${nome}! 📅
+
+Passamos para lembrá-lo(a) que sua parcela está se aproximando do vencimento.
+
+Qualquer dúvida sobre formas de pagamento, pode nos chamar aqui. 😊`,
+      confirmacao: `Olá ${nome}! ✅
+
+Confirmamos o recebimento do seu pagamento. Obrigado pela pontualidade! 🙏
+
+Estamos sempre à disposição.`,
+      acordo:      `Olá ${nome}! 🤝
+
+Gostaríamos de conversar sobre a possibilidade de um acordo para regularizar sua situação.
+
+Estamos abertos para encontrar a melhor opção para você. Pode nos chamar!`,
+    };
+    document.getElementById('waMensagem').value = modelos[tipo] || '';
+    atualizarPreviewWA();
+  }
+
+  function atualizarPreviewWA() {
+    const msg = document.getElementById('waMensagem').value;
+    document.getElementById('waPreview').textContent = msg;
+    document.getElementById('waCharCount').textContent = msg.length + ' caracteres';
+  }
+
+  function enviarWhatsAppCliente() {
+    const msg = document.getElementById('waMensagem').value.trim();
+    let tel = document.getElementById('waTelefone').value.replace(/\D/g, '');
+    if (!msg) return showToast('Digite uma mensagem antes de enviar.', 'warning');
+    if (!tel) return showToast('Número de telefone inválido.', 'error');
+    if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
+    window.open('https://api.whatsapp.com/send?phone=' + tel + '&text=' + encodeURIComponent(msg), '_blank');
+    closeModal('modalWhatsApp');
+  }
+
+  // Atualizar preview em tempo real
+  document.addEventListener('DOMContentLoaded', () => {
+    const waMsg = document.getElementById('waMensagem');
+    if (waMsg) waMsg.addEventListener('input', atualizarPreviewWA);
+  });
+
+  // =============================================
+  // TEMA LIGHT / DARK
+  // =============================================
+  function toggleTheme() {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('app_theme', newTheme);
+    updateThemeIcon(newTheme);
+  }
+
+  function updateThemeIcon(theme) {
+    const sun  = document.getElementById('themeIconSun');
+    const moon = document.getElementById('themeIconMoon');
+    if (!sun || !moon) return;
+    if (theme === 'dark') {
+      sun.style.display  = 'block';
+      moon.style.display = 'none';
+    } else {
+      sun.style.display  = 'none';
+      moon.style.display = 'block';
+    }
+  }
+
+  // Aplica tema salvo ao carregar
+  (function() {
+    const saved = localStorage.getItem('app_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', saved);
+    updateThemeIcon(saved);
+  })();
+
+  // Ao iniciar o app, carregar badge de tarefas
+  const _origInitApp = typeof initApp !== 'undefined' ? null : null;
+
+  // =============================================
+  // Inicializa o Software
+  initApp();
+</script>
+</body>
+</html>
