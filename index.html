@@ -1389,10 +1389,43 @@
             </div>
           </div>
 
+          <!-- CARD: BACKUP -->
+          <div class="card" style="border-top: 4px solid var(--vivid-teal);">
+            <div class="card-header">
+              <h3>
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Backup dos Dados
+              </h3>
+            </div>
+            <div class="card-body">
+              <p style="color:var(--text-secondary);font-size:13.5px;margin-bottom:20px;line-height:1.6;">Baixe um arquivo <strong>.json</strong> com todos os seus dados: clientes, operações, parcelas, inadimplência e histórico de cobranças.</p>
+              <div style="background:var(--bg);border:1px solid var(--border-light);border-radius:12px;padding:16px;margin-bottom:20px;">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                  <span style="font-size:13px;color:var(--text-secondary);">Clientes</span>
+                  <span id="bkTotalClientes" style="font-weight:700;font-size:13px;">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                  <span style="font-size:13px;color:var(--text-secondary);">Operações</span>
+                  <span id="bkTotalOps" style="font-weight:700;font-size:13px;">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+                  <span style="font-size:13px;color:var(--text-secondary);">Parcelas</span>
+                  <span id="bkTotalParc" style="font-weight:700;font-size:13px;">—</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                  <span style="font-size:13px;color:var(--text-secondary);">Inadimplência</span>
+                  <span id="bkTotalInad" style="font-weight:700;font-size:13px;">—</span>
+                </div>
+              </div>
+              <button class="btn btn-primary" id="btnBaixarBackup" style="width:100%;justify-content:center;padding:14px;background:linear-gradient(135deg,#00b4a6,#00bcd4);" onclick="baixarBackupClientes()">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Baixar Backup Completo (.json)
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
-
-      <div class="page-section" id="page-clientes">
         <div class="card">
           <div class="card-header">
             <h3>
@@ -1406,6 +1439,10 @@
                 <option value="cliente">Clientes</option>
                 <option value="avalista">Avalistas</option>
               </select>
+              <button class="btn btn-danger" onclick="confirmarExcluirTodosClientes()" title="Excluir todos os clientes" style="gap:5px;">
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Excluir Todos
+              </button>
               <button class="btn btn-primary" onclick="openClienteModal(null,'cliente')">
                 <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
                 Novo Cadastro
@@ -1774,8 +1811,8 @@
         </div>
 
         <h4 class="form-section-title">Dados Pessoais</h4>
-        <div class="form-group"><label>Nome Completo</label><input type="text" id="cNome" placeholder="Nome do cliente" /></div>
-        <div class="form-group"><label>CPF</label><input type="text" id="cCpf" maxlength="14" oninput="maskCPF(this)" placeholder="000.000.000-00" /></div>
+        <div class="form-group"><label>Nome Completo</label><input type="text" id="cNome" placeholder="Nome do cliente" oninput="verificarDuplicadoCliente()" /><div id="alertaDuplicado" style="display:none;margin-top:6px;padding:10px 14px;background:var(--warning-bg);border:1.5px solid var(--warning);border-radius:var(--radius-xs);font-size:12.5px;color:var(--warning-text);font-weight:600;cursor:pointer;" onclick="abrirClienteExistente()"></div></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="cCpf" maxlength="14" oninput="maskCPF(this); verificarDuplicadoCliente()" placeholder="000.000.000-00" /></div>
         <div class="form-group"><label>Data Nascimento</label><input type="date" id="cNasc" /></div>
         <div class="form-group">
           <label>Sexo</label>
@@ -2747,26 +2784,32 @@
       hoje.setHours(0,0,0,0);
       const diffTime = dateObj - hoje;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      
       document.getElementById('planoDataVenc').textContent = dateObj.toLocaleDateString('pt-BR');
       const diasEl = document.getElementById('planoDiasRestantes');
-      
-      if (diffDays < 0) {
-          diasEl.textContent = 'Expirado'; diasEl.style.color = 'var(--danger)';
-      } else if (diffDays <= 7) {
-          diasEl.textContent = diffDays + ' dias (Vence em breve!)'; diasEl.style.color = 'var(--danger)';
-      } else {
-          diasEl.textContent = diffDays + ' dias'; diasEl.style.color = 'var(--success-text)';
-      }
+      if (diffDays < 0) { diasEl.textContent = 'Expirado'; diasEl.style.color = 'var(--danger)'; }
+      else if (diffDays <= 7) { diasEl.textContent = diffDays + ' dias (Vence em breve!)'; diasEl.style.color = 'var(--danger)'; }
+      else { diasEl.textContent = diffDays + ' dias'; diasEl.style.color = 'var(--success-text)'; }
     }
     const currentLogo = sessionStorage.getItem('microcred_logo');
     document.getElementById('previewLogoPlano').src = (currentLogo && currentLogo !== 'null') ? currentLogo : DEFAULT_LOGO;
-
-    // Pre-fill profile fields
     document.getElementById('perfilNome').value    = sessionStorage.getItem('microcred_empresa') || '';
     document.getElementById('perfilUsuario').value = sessionStorage.getItem('microcred_usuario') || '';
     document.getElementById('perfilSenha').value   = '';
     document.getElementById('perfilSenhaConf').value = '';
+
+    // Carrega totais para o card de backup
+    Promise.all([
+      sb.from('clientes').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
+      sb.from('operacoes').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
+      sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
+      sb.from('inadimplencia').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
+    ]).then(([rCli, rOp, rParc, rInad]) => {
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '0'; };
+      set('bkTotalClientes', rCli.count ?? 0);
+      set('bkTotalOps',      rOp.count  ?? 0);
+      set('bkTotalParc',     rParc.count ?? 0);
+      set('bkTotalInad',     rInad.count ?? 0);
+    }).catch(() => {});
   }
 
   async function salvarPerfil() {
@@ -3288,9 +3331,23 @@
     const id     = document.getElementById('clienteId').value;
     const tipo   = document.getElementById('cTipoRegistro').value || 'cliente';
     const btnSave = document.getElementById('btnSaveCliente');
+    const nome   = document.getElementById('cNome').value.trim();
+    const cpf    = document.getElementById('cCpf').value.trim();
 
-    if (!document.getElementById('cNome').value || !document.getElementById('cCpf').value)
+    if (!nome || !cpf)
       return showToast('Nome e CPF são obrigatórios.', 'warning');
+
+    // ── Verificação de duplicado ao salvar (bloqueio final) ──
+    if (!id && tipo === 'cliente') {
+      const { data: dup } = await sb.from('clientes')
+        .select('id, nome')
+        .eq('empresa_id', EMPRESA_ID)
+        .or(`nome.ilike.${nome},cpf.eq.${cpf}`)
+        .limit(1);
+      if (dup && dup.length > 0) {
+        return showToast(`⚠️ Cliente "${dup[0].nome}" já está cadastrado com este nome ou CPF.`, 'warning');
+      }
+    }
 
     btnSave.textContent = 'A Guardar...'; btnSave.disabled = true;
 
@@ -3389,8 +3446,94 @@
 
   async function deleteCliente(id) { deleteRegistro('c:' + id); }
 
-  // =============================================
-  // AVALISTAS – funções de compatibilidade
+  // ── Verificação em tempo real de duplicado no modal ──
+  let _dupTimer = null;
+  let _dupClienteId = null;
+
+  async function verificarDuplicadoCliente() {
+    const editId = document.getElementById('clienteId').value;
+    if (editId) return; // edição — não verifica
+    clearTimeout(_dupTimer);
+    _dupTimer = setTimeout(async () => {
+      const nome  = document.getElementById('cNome').value.trim();
+      const cpfRaw = document.getElementById('cCpf').value.trim();
+      const cpf   = cpfRaw.replace(/\D/g,'');
+      const alerta = document.getElementById('alertaDuplicado');
+      if (nome.length < 3 && cpf.length < 11) { alerta.style.display='none'; return; }
+
+      let query = sb.from('clientes').select('id, nome, cpf, celular').eq('empresa_id', EMPRESA_ID);
+      if (nome.length >= 3 && cpf.length === 11)   query = query.or(`nome.ilike.%${nome}%,cpf.eq.${cpfRaw}`);
+      else if (cpf.length === 11)                   query = query.eq('cpf', cpfRaw);
+      else                                          query = query.ilike('nome', `%${nome}%`);
+
+      const { data } = await query.limit(1);
+      if (data && data.length > 0) {
+        _dupClienteId = data[0].id;
+        alerta.style.display = 'block';
+        alerta.innerHTML = `⚠️ Cliente já cadastrado: <strong>${data[0].nome}</strong> | CPF: ${data[0].cpf||'—'} | Tel: ${data[0].celular||'—'}<br><span style="text-decoration:underline;font-size:11px;">Clique aqui para abrir o cadastro existente</span>`;
+      } else {
+        _dupClienteId = null;
+        alerta.style.display = 'none';
+      }
+    }, 600);
+  }
+
+  function abrirClienteExistente() {
+    if (!_dupClienteId) return;
+    closeModal('modalCliente');
+    editRegistro('c:' + _dupClienteId);
+  }
+
+  // ── Excluir Todos os Clientes ──
+  async function confirmarExcluirTodosClientes() {
+    const ok1 = confirm('⚠️ ATENÇÃO: Isso vai excluir TODOS os clientes desta conta.\n\nEsta ação NÃO pode ser desfeita.\n\nClique OK para continuar.');
+    if (!ok1) return;
+    const ok2 = confirm('Tem a certeza absoluta? Todos os dados de clientes serão perdidos.');
+    if (!ok2) return;
+
+    const btn = document.querySelector('[onclick="confirmarExcluirTodosClientes()"]');
+    if (btn) { btn.textContent = 'Excluindo...'; btn.disabled = true; }
+    try {
+      const { error } = await sb.from('clientes').delete().eq('empresa_id', EMPRESA_ID);
+      if (error) throw error;
+      showToast('Todos os clientes foram excluídos.', 'success');
+      loadClientes();
+    } catch(e) {
+      showToast('Erro ao excluir: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Excluir Todos'; btn.disabled = false; }
+    }
+  }
+
+  // ── Backup de Clientes (JSON) ──
+  async function baixarBackupClientes() {
+    const btn = document.getElementById('btnBaixarBackup');
+    if (btn) { btn.textContent = 'Gerando...'; btn.disabled = true; }
+    try {
+      const [rCli, rAval, rOp, rParc, rInad, rHist] = await Promise.all([
+        sb.from('clientes').select('*').eq('empresa_id', EMPRESA_ID),
+        sb.from('avalistas').select('*').eq('empresa_id', EMPRESA_ID),
+        sb.from('operacoes').select('*').eq('empresa_id', EMPRESA_ID),
+        sb.from('parcelas').select('*').eq('empresa_id', EMPRESA_ID),
+        sb.from('inadimplencia').select('*').eq('empresa_id', EMPRESA_ID),
+        sb.from('historico_cobrancas').select('*').eq('empresa_id', EMPRESA_ID),
+      ]);
+      const backup = {
+        empresa_id: EMPRESA_ID,
+        empresa_nome: sessionStorage.getItem('microcred_empresa') || '',
+        data_backup: new Date().toISOString(),
+        totais: { clientes: rCli.data?.length||0, avalistas: rAval.data?.length||0, operacoes: rOp.data?.length||0, parcelas: rParc.data?.length||0, inadimplencia: rInad.data?.length||0, historico: rHist.data?.length||0 },
+        dados: { clientes: rCli.data||[], avalistas: rAval.data||[], operacoes: rOp.data||[], parcelas: rParc.data||[], inadimplencia: rInad.data||[], historico_cobrancas: rHist.data||[] }
+      };
+      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `backup_microcred_${new Date().toISOString().slice(0,10)}.json` });
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      showToast(`✅ Backup gerado: ${backup.totais.clientes} clientes, ${backup.totais.operacoes} operações.`, 'success');
+    } catch(e) { showToast('Erro ao gerar backup: ' + e.message, 'error');
+    } finally {
+      if (btn) { btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Baixar Backup Completo (.json)'; btn.disabled = false; }
+    }
+  }
   // =============================================
   async function loadAvalistas() { loadClientes(); }
   async function openAvalistaModal(a) { editRegistro('a:' + (a?.id || '')); }
