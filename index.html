@@ -4454,10 +4454,8 @@
   let _importData = [];
 
   function openImportarPlanilha() {
-    // Verifica se SheetJS carregou
     if (typeof XLSX === 'undefined') {
-      showToast('Biblioteca de leitura de Excel ainda carregando. Aguarde e tente novamente.', 'error');
-      console.error('[Importar] XLSX não definido — verifique a conexão ou recarregue a página.');
+      showToast('Recarregue a página e tente novamente.', 'error');
       return;
     }
     resetImportModal();
@@ -4486,17 +4484,16 @@
     if (file) processImportFile(file);
   }
 
-  // Remove acentos e pontuação para comparação robusta de nomes de colunas
   function _normCol(s) {
     return String(s || '')
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // tira acentos
-      .replace(/[^a-z0-9 ]/gi, '')                      // tira pontuação
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9 ]/gi, '')
       .trim().toLowerCase();
   }
 
   function processImportFile(file) {
     if (!file.name.match(/\.xlsx?$/i)) {
-      showToast('Selecione um arquivo .xlsx ou .xls válido.', 'error');
+      showToast('Selecione um arquivo .xlsx válido.', 'error');
       return;
     }
     document.getElementById('importFileName').textContent = '📄 ' + file.name;
@@ -4505,52 +4502,48 @@
     reader.onerror = () => showToast('Erro ao ler o arquivo.', 'error');
     reader.onload = async (evt) => {
       try {
-        const data = new Uint8Array(evt.target.result);
-
-        // cellDates:true → datas viram JS Date diretamente
-        const wb = XLSX.read(data, { type: 'array', cellDates: true });
-        const ws = wb.Sheets[wb.SheetNames[0]];
-
-        // Lê como array de arrays para ter controle total
-        const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: false });
+        const wb = XLSX.read(new Uint8Array(evt.target.result), { type: 'array', cellDates: true });
+        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null });
 
         if (!aoa || aoa.length < 2) {
-          showToast('Planilha vazia ou sem dados.', 'warning');
-          return;
+          showToast('Planilha sem dados.', 'warning'); return;
         }
 
-        // Linha 0 = cabeçalhos
-        const headers = aoa[0].map(h => _normCol(String(h || '')));
-        console.log('[Importar] Cabeçalhos normalizados:', headers);
+        const hdrs = aoa[0].map(h => _normCol(String(h || '')));
 
-        // Mapeia índice por nome normalizado
-        const idx = {
-          especialista:  headers.findIndex(h => h.includes('especialista')),
-          nome:          headers.findIndex(h => h.includes('nome')),
-          telefone:      headers.findIndex(h => h.includes('telefone') || h.includes('celular')),
-          situacao:      headers.findIndex(h => h.includes('situa')),
-          saldo:         headers.findIndex(h => h.includes('saldo')),
-          parcelas:      headers.findIndex(h => h === 'parcelas' || h.startsWith('parcela')),
-          proxVenc:      headers.findIndex(h => h.includes('prox') || h.includes('venc')),
-          valorParcela:  headers.findIndex(h => h.includes('valor') && h.includes('parcela')),
-          atraso:        headers.findIndex(h => h.includes('atraso')),
+        const ci = {
+          especialista: hdrs.findIndex(h => h.includes('especialista')),
+          nome:         hdrs.findIndex(h => h.includes('nome')),
+          telefone:     hdrs.findIndex(h => h.includes('telefone') || h.includes('celular')),
+          saldo:        hdrs.findIndex(h => h.includes('saldo')),
+          parcelas:     hdrs.findIndex(h => h === 'parcelas' || (h.includes('parcela') && !h.includes('valor'))),
+          proxVenc:     hdrs.findIndex(h => h.includes('prox') && h.includes('venc')),
+          valorParcela: hdrs.findIndex(h => h.includes('valor') && h.includes('parcela')),
+          atraso:       hdrs.findIndex(h => h.includes('atraso')),
         };
 
-        console.log('[Importar] Índices encontrados:', idx);
+        if (ci.especialista < 0) ci.especialista = 0;
+        if (ci.nome < 0)         ci.nome         = 1;
+        if (ci.saldo < 0)        ci.saldo        = 5;
+        if (ci.parcelas < 0)     ci.parcelas     = 6;
+        if (ci.proxVenc < 0)     ci.proxVenc     = 7;
+        if (ci.valorParcela < 0) ci.valorParcela = 8;
+        if (ci.atraso < 0)       ci.atraso       = 9;
 
-        // Converte qualquer tipo de data para string YYYY-MM-DD
+        function g(row, key) {
+          const v = row[ci[key]];
+          return (v === undefined) ? null : v;
+        }
+
         function toDateStr(v) {
-          if (!v || v === 'null') return null;
-          // JS Date (vindo de cellDates:true)
-          if (v instanceof Date) return v.toISOString().slice(0, 10);
-          // String ISO
-          if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}/)) return v.slice(0, 10);
-          // String BR dd/mm/yyyy
-          if (typeof v === 'string' && v.match(/^\d{2}\/\d{2}\/\d{4}/)) {
-            const [d, m, y] = v.split('/');
-            return `${y}-${m}-${d}`;
+          if (!v) return null;
+          if (v instanceof Date) return isNaN(v) ? null : v.toISOString().slice(0, 10);
+          if (typeof v === 'string') {
+            if (v.match(/^\d{4}-\d{2}-\d{2}/)) return v.slice(0, 10);
+            if (v.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+              const [d, m, y] = v.split('/'); return `${y}-${m}-${d}`;
+            }
           }
-          // Serial numérico Excel
           if (typeof v === 'number' && v > 1) {
             const d = new Date(Math.round((v - 25569) * 86400 * 1000));
             return isNaN(d) ? null : d.toISOString().slice(0, 10);
@@ -4559,8 +4552,8 @@
         }
 
         function toNum(v) {
-          if (v == null || v === '') return 0;
-          if (typeof v === 'number') return v;
+          if (v == null) return 0;
+          if (typeof v === 'number') return Math.round(v * 100) / 100;
           return parseFloat(String(v).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
         }
 
@@ -4569,45 +4562,34 @@
           return m ? parseInt(m[1]) : 0;
         }
 
-        function cel(row, key) {
-          const i = idx[key];
-          return (i >= 0 && i < row.length) ? row[i] : null;
-        }
-
-        // Processa linhas (ignora header e "Total Geral")
         _importData = aoa.slice(1)
           .filter(row => {
-            const nome = String(cel(row, 'nome') || '').trim();
+            const nome = String(g(row, 'nome') || '').trim();
             return nome && nome.toLowerCase() !== 'total geral';
           })
           .map(row => {
-            const atrasoRaw = cel(row, 'atraso');
-            const saldoRaw  = cel(row, 'saldo');
+            const atrasoRaw = g(row, 'atraso');
             return {
-              especialista: String(cel(row, 'especialista') || '-').trim(),
-              nome:         String(cel(row, 'nome') || '').trim(),
-              telefone:     String(cel(row, 'telefone') || '').trim(),
-              situacao:     String(cel(row, 'situacao') || 'Em atraso').trim(),
-              saldo:        toNum(saldoRaw),
-              parcelas:     String(cel(row, 'parcelas') || '').trim(),
-              proxVenc:     toDateStr(cel(row, 'proxVenc')),
-              valorParcela: String(cel(row, 'valorParcela') || '').trim(),
+              especialista: String(g(row, 'especialista') || '-').trim(),
+              nome:         String(g(row, 'nome') || '').trim(),
+              telefone:     String(g(row, 'telefone') || '').trim(),
+              saldo:        toNum(g(row, 'saldo')),
+              parcelas:     String(g(row, 'parcelas') || '').trim(),
+              proxVenc:     toDateStr(g(row, 'proxVenc')),
+              valorParcela: String(g(row, 'valorParcela') || '').trim(),
               atraso:       String(atrasoRaw || '').trim(),
               diasAtraso:   toDias(atrasoRaw),
             };
           });
 
-        console.log('[Importar] ✅ Linhas processadas:', _importData.length, _importData);
-
         if (_importData.length === 0) {
-          showToast('Nenhum dado válido encontrado na planilha.', 'warning');
-          return;
+          showToast('Nenhum dado válido encontrado.', 'warning'); return;
         }
 
         await buildImportPreview();
 
       } catch (err) {
-        console.error('[Importar] ❌ Erro:', err);
+        console.error('[Importar] Erro:', err);
         showToast('Erro ao ler arquivo: ' + err.message, 'error');
       }
     };
@@ -4615,18 +4597,11 @@
   }
 
   async function buildImportPreview() {
-    // Busca clientes para tentar vincular por nome
-    const { data: clientes, error: errCli } = await sb
-      .from('clientes').select('id, nome, cpf, celular').eq('empresa_id', EMPRESA_ID);
-
-    if (errCli) {
-      console.warn('[Importar] Não foi possível carregar clientes para vinculação:', errCli.message);
-    }
+    const { data: clientes } = await sb
+      .from('clientes').select('id, nome').eq('empresa_id', EMPRESA_ID);
 
     const clienteMap = {};
-    (clientes || []).forEach(c => {
-      if (c.nome) clienteMap[_normCol(c.nome)] = c;
-    });
+    (clientes || []).forEach(c => { if (c.nome) clienteMap[_normCol(c.nome)] = c; });
 
     const tbody = document.getElementById('importPreviewBody');
     tbody.innerHTML = '';
@@ -4639,7 +4614,7 @@
       if (match) found++; else notFound++;
 
       const proxVencFmt = row.proxVenc
-        ? (() => { try { return new Date(row.proxVenc + 'T00:00:00').toLocaleDateString('pt-BR'); } catch { return row.proxVenc; } })()
+        ? (() => { try { return new Date(row.proxVenc + 'T12:00:00').toLocaleDateString('pt-BR'); } catch { return row.proxVenc; } })()
         : '-';
 
       const saldoFmt = row.saldo.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
@@ -4651,8 +4626,8 @@
           : `<span style="background:#f0f2f8;color:#4a5568;padding:2px 9px;border-radius:100px;font-weight:700;font-size:11px;">${row.diasAtraso}d</span>`;
 
       const statusCell = match
-        ? `<span style="background:var(--success-bg);color:var(--success-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">✓ Encontrado</span>`
-        : `<span style="background:var(--warning-bg);color:var(--warning-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">⚡ Novo cadastro</span>`;
+        ? `<span style="background:var(--success-bg);color:var(--success-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">✓ Vinculado</span>`
+        : `<span style="background:var(--warning-bg);color:var(--warning-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">⚡ Novo</span>`;
 
       const tr = document.createElement('tr');
       tr.style.cssText = `background:${match ? 'var(--success-bg)' : 'var(--warning-bg)'};border-bottom:1px solid var(--border-light);`;
@@ -4670,7 +4645,7 @@
 
     document.getElementById('importPreviewTitle').textContent = `${_importData.length} cliente(s) na planilha`;
     document.getElementById('importMatchInfo').textContent =
-      `${found} vinculado(s) ao cadastro · ${notFound} será(ão) criado(s) como novo cadastro`;
+      `${found} vinculado(s) · ${notFound} novo(s)`;
     document.getElementById('importStep1').style.display = 'none';
     document.getElementById('importStep2').style.display = 'block';
     document.getElementById('btnConfirmarImport').style.display = 'flex';
@@ -4678,215 +4653,92 @@
 
   async function confirmarImportacao() {
     const btn = document.getElementById('btnConfirmarImport');
-    btn.innerHTML = '<svg style="width:14px;height:14px;animation:spin 1s linear infinite;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4v5h.582m15.356 2A8 8 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8 8 0 01-15.357-2m15.357 2H15"/></svg> Importando...';
+    btn.textContent = 'Importando...';
     btn.disabled = true;
 
-    let successes = 0, errors = 0;
+    let ok = 0, fail = 0;
     const hoje = new Date().toISOString().slice(0, 10);
 
     for (const row of _importData) {
       try {
         let clienteId = row._clienteId;
 
-        // Cria cliente se não existir
         if (!clienteId) {
-          const novoObj = {
-            empresa_id: EMPRESA_ID,
-            nome: row.nome,
-            tipo: 'cliente',
-            status: 'inadimplente',
-          };
-          if (row.telefone) novoObj.celular = row.telefone;
+          const novoCliente = { empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente', tipo: 'cliente' };
+          if (row.telefone && row.telefone !== 'null' && row.telefone !== '') novoCliente.celular = row.telefone;
 
-          const { data: novo, error: errNovo } = await sb
-            .from('clientes').insert(novoObj).select('id').single();
+          const { data: criado, error: eCli } = await sb
+            .from('clientes').insert(novoCliente).select('id').single();
 
-          if (errNovo) {
-            console.error('[Importar] Erro ao criar cliente:', row.nome, errNovo);
-            throw new Error('Erro ao criar cliente: ' + errNovo.message);
+          if (eCli) {
+            const { data: criado2, error: eCli2 } = await sb
+              .from('clientes').insert({ empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente' }).select('id').single();
+            if (eCli2) throw new Error(`Criar cliente "${row.nome}": ${eCli2.message}`);
+            clienteId = criado2.id;
+          } else {
+            clienteId = criado.id;
           }
-          clienteId = novo.id;
-          console.log('[Importar] Cliente criado:', row.nome, clienteId);
         }
 
-        // Verifica duplicata: mesmo cliente_id + empresa_id + sem parcela vinculada
-        const { data: existentes, error: errEx } = await sb
+        const { data: existentes } = await sb
           .from('inadimplencia')
           .select('id, status')
           .eq('empresa_id', EMPRESA_ID)
           .eq('cliente_id', clienteId)
-          .filter('parcela_id', 'is', null);
+          .is('parcela_id', null)
+          .eq('status', 'pendente');
 
-        if (errEx) console.warn('[Importar] Aviso ao checar duplicata:', errEx.message);
-
-        const pendente = (existentes || []).find(e => e.status === 'pendente');
-
-        if (pendente) {
-          const { error: errUp } = await sb.from('inadimplencia').update({
+        if (existentes && existentes.length > 0) {
+          const { error: eUp } = await sb.from('inadimplencia').update({
+            especialista:       row.especialista,
             dias_atraso:        row.diasAtraso,
             valor_devido:       row.saldo,
             valor_total_devido: row.saldo,
             valor_multa:        0,
             valor_mora:         0,
-          }).eq('id', pendente.id).eq('empresa_id', EMPRESA_ID);
-          if (errUp) throw new Error('Erro ao atualizar inadimplência: ' + errUp.message);
-          console.log('[Importar] Inadimplência atualizada para:', row.nome);
+          }).eq('id', existentes[0].id);
+          if (eUp) throw new Error(`Atualizar inad: ${eUp.message}`);
         } else {
-          const { error: errIns } = await sb.from('inadimplencia').insert({
+          const inad = {
             empresa_id:         EMPRESA_ID,
-            operacao_id:        null,
-            parcela_id:         null,
             cliente_id:         clienteId,
+            especialista:       row.especialista,
             dias_atraso:        row.diasAtraso,
             valor_devido:       row.saldo,
             valor_multa:        0,
             valor_mora:         0,
             valor_total_devido: row.saldo,
             status:             'pendente',
-          });
-          if (errIns) throw new Error('Erro ao inserir inadimplência: ' + errIns.message);
-          console.log('[Importar] Inadimplência inserida para:', row.nome);
+          };
+          const { error: eIns } = await sb.from('inadimplencia').insert(inad);
+          if (eIns) throw new Error(`Inserir inad: ${eIns.message}`);
         }
 
-        // Histórico de cobrança com dados do especialista
-        const notaMsg = `📥 Importado via planilha | Especialista: ${row.especialista} | Parcelas: ${row.parcelas || '-'} | Próx. Venc.: ${row.proxVenc || '-'} | Valor Parcela: ${row.valorParcela || '-'} | Atraso: ${row.atraso || '-'}`;
-        const { error: errHist } = await sb.from('historico_cobrancas').insert({
+        await sb.from('historico_cobrancas').insert({
           empresa_id:    EMPRESA_ID,
           cliente_id:    clienteId,
           data_registro: hoje,
           tipo:          'Importação Planilha',
-          mensagem:      notaMsg,
+          mensagem:      `📥 Especialista: ${row.especialista} | Parcelas: ${row.parcelas||'-'} | Venc: ${row.proxVenc||'-'} | Valor: ${row.valorParcela||'-'} | Atraso: ${row.atraso||'-'}`,
         });
-        if (errHist) console.warn('[Importar] Aviso histórico cobrança:', errHist.message);
 
-        successes++;
+        ok++;
 
       } catch (e) {
-        console.error('[Importar] ❌ Falha na linha:', row.nome, '→', e.message, e);
-        errors++;
+        console.error(`[Importar] ❌ ${row.nome}:`, e.message);
+        fail++;
       }
     }
 
-    btn.innerHTML = '<svg style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg> Confirmar Importação';
+    btn.textContent = 'Confirmar Importação';
     btn.disabled = false;
     closeModal('modalImportarPlanilha');
 
-    if (successes > 0) showToast(`✅ ${successes} cliente(s) importado(s) com sucesso!`, 'success');
-    if (errors > 0)    showToast(`⚠️ ${errors} erro(s) — veja o console (F12) para detalhes.`, 'warning');
+    if (ok > 0)   showToast(`✅ ${ok} cliente(s) importado(s)!`, 'success');
+    if (fail > 0) showToast(`⚠️ ${fail} erro(s) — veja o F12.`, 'warning');
 
     await loadInadimplencia();
   }
 
-
-
   // =============================================
   // WHATSAPP — MODAL FORMATADO
-  // =============================================
-
-  let _waClienteAtual = { nome: '', telefone: '' };
-
-  function openWhatsApp(telefone, nome) {
-    _waClienteAtual = { nome, telefone };
-    document.getElementById('waClienteNome').textContent = nome;
-    document.getElementById('waTelefone').value = telefone;
-    document.getElementById('waMensagem').value = '';
-    document.getElementById('waPreview').textContent = '';
-    document.getElementById('waCharCount').textContent = '0 caracteres';
-    openModal('modalWhatsApp');
-  }
-
-  function aplicarModelo(tipo) {
-    const nome = _waClienteAtual.nome.split(' ')[0];
-    const modelos = {
-      saudacao:    `Olá ${nome}! 😊
-
-Tudo bem? Sou da equipe MicroCred e estou entrando em contato para verificar se há algo em que possamos te ajudar.
-
-Fique à vontade para nos chamar quando precisar! 🙏`,
-      cobranca:    `Olá ${nome}! 👋
-
-Identificamos uma pendência no seu contrato conosco. Gostaríamos de conversar para encontrar a melhor solução.
-
-Podemos falar agora? ⏰`,
-      vencimento:  `Olá ${nome}! 📅
-
-Passamos para lembrá-lo(a) que sua parcela está se aproximando do vencimento.
-
-Qualquer dúvida sobre formas de pagamento, pode nos chamar aqui. 😊`,
-      confirmacao: `Olá ${nome}! ✅
-
-Confirmamos o recebimento do seu pagamento. Obrigado pela pontualidade! 🙏
-
-Estamos sempre à disposição.`,
-      acordo:      `Olá ${nome}! 🤝
-
-Gostaríamos de conversar sobre a possibilidade de um acordo para regularizar sua situação.
-
-Estamos abertos para encontrar a melhor opção para você. Pode nos chamar!`,
-    };
-    document.getElementById('waMensagem').value = modelos[tipo] || '';
-    atualizarPreviewWA();
-  }
-
-  function atualizarPreviewWA() {
-    const msg = document.getElementById('waMensagem').value;
-    document.getElementById('waPreview').textContent = msg;
-    document.getElementById('waCharCount').textContent = msg.length + ' caracteres';
-  }
-
-  function enviarWhatsAppCliente() {
-    const msg = document.getElementById('waMensagem').value.trim();
-    let tel = document.getElementById('waTelefone').value.replace(/\D/g, '');
-    if (!msg) return showToast('Digite uma mensagem antes de enviar.', 'warning');
-    if (!tel) return showToast('Número de telefone inválido.', 'error');
-    if (tel.length === 10 || tel.length === 11) tel = '55' + tel;
-    window.open('https://api.whatsapp.com/send?phone=' + tel + '&text=' + encodeURIComponent(msg), '_blank');
-    closeModal('modalWhatsApp');
-  }
-
-  // Atualizar preview em tempo real
-  document.addEventListener('DOMContentLoaded', () => {
-    const waMsg = document.getElementById('waMensagem');
-    if (waMsg) waMsg.addEventListener('input', atualizarPreviewWA);
-  });
-
-  // =============================================
-  // TEMA LIGHT / DARK
-  // =============================================
-  function toggleTheme() {
-    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-    const newTheme = isDark ? 'light' : 'dark';
-    document.documentElement.setAttribute('data-theme', newTheme);
-    localStorage.setItem('app_theme', newTheme);
-    updateThemeIcon(newTheme);
-  }
-
-  function updateThemeIcon(theme) {
-    const sun  = document.getElementById('themeIconSun');
-    const moon = document.getElementById('themeIconMoon');
-    if (!sun || !moon) return;
-    if (theme === 'dark') {
-      sun.style.display  = 'block';
-      moon.style.display = 'none';
-    } else {
-      sun.style.display  = 'none';
-      moon.style.display = 'block';
-    }
-  }
-
-  // Aplica tema salvo ao carregar
-  (function() {
-    const saved = localStorage.getItem('app_theme') || 'light';
-    document.documentElement.setAttribute('data-theme', saved);
-    updateThemeIcon(saved);
-  })();
-
-  // Ao iniciar o app, carregar badge de tarefas
-  const _origInitApp = typeof initApp !== 'undefined' ? null : null;
-
-  // =============================================
-  // Inicializa o Software
-  initApp();
-</script>
-</body>
-</html>
