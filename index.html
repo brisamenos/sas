@@ -568,6 +568,7 @@
     ══════════════════════════════════════ */
     .modal-overlay {
       position: fixed; inset: 0;
+      width: 100vw; height: 100vh;
       background: rgba(10, 18, 30, 0.65);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
@@ -788,42 +789,52 @@
       .card-header > div { width: 100%; }
       .card-body { padding: 12px; }
 
-      /* Modal como sheet que sobe de baixo */
-      .modal-overlay { padding: 0; align-items: flex-end; }
+      /* Modal ocupa 100% da tela em mobile */
+      .modal-overlay {
+        padding: 0 !important;
+        align-items: flex-end !important;
+        justify-content: center !important;
+      }
       .modal {
-        max-height: 94vh;
-        border-radius: 20px 20px 0 0;
-        width: 100%;
-        max-width: 100%;
-        /* Garante que header e footer nunca saem da tela */
-        display: flex;
-        flex-direction: column;
+        width: 100vw !important;
+        max-width: 100vw !important;
+        max-height: 94vh !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin: 0 !important;
+        /* Flex coluna para header/body/footer empilhados */
+        display: flex !important;
+        flex-direction: column !important;
       }
       .modal-header {
-        padding: 14px 16px;
-        border-radius: 20px 20px 0 0;
-        /* Nunca encolhe */
-        flex-shrink: 0;
+        padding: 14px 16px !important;
+        flex-shrink: 0 !important;
+        border-radius: 20px 20px 0 0 !important;
       }
       .modal-body {
-        padding: 14px 14px 8px;
-        overflow-y: auto;
-        flex: 1;
-        min-height: 0; /* essencial para flex overflow funcionar */
+        padding: 14px 14px 6px !important;
+        overflow-y: auto !important;
+        flex: 1 !important;
+        min-height: 0 !important;
         -webkit-overflow-scrolling: touch;
       }
+      /* Footer pregado embaixo, sempre visível */
       .modal-footer {
-        padding: 12px 14px;
-        flex-shrink: 0;
-        /* Garante que fica sempre visível na parte de baixo */
-        position: sticky;
-        bottom: 0;
-        background: var(--surface);
-        border-top: 1px solid var(--border-light);
-        box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
-        gap: 8px;
+        padding: 12px 14px !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 8px !important;
+        background: var(--surface) !important;
+        border-top: 1px solid var(--border-light) !important;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.10) !important;
       }
-      .modal-footer .btn { flex: 1; justify-content: center; padding: 12px 10px; font-size: 13px; }
+      .modal-footer .btn {
+        flex: 1 !important;
+        justify-content: center !important;
+        padding: 13px 8px !important;
+        font-size: 13px !important;
+        min-width: 0 !important;
+      }
 
       .form-grid { grid-template-columns: 1fr; gap: 12px; }
       .form-section-title { font-size: 10px; margin-top: 14px; }
