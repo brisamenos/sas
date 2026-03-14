@@ -2279,6 +2279,88 @@ async function initApp() {
     finally{if(btn){btn.innerHTML='<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Baixar Backup Completo (.json)';btn.disabled=false;}}
   }
 
+  // ── RESTAURAR BACKUP ──
+  let _backupData = null;
+
+  function handleBackupDrop(e) {
+    e.preventDefault();
+    document.getElementById('backupUploadArea').style.borderColor = 'var(--border)';
+    const f = e.dataTransfer?.files?.[0];
+    if (f) _processBackupFile(f);
+  }
+
+  function handleBackupFile(input) {
+    const f = input.files?.[0];
+    if (f) _processBackupFile(f);
+  }
+
+  function _processBackupFile(file) {
+    if (!file.name.endsWith('.json')) { showToast('Selecione um arquivo .json', 'error'); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        _backupData = JSON.parse(e.target.result);
+        const t = _backupData?.totais || {};
+        const label = document.getElementById('backupFileName');
+        if (label) {
+          label.textContent = `✅ ${file.name} — ${t.clientes||0} clientes · ${t.operacoes||0} operações · ${t.parcelas||0} parcelas`;
+          label.style.display = 'block';
+        }
+        const btn = document.getElementById('btnRestaurarBackup');
+        if (btn) btn.disabled = false;
+        showToast('Arquivo lido! Clique em "Importar Backup" para restaurar.', 'info');
+      } catch(err) {
+        showToast('Arquivo inválido: ' + err.message, 'error');
+        _backupData = null;
+      }
+    };
+    reader.readAsText(file);
+  }
+
+  async function restaurarBackup() {
+    if (!_backupData) { showToast('Selecione um arquivo de backup primeiro.', 'warning'); return; }
+    if (!confirm('⚠️ Isso vai mesclar os dados do backup ao banco atual.\n\nRegistos com o mesmo ID serão ignorados.\n\nContinuar?')) return;
+
+    const btn = document.getElementById('btnRestaurarBackup');
+    if (btn) { btn.textContent = 'Importando...'; btn.disabled = true; }
+
+    const d = _backupData.dados || {};
+    let ok = 0, skip = 0, erros = 0;
+
+    // Tabelas em ordem de dependência
+    const tabelas = [
+      { nome: 'clientes',           dados: d.clientes },
+      { nome: 'avalistas',          dados: d.avalistas },
+      { nome: 'operacoes',          dados: d.operacoes },
+      { nome: 'parcelas',           dados: d.parcelas },
+      { nome: 'inadimplencia',      dados: d.inadimplencia },
+      { nome: 'historico_cobrancas',dados: d.historico_cobrancas },
+    ];
+
+    for (const { nome, dados } of tabelas) {
+      if (!dados || dados.length === 0) continue;
+      // Forçar empresa_id correto
+      const rows = dados.map(r => ({ ...r, empresa_id: EMPRESA_ID }));
+      // upsert ignorando conflitos (onConflict=id)
+      const { error } = await sb.from(nome).upsert(rows, { onConflict: 'id', ignoreDuplicates: true });
+      if (error) {
+        console.warn('[Restaurar] ' + nome + ':', error.message);
+        erros++;
+      } else {
+        ok += rows.length;
+      }
+    }
+
+    showToast(`✅ Backup restaurado! ${ok} registos importados${erros > 0 ? ' · ' + erros + ' erro(s)' : ''}.`, erros > 0 ? 'warning' : 'success');
+    _backupData = null;
+    const label = document.getElementById('backupFileName');
+    if (label) { label.style.display = 'none'; label.textContent = ''; }
+    const fileInput = document.getElementById('backupFileInput');
+    if (fileInput) fileInput.value = '';
+    if (btn) { btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Importar Backup'; btn.disabled = true; }
+    navigate('dashboard');
+  }
+
   // ── EXCLUIR TODOS OS DADOS ──
   async function confirmarExcluirTodosClientes(){
     if(!confirm('⚠️ Isso vai excluir TODOS os dados. NÃO pode ser desfeito. OK para continuar.'))return;
