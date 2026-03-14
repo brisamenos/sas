@@ -1424,7 +1424,7 @@
               <div style="height:1px;background:var(--border-light);margin:16px 0;"></div>
               <button class="btn btn-danger" id="btnExcluirTodosClientes" style="width:100%;justify-content:center;padding:14px;" onclick="confirmarExcluirTodosClientes()">
                 <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                Excluir Todos os Clientes
+                Excluir Todos os Dados
               </button>
             </div>
           </div>
@@ -3487,24 +3487,51 @@
     editRegistro('c:' + _dupClienteId);
   }
 
-  // ── Excluir Todos os Clientes ──
+  // ── Excluir Todos os Dados ──
   async function confirmarExcluirTodosClientes() {
-    const ok1 = confirm('⚠️ ATENÇÃO: Isso vai excluir TODOS os clientes desta conta.\n\nEsta ação NÃO pode ser desfeita.\n\nClique OK para continuar.');
+    const ok1 = confirm('⚠️ ATENÇÃO: Isso vai excluir TODOS os dados desta conta.\n\nClientes, operações, parcelas, inadimplência, histórico, tudo.\n\nEsta ação NÃO pode ser desfeita.\n\nClique OK para continuar.');
     if (!ok1) return;
-    const ok2 = confirm('Tem a certeza absoluta? Todos os dados de clientes serão perdidos.');
+    const ok2 = confirm('Tem a certeza absoluta? Todos os dados serão apagados permanentemente.');
     if (!ok2) return;
 
     const btn = document.getElementById('btnExcluirTodosClientes');
     if (btn) { btn.textContent = 'Excluindo...'; btn.disabled = true; }
+
+    const tabelas = [
+      'inadimplencia',
+      'historico_cobrancas',
+      'parcelas',
+      'renovacoes',
+      'operacoes',
+      'avaliacao_financeira',
+      'fluxo_caixa',
+      'micro_negocios',
+      'avalistas',
+      'clientes',
+      'tarefas',
+      'avaliacoes',
+    ];
+
+    let erros = 0;
     try {
-      const { error } = await sb.from('clientes').delete().eq('empresa_id', EMPRESA_ID);
-      if (error) throw error;
-      showToast('Todos os clientes foram excluídos.', 'success');
-      loadClientes();
+      for (const tabela of tabelas) {
+        const { error } = await sb.from(tabela).delete().eq('empresa_id', EMPRESA_ID);
+        if (error) { console.warn(`Erro ao limpar ${tabela}:`, error.message); erros++; }
+      }
+      if (erros === 0) {
+        showToast('✅ Todos os dados foram excluídos com sucesso.', 'success');
+      } else {
+        showToast(`⚠️ Concluído com ${erros} erro(s). Alguns dados podem não ter sido removidos.`, 'warning');
+      }
+      // Recarrega todas as views
+      navigate('dashboard');
     } catch(e) {
       showToast('Erro ao excluir: ' + e.message, 'error');
     } finally {
-      if (btn) { btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Excluir Todos os Clientes'; btn.disabled = false; }
+      if (btn) {
+        btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Excluir Todos os Dados';
+        btn.disabled = false;
+      }
     }
   }
 
