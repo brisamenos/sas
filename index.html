@@ -4507,103 +4507,108 @@
       try {
         const data = new Uint8Array(evt.target.result);
 
-        // Lê sem cellDates para evitar conflito de tipos; datas virão como string
-        const wb = XLSX.read(data, { type: 'array' });
+        // cellDates:true → datas viram JS Date diretamente
+        const wb = XLSX.read(data, { type: 'array', cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
 
-        // raw:true → números ficam numéricos; datas Excel viram número serial (tratamos abaixo)
-        const rows = XLSX.utils.sheet_to_json(ws, { defval: null, raw: true });
+        // Lê como array de arrays para ter controle total
+        const aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: null, raw: false });
 
-        console.log('[Importar] Colunas detectadas:', rows[0] ? Object.keys(rows[0]) : 'nenhuma');
-        console.log('[Importar] Primeiras 3 linhas:', rows.slice(0, 3));
+        if (!aoa || aoa.length < 2) {
+          showToast('Planilha vazia ou sem dados.', 'warning');
+          return;
+        }
 
-        // Mapeamento de colunas por similaridade (sem acentos, sem pontuação)
-        const colAliases = {
-          especialista: ['especialista'],
-          nome:         ['nome completo', 'nome'],
-          telefone:     ['telefone', 'fone', 'celular'],
-          situacao:     ['situacao', 'situacoa', 'status'],
-          saldo:        ['saldo devedor', 'saldo', 'valor total'],
-          parcelas:     ['parcelas', 'parcela'],
-          proxVenc:     ['prox venc', 'proximo vencimento', 'vencimento', 'data venc'],
-          valorParcela: ['valor parcela', 'vl parcela', 'vlr parcela'],
-          atraso:       ['atraso contr', 'atraso', 'dias atraso', 'dias em atraso'],
+        // Linha 0 = cabeçalhos
+        const headers = aoa[0].map(h => _normCol(String(h || '')));
+        console.log('[Importar] Cabeçalhos normalizados:', headers);
+
+        // Mapeia índice por nome normalizado
+        const idx = {
+          especialista:  headers.findIndex(h => h.includes('especialista')),
+          nome:          headers.findIndex(h => h.includes('nome')),
+          telefone:      headers.findIndex(h => h.includes('telefone') || h.includes('celular')),
+          situacao:      headers.findIndex(h => h.includes('situa')),
+          saldo:         headers.findIndex(h => h.includes('saldo')),
+          parcelas:      headers.findIndex(h => h === 'parcelas' || h.startsWith('parcela')),
+          proxVenc:      headers.findIndex(h => h.includes('prox') || h.includes('venc')),
+          valorParcela:  headers.findIndex(h => h.includes('valor') && h.includes('parcela')),
+          atraso:        headers.findIndex(h => h.includes('atraso')),
         };
 
-        // Constrói mapa de coluna-real → chave-lógica
-        const headerMap = {};
-        if (rows.length > 0) {
-          Object.keys(rows[0]).forEach(realKey => {
-            const norm = _normCol(realKey);
-            for (const [logicKey, aliases] of Object.entries(colAliases)) {
-              if (aliases.some(a => norm === a || norm.startsWith(a))) {
-                headerMap[realKey] = logicKey;
-                break;
-              }
-            }
-          });
-        }
-        console.log('[Importar] headerMap:', headerMap);
+        console.log('[Importar] Índices encontrados:', idx);
 
-        function getVal(row, logicKey) {
-          const realKey = Object.keys(headerMap).find(k => headerMap[k] === logicKey);
-          return realKey ? row[realKey] : null;
-        }
-
-        // Converte serial de data Excel → string YYYY-MM-DD
-        function excelDateToStr(v) {
-          if (!v) return null;
+        // Converte qualquer tipo de data para string YYYY-MM-DD
+        function toDateStr(v) {
+          if (!v || v === 'null') return null;
+          // JS Date (vindo de cellDates:true)
+          if (v instanceof Date) return v.toISOString().slice(0, 10);
+          // String ISO
           if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}/)) return v.slice(0, 10);
-          if (typeof v === 'number') {
-            // Serial Excel: dias desde 1899-12-30
-            const d = new Date(Math.round((v - 25569) * 86400 * 1000));
-            return d.toISOString().slice(0, 10);
+          // String BR dd/mm/yyyy
+          if (typeof v === 'string' && v.match(/^\d{2}\/\d{2}\/\d{4}/)) {
+            const [d, m, y] = v.split('/');
+            return `${y}-${m}-${d}`;
           }
-          return String(v);
+          // Serial numérico Excel
+          if (typeof v === 'number' && v > 1) {
+            const d = new Date(Math.round((v - 25569) * 86400 * 1000));
+            return isNaN(d) ? null : d.toISOString().slice(0, 10);
+          }
+          return null;
         }
 
-        function parseSaldo(v) {
-          if (v == null) return 0;
+        function toNum(v) {
+          if (v == null || v === '') return 0;
           if (typeof v === 'number') return v;
           return parseFloat(String(v).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
         }
 
-        function parseDias(v) {
+        function toDias(v) {
           const m = String(v || '0').match(/(\d+)/);
           return m ? parseInt(m[1]) : 0;
         }
 
-        _importData = rows
-          .filter(r => {
-            const nome = getVal(r, 'nome');
-            const nomeStr = String(nome || '').trim().toLowerCase();
-            return nome && nomeStr !== '' && nomeStr !== 'total geral' && nomeStr !== 'nome completo';
-          })
-          .map(r => ({
-            especialista:  String(getVal(r, 'especialista') || '-').trim(),
-            nome:          String(getVal(r, 'nome') || '').trim(),
-            telefone:      String(getVal(r, 'telefone') || '').trim(),
-            situacao:      String(getVal(r, 'situacao') || 'Em atraso').trim(),
-            saldo:         parseSaldo(getVal(r, 'saldo')),
-            parcelas:      String(getVal(r, 'parcelas') || '').trim(),
-            proxVenc:      excelDateToStr(getVal(r, 'proxVenc')),
-            valorParcela:  String(getVal(r, 'valorParcela') || '').trim(),
-            atraso:        String(getVal(r, 'atraso') || '').trim(),
-            diasAtraso:    parseDias(getVal(r, 'atraso')),
-          }));
+        function cel(row, key) {
+          const i = idx[key];
+          return (i >= 0 && i < row.length) ? row[i] : null;
+        }
 
-        console.log('[Importar] Linhas processadas:', _importData);
+        // Processa linhas (ignora header e "Total Geral")
+        _importData = aoa.slice(1)
+          .filter(row => {
+            const nome = String(cel(row, 'nome') || '').trim();
+            return nome && nome.toLowerCase() !== 'total geral';
+          })
+          .map(row => {
+            const atrasoRaw = cel(row, 'atraso');
+            const saldoRaw  = cel(row, 'saldo');
+            return {
+              especialista: String(cel(row, 'especialista') || '-').trim(),
+              nome:         String(cel(row, 'nome') || '').trim(),
+              telefone:     String(cel(row, 'telefone') || '').trim(),
+              situacao:     String(cel(row, 'situacao') || 'Em atraso').trim(),
+              saldo:        toNum(saldoRaw),
+              parcelas:     String(cel(row, 'parcelas') || '').trim(),
+              proxVenc:     toDateStr(cel(row, 'proxVenc')),
+              valorParcela: String(cel(row, 'valorParcela') || '').trim(),
+              atraso:       String(atrasoRaw || '').trim(),
+              diasAtraso:   toDias(atrasoRaw),
+            };
+          });
+
+        console.log('[Importar] ✅ Linhas processadas:', _importData.length, _importData);
 
         if (_importData.length === 0) {
-          showToast('Nenhum dado válido encontrado. Verifique as colunas da planilha.', 'warning');
+          showToast('Nenhum dado válido encontrado na planilha.', 'warning');
           return;
         }
 
         await buildImportPreview();
 
       } catch (err) {
-        console.error('[Importar] Erro ao processar arquivo:', err);
-        showToast('Erro ao ler o arquivo: ' + err.message, 'error');
+        console.error('[Importar] ❌ Erro:', err);
+        showToast('Erro ao ler arquivo: ' + err.message, 'error');
       }
     };
     reader.readAsArrayBuffer(file);
