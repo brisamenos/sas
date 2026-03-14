@@ -118,6 +118,9 @@
     [data-theme="dark"] .modal-footer {
       background: linear-gradient(90deg, #1e2b40 0%, #1a2436 100%) !important;
     }
+    [data-theme="dark"] .modal-footer {
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.25) !important;
+    }
     [data-theme="dark"] .form-group input,
     [data-theme="dark"] .form-group select,
     [data-theme="dark"] .form-group textarea,
@@ -588,11 +591,12 @@
     .modal-overlay.open .modal { transform: scale(1) translateY(0); }
 
     .modal-header {
-      padding: 20px 26px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border-light);
       display: flex; align-items: center; justify-content: space-between;
       background: linear-gradient(90deg, #f7f8fc 0%, #fff 100%);
       position: relative;
+      flex-shrink: 0;
     }
     .modal-header::after {
       content: '';
@@ -612,15 +616,24 @@
       border-radius: 50%; cursor: pointer;
       color: var(--text-light); font-size: 20px;
       transition: var(--transition);
+      flex-shrink: 0;
     }
     .modal-close:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); transform: rotate(90deg); }
 
-    .modal-body { padding: 24px 26px; overflow-y: auto; flex: 1; }
+    .modal-body {
+      padding: 20px 22px;
+      overflow-y: auto;
+      flex: 1;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior: contain;
+    }
     .modal-footer {
-      padding: 18px 26px;
+      padding: 14px 20px;
       border-top: 1px solid var(--border-light);
-      display: flex; justify-content: flex-end; gap: 12px;
+      display: flex; justify-content: flex-end; gap: 10px;
       background: linear-gradient(90deg, #f7f8fc 0%, #fff 100%);
+      flex-shrink: 0;
+      flex-wrap: wrap;
     }
 
     /* ══════════════════════════════════════
@@ -774,8 +787,44 @@
       .card-header { flex-direction: column; align-items: flex-start; gap: 10px; }
       .card-header > div { width: 100%; }
       .card-body { padding: 12px; }
+
+      /* Modal como sheet que sobe de baixo */
       .modal-overlay { padding: 0; align-items: flex-end; }
-      .modal { max-height: 92vh; border-radius: 20px 20px 0 0; width: 100%; max-width: 100%; }
+      .modal {
+        max-height: 94vh;
+        border-radius: 20px 20px 0 0;
+        width: 100%;
+        max-width: 100%;
+        /* Garante que header e footer nunca saem da tela */
+        display: flex;
+        flex-direction: column;
+      }
+      .modal-header {
+        padding: 14px 16px;
+        border-radius: 20px 20px 0 0;
+        /* Nunca encolhe */
+        flex-shrink: 0;
+      }
+      .modal-body {
+        padding: 14px 14px 8px;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0; /* essencial para flex overflow funcionar */
+        -webkit-overflow-scrolling: touch;
+      }
+      .modal-footer {
+        padding: 12px 14px;
+        flex-shrink: 0;
+        /* Garante que fica sempre visível na parte de baixo */
+        position: sticky;
+        bottom: 0;
+        background: var(--surface);
+        border-top: 1px solid var(--border-light);
+        box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
+        gap: 8px;
+      }
+      .modal-footer .btn { flex: 1; justify-content: center; padding: 12px 10px; font-size: 13px; }
+
       .form-grid { grid-template-columns: 1fr; gap: 12px; }
       .form-section-title { font-size: 10px; margin-top: 14px; }
       .topbar-right .conn-badge { display: none; }
@@ -792,6 +841,20 @@
       .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
       .topbar h2 { font-size: 16px; }
       .content { padding: 12px 10px 80px; }
+
+      /* Tipo selector buttons em coluna em telas muito pequenas */
+      #btnTipoCliente, #btnTipoAvalista { font-size: 12px !important; padding: 10px 8px !important; }
+
+      /* Upload buttons menores */
+      .file-upload-box { padding: 10px 12px; font-size: 12px; }
+
+      /* Botões de câmera em tela cheia */
+      .modal-body .btn.btn-info { font-size: 12px; padding: 8px 12px; }
+
+      /* Form inputs levemente menores */
+      .form-group input,
+      .form-group select,
+      .form-group textarea { font-size: 14px; padding: 10px 12px; }
     }
 
     @media (max-width: 380px) {
