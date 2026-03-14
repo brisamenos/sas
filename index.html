@@ -364,6 +364,78 @@
             </div>
           </div>
 
+          <!-- CARD: BACKUP & RESTAURAÇÃO -->
+          <div class="card" style="border-top: 4px solid var(--vivid-teal);">
+            <div class="card-header">
+              <h3>
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1-4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                Backup &amp; Restauração
+              </h3>
+            </div>
+            <div class="card-body">
+              <p style="font-size:13px;color:var(--text-secondary);margin-bottom:18px;line-height:1.6;">Salve todos os seus dados num ficheiro <strong>.json</strong> e restaure-os quando necessário.</p>
+
+              <!-- Download -->
+              <button class="btn btn-success" id="btnBaixarBackup" onclick="baixarBackupClientes()" style="width:100%;justify-content:center;padding:13px;gap:7px;margin-bottom:10px;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Baixar Backup Completo (.json)
+              </button>
+
+              <!-- Divider -->
+              <div style="display:flex;align-items:center;gap:10px;margin:16px 0;">
+                <div style="flex:1;height:1px;background:var(--border-light);"></div>
+                <span style="font-size:11px;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.5px;">Restaurar</span>
+                <div style="flex:1;height:1px;background:var(--border-light);"></div>
+              </div>
+
+              <div style="background:var(--info-bg);border:1.5px solid rgba(41,121,255,0.15);border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+                <p style="font-size:12px;color:var(--info-text);line-height:1.5;margin:0;">⚠️ Importar um backup irá <strong>mesclar</strong> os dados ao banco atual. Registos com o mesmo ID serão ignorados.</p>
+              </div>
+
+              <!-- Upload area -->
+              <div id="backupUploadArea" style="border:2px dashed var(--border);border-radius:12px;padding:22px;text-align:center;cursor:pointer;transition:var(--transition);position:relative;margin-bottom:10px;"
+                onclick="document.getElementById('backupFileInput').click()"
+                ondragover="event.preventDefault();this.style.borderColor='var(--vivid-teal)'"
+                ondragleave="this.style.borderColor='var(--border)'"
+                ondrop="handleBackupDrop(event)">
+                <svg width="28" height="28" fill="none" stroke="var(--vivid-teal)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:8px;opacity:.7;"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                <p style="font-size:13px;color:var(--text-secondary);margin:0;font-weight:500;">Arraste o <strong>.json</strong> aqui ou clique para selecionar</p>
+                <p id="backupFileName" style="font-size:12px;color:var(--vivid-teal);font-weight:700;margin-top:6px;display:none;"></p>
+                <input type="file" id="backupFileInput" accept=".json" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="handleBackupFile(this)" />
+              </div>
+
+              <button class="btn btn-info" id="btnRestaurarBackup" onclick="restaurarBackup()" disabled style="width:100%;justify-content:center;padding:13px;gap:7px;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                Importar Backup
+              </button>
+            </div>
+          </div>
+
+          <!-- CARD: ZONA DE PERIGO -->
+          <div class="card" style="border-top: 4px solid var(--danger);">
+            <div class="card-header">
+              <h3 style="color:var(--danger);">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                Zona de Perigo
+              </h3>
+            </div>
+            <div class="card-body">
+              <div style="background:var(--danger-bg);border:1.5px solid rgba(255,61,87,0.2);border-radius:12px;padding:16px 18px;margin-bottom:20px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                  <svg width="20" height="20" fill="none" stroke="var(--danger)" stroke-width="2" viewBox="0 0 24 24" style="flex-shrink:0;margin-top:2px;"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                  <div>
+                    <p style="font-size:13.5px;font-weight:700;color:var(--danger-text);margin-bottom:4px;">Esta ação é irreversível</p>
+                    <p style="font-size:12.5px;color:var(--danger-text);opacity:.85;line-height:1.5;margin:0;">Todos os clientes, operações, parcelas, inadimplência, tarefas e histórico serão <strong>permanentemente apagados</strong>. Faça um backup antes.</p>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-danger" id="btnExcluirTodosClientes" onclick="confirmarExcluirTodosClientes()" style="width:100%;justify-content:center;padding:14px;gap:7px;">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                Excluir Todos os Dados
+              </button>
+            </div>
+          </div>
+
         </div>
       </div>
 
