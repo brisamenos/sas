@@ -1122,37 +1122,8 @@
         <h2 id="pageTitle">Dashboard</h2>
       </div>
       <div class="topbar-right">
-        <button class="btn btn-outline btn-sm topbar-quick-btn" title="Novo Cliente" onclick="navigate('clientes'); setTimeout(()=>openClienteModal(),300)" style="gap:5px;">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-          Cliente
-        </button>
-        <button class="btn btn-outline btn-sm topbar-quick-btn" title="Nova Operação" onclick="navigate('operacoes'); setTimeout(()=>openOperacaoModal(),300)" style="gap:5px;">
-          <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 5v14M5 12h14"/></svg>
-          Operação
-        </button>
         <div class="topbar-separator" style="width:1px;height:24px;background:var(--border);"></div>
         <div class="conn-badge" id="connStatus">Online</div>
-
-        <!-- Sino de alertas -->
-        <div style="position:relative;">
-          <button id="btnAlertSino" onclick="toggleAlertDropdown()" style="width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;" title="Alertas">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span id="alertBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#ff3d57;border-radius:50%;font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;font-family:Outfit,sans-serif;border:2px solid var(--surface);padding:0 2px;"></span>
-          </button>
-          <div id="alertDropdown" style="display:none;position:absolute;top:46px;right:0;width:300px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.15);z-index:9999;overflow:hidden;">
-            <div style="padding:12px 16px 8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-family:Outfit,sans-serif;font-weight:700;font-size:13px;color:var(--text);">⚠️ Alertas</span>
-              <button onclick="navigate('inadimplencia');toggleAlertDropdown()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;">Inadimplência →</button>
-            </div>
-            <div id="alertDropList" style="max-height:260px;overflow-y:auto;padding:10px 12px;"></div>
-          </div>
-        </div>
-
-        <!-- Botão de tema -->
-        <button class="theme-btn" id="btnTheme" onclick="toggleTheme()" title="Alternar tema">
-          <svg id="themeIconSun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
-          <svg id="themeIconMoon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
-        </button>
 
         <!-- Sino de tarefas -->
         <div style="position:relative;">
@@ -1175,6 +1146,29 @@
             </div>
           </div>
         </div>
+
+        <!-- Sino de alertas (ao lado do tema) -->
+        <div style="position:relative;">
+          <button id="btnAlertSino" onclick="toggleAlertDropdown()" style="width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;" title="Alertas de Inadimplência"
+            onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='var(--surface)'">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span id="alertBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#ff3d57;border-radius:50%;font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;font-family:Outfit,sans-serif;border:2px solid var(--surface);padding:0 2px;"></span>
+          </button>
+          <div id="alertDropdown" style="display:none;position:absolute;top:46px;right:0;width:300px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.15);z-index:9999;overflow:hidden;">
+            <div style="padding:12px 16px 8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-family:Outfit,sans-serif;font-weight:700;font-size:13px;color:var(--text);">⚠️ Alertas</span>
+              <button onclick="navigate('inadimplencia');toggleAlertDropdown()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;">Inadimplência →</button>
+            </div>
+            <div id="alertDropList" style="max-height:260px;overflow-y:auto;padding:10px 12px;"></div>
+          </div>
+        </div>
+
+        <!-- Botão de tema -->
+        <button class="theme-btn" id="btnTheme" onclick="toggleTheme()" title="Alternar tema">
+          <svg id="themeIconSun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+          <svg id="themeIconMoon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+        </button>
+
         <div id="userChip" style="display:none;align-items:center;gap:8px;background:var(--surface-2);border:1px solid var(--border);padding:5px 12px 5px 6px;border-radius:100px;cursor:default;">
           <div id="userAvatar" style="width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,#ff5722,#ff8a50);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;color:#fff;font-family:'Outfit',sans-serif;flex-shrink:0;"></div>
           <span id="userEmailDisplay" style="font-size:12.5px;font-weight:600;color:var(--text-secondary);"></span>
@@ -1189,8 +1183,6 @@
     <div class="content">
 
       <div class="page-section active" id="page-dashboard">
-        <!-- Alertas de parcelas urgentes -->
-        <div id="dashAlerts" style="display:none;"></div>
 
         <!-- KPI Cards -->
         <div class="stats-grid" id="dashStats"></div>
@@ -3775,42 +3767,74 @@
     try {
         const today = new Date().toISOString().slice(0, 10);
 
+        // 1) Marcar parcelas vencidas como atrasadas
         const { data: pendentes } = await sb.from('parcelas').select('id').eq('status', 'pendente').eq('empresa_id', EMPRESA_ID).lt('data_vencimento', today);
         if (pendentes && pendentes.length > 0) {
             const ids = pendentes.map(p => p.id);
             await sb.from('parcelas').update({ status: 'atrasada' }).in('id', ids).eq('empresa_id', EMPRESA_ID);
         }
 
-        const { data: atrasadas } = await sb.from('parcelas').select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)').eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
+        // 2) Para cada parcela atrasada, criar/atualizar registo de inadimplência
+        // Seleciona sem taxa_multa/taxa_mora_dia para evitar erro se colunas não existirem
+        const { data: atrasadas } = await sb.from('parcelas')
+          .select('*,operacao:operacoes(id,numero_contrato,cliente_id)')
+          .eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
+
+        let erroLoop = 0;
         for (const p of (atrasadas || [])) { 
-            const dias = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); 
-            const multa = p.valor_total * (p.operacao?.taxa_multa ?? 2) / 100; 
-            const mora = p.valor_total * (p.operacao?.taxa_mora_dia ?? 0.0333) / 100 * dias; 
-            const total = p.valor_total + multa + mora; 
-            
-            const { data: existente } = await sb.from('inadimplencia').select('id, status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID); 
-            
-            if (existente && existente.length > 0) { 
-                if (existente[0].status === 'pendente') {
-                    await sb.from('inadimplencia').update({ dias_atraso: dias, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100 }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); 
+            try {
+                const dias = Math.max(0, Math.floor((new Date() - new Date(p.data_vencimento + 'T12:00:00')) / 86400000)); 
+                const multa = (p.valor_total || 0) * 2 / 100;   // 2% fixo
+                const mora  = (p.valor_total || 0) * 0.0333 / 100 * dias; 
+                const total = (p.valor_total || 0) + multa + mora; 
+
+                const { data: existente } = await sb.from('inadimplencia').select('id, status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID); 
+
+                if (existente && existente.length > 0) { 
+                    if (existente[0].status === 'pendente') {
+                        await sb.from('inadimplencia').update({
+                          dias_atraso: dias,
+                          valor_multa: Math.round(multa*100)/100,
+                          valor_mora:  Math.round(mora*100)/100,
+                          valor_total_devido: Math.round(total*100)/100
+                        }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); 
+                    }
+                } else { 
+                    await sb.from('inadimplencia').insert({
+                      empresa_id: EMPRESA_ID,
+                      operacao_id: p.operacao?.id || p.operacao_id || null,
+                      parcela_id:  p.id,
+                      cliente_id:  p.operacao?.cliente_id || null,
+                      dias_atraso: dias,
+                      valor_devido: p.valor_total || 0,
+                      valor_multa:  Math.round(multa*100)/100,
+                      valor_mora:   Math.round(mora*100)/100,
+                      valor_total_devido: Math.round(total*100)/100,
+                      status: 'pendente'
+                    }); 
                 }
-            } else { 
-                await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id || p.operacao_id, parcela_id: p.id, cliente_id: p.operacao?.cliente_id || null, dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, status: 'pendente' }); 
-            } 
+            } catch(eLoop) {
+                erroLoop++;
+                console.warn('[Sync] Parcela ' + p.id + ':', eLoop.message);
+            }
         } 
 
+        // 3) Resolver automaticamente as que foram pagas
         const { data: pagas } = await sb.from('parcelas').select('id').eq('status', 'paga').eq('empresa_id', EMPRESA_ID);
         if (pagas && pagas.length > 0) {
             const idsPagas = pagas.map(p => p.id);
             await sb.from('inadimplencia').update({ status: 'resolvido' }).in('parcela_id', idsPagas).eq('status', 'pendente').eq('empresa_id', EMPRESA_ID);
         }
 
-        if(btn) showToast('Sistema de Inadimplência Sincronizado!', 'success'); 
-        await loadInadimplencia();
+        if (erroLoop > 0) showToast('⚠️ Sincronizado com ' + erroLoop + ' aviso(s).', 'warning');
+        else if(btn) showToast('✅ Inadimplência Sincronizada!', 'success'); 
 
     } catch (e) {
         showToast('Erro ao sincronizar: ' + e.message, 'error');
+        console.error('[checkInadimplencia]', e);
     } finally {
+        // Sempre atualizar a tabela, independente de erros
+        await loadInadimplencia();
         if(btn) { btn.innerHTML = '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Atualizar Sistema'; btn.disabled = false; }
     }
   }
