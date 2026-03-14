@@ -1576,7 +1576,7 @@
           <div class="card-body no-padding">
             <div class="table-wrap">
               <table>
-                <thead><tr><th>Cliente</th><th>CPF</th><th>Situação</th><th>Total Devido</th><th>Ações</th></tr></thead>
+                <thead><tr><th>Cliente</th><th>Especialista</th><th>CPF</th><th>Situação</th><th>Total Devido</th><th>Ações</th></tr></thead>
                 <tbody id="tblInadimplencia"></tbody>
               </table>
             </div>
@@ -3831,10 +3831,14 @@
     (data || []).forEach(i => { 
         const cli = i.cliente || { nome: 'Cliente Removido', cpf: '---', celular: '', telefone: '' };
         if(!inadCacheAgrupado[i.cliente_id]) { 
-            inadCacheAgrupado[i.cliente_id] = { cliente: cli, total: 0, itens: [] }; 
+            inadCacheAgrupado[i.cliente_id] = { cliente: cli, total: 0, itens: [], especialista: i.especialista || '-' }; 
         } 
         if (i.status === 'pendente') {
             inadCacheAgrupado[i.cliente_id].total += i.valor_total_devido; 
+        }
+        // Atualiza especialista se vier preenchido
+        if (i.especialista && i.especialista !== '-') {
+            inadCacheAgrupado[i.cliente_id].especialista = i.especialista;
         }
         inadCacheAgrupado[i.cliente_id].itens.push(i); 
     }); 
@@ -3843,11 +3847,15 @@
     for(let cid in inadCacheAgrupado) { 
         const g = inadCacheAgrupado[cid]; 
         const pendentesCount = g.itens.filter(i => i.status === 'pendente').length;
+        const espBadge = g.especialista && g.especialista !== '-'
+            ? `<span style="background:linear-gradient(135deg,rgba(255,87,34,0.1),rgba(255,87,34,0.05));color:var(--primary);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;border:1px solid rgba(255,87,34,0.2);">${g.especialista}</span>`
+            : '<span style="color:var(--text-light);font-size:12px;">—</span>';
         
         html += `
             <tr style="background: ${pendentesCount > 0 ? 'var(--warning-bg)' : 'var(--success-bg)'}; font-weight:600;">
                 <td>${g.cliente.nome}</td>
-                <td>${g.cliente.cpf}</td>
+                <td>${espBadge}</td>
+                <td>${g.cliente.cpf || '—'}</td>
                 <td>${g.itens.length} registo(s)</td>
                 <td style="color: ${pendentesCount > 0 ? 'var(--warning-text)' : 'var(--success-text)'}">${fmt(g.total)}</td>
                 <td>
@@ -3858,31 +3866,53 @@
                 </td>
             </tr>
             <tr id="inad-det-${cid}" style="display:none;">
-                <td colspan="5" style="padding:0;">
+                <td colspan="6" style="padding:0;">
                     <table style="background:#fff; border-left:4px solid ${pendentesCount > 0 ? 'var(--warning)' : 'var(--success)'}; margin: 0;">
-                        <thead><tr><th>Contrato</th><th>Parcela</th><th>Vencimento</th><th>Dias Atraso</th><th>Valor Atualizado</th><th>Etiquetas de Situação</th></tr></thead>
+                        <thead><tr>
+                          <th>Contrato / Origem</th>
+                          <th>Parcelas</th>
+                          <th>Próx. Venc.</th>
+                          <th>Dias Atraso</th>
+                          <th>Saldo Devedor</th>
+                          <th>Situação</th>
+                        </tr></thead>
                         <tbody>
-                            ${g.itens.map(i => `
-                                <tr>
-                                    <td>${i.operacao?.numero_contrato || '-'}</td>
-                                    <td>Nº ${i.parcela?.numero_parcela || '-'}</td>
-                                    <td>${fmtDate(i.parcela?.data_vencimento)}</td>
-                                    <td>${i.dias_atraso}</td>
-                                    <td style="font-weight:600;">${fmt(i.valor_total_devido)}</td>
+                            ${g.itens.map(i => {
+                                // Dados de origem: pode ser contrato normal ou importação de planilha
+                                const origemContrato = i.operacao?.numero_contrato
+                                    ? `<span style="font-weight:600;">${i.operacao.numero_contrato}</span>`
+                                    : `<span style="background:var(--info-bg);color:var(--info-text);padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;">📥 Planilha</span>`;
+                                
+                                // Parcelas: do contrato ou do campo importado
+                                const parcelasInfo = i.parcela
+                                    ? `Nº ${i.parcela.numero_parcela}`
+                                    : (i.parcelas_info || '-');
+                                
+                                // Vencimento: da parcela ou do campo importado
+                                const vencimento = i.parcela?.data_vencimento
+                                    ? fmtDate(i.parcela.data_vencimento)
+                                    : (i.prox_vencimento ? fmtDate(i.prox_vencimento) : '-');
+
+                                return `<tr>
+                                    <td>${origemContrato}</td>
+                                    <td>${parcelasInfo}</td>
+                                    <td>${vencimento}</td>
+                                    <td><strong>${i.dias_atraso}d</strong></td>
+                                    <td style="font-weight:700;color:var(--danger-text);">${fmt(i.valor_total_devido)}</td>
                                     <td>
-                                        <div style="display: flex; gap: 8px;">
-                                            <span onclick="alterarStatusInad('${i.id}', 'pendente')" class="badge badge-btn ${i.status === 'pendente' ? 'badge-danger' : 'badge-neutral'}" title="Marcar como Pendente">Pendente</span>
-                                            <span onclick="alterarStatusInad('${i.id}', 'resolvido')" class="badge badge-btn ${i.status === 'resolvido' ? 'badge-success' : 'badge-neutral'}" title="Marcar como Resolvido">Resolvido</span>
+                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                                            <span onclick="alterarStatusInad('${i.id}','pendente')" class="badge badge-btn ${i.status==='pendente'?'badge-danger':'badge-neutral'}" title="Pendente">Pendente</span>
+                                            <span onclick="alterarStatusInad('${i.id}','resolvido')" class="badge badge-btn ${i.status==='resolvido'?'badge-success':'badge-neutral'}" title="Resolvido">Resolvido</span>
                                         </div>
                                     </td>
-                                </tr>
-                            `).join('')}
+                                </tr>`;
+                            }).join('')}
                         </tbody>
                     </table>
                 </td>
             </tr>`; 
     } 
-    document.getElementById('tblInadimplencia').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum registo baseado no filtro atual.</td></tr>'; 
+    document.getElementById('tblInadimplencia').innerHTML = html || '<tr><td colspan="6" class="empty-state">Nenhum registo baseado no filtro atual.</td></tr>'; 
   } 
   
   function toggleDetInad(cid) { const el = document.getElementById(`inad-det-${cid}`); el.style.display = el.style.display === 'none' ? 'table-row' : 'none'; } 
@@ -4590,10 +4620,10 @@
 
         const { data: ex } = await sb.from('inadimplencia').select('id').eq('empresa_id', EMPRESA_ID).eq('cliente_id', clienteId).is('parcela_id', null).eq('status', 'pendente');
         if (ex && ex.length > 0) {
-          const { error: eu } = await sb.from('inadimplencia').update({ especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0 }).eq('id', ex[0].id);
+          const { error: eu } = await sb.from('inadimplencia').update({ especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0, parcelas_info: row.parcelas, prox_vencimento: row.proxVenc }).eq('id', ex[0].id);
           if (eu) throw new Error('Atualizar: ' + eu.message);
         } else {
-          const { error: ei } = await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente' });
+          const { error: ei } = await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente', parcelas_info: row.parcelas, prox_vencimento: row.proxVenc });
           if (ei) throw new Error('Inserir: ' + ei.message);
         }
 
