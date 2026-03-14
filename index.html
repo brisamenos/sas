@@ -8,6 +8,18 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
   
+  <!-- Polyfill navigator.locks — necessário para Easypanel/iframe onde a API é bloqueada -->
+  <script>
+    if (!navigator.locks) {
+      navigator.locks = {
+        request: (name, optionsOrCallback, callback) => {
+          const cb = typeof optionsOrCallback === 'function' ? optionsOrCallback : callback;
+          return Promise.resolve().then(() => cb({ name }));
+        },
+        query: () => Promise.resolve({ held: [], pending: [] }),
+      };
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
