@@ -7,6 +7,18 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600&display=swap" rel="stylesheet">
+  <!-- Polyfill navigator.locks — Easypanel/iframe -->
+  <script>
+    if (!navigator.locks) {
+      navigator.locks = {
+        request: (name, optOrCb, cb) => {
+          const fn = typeof optOrCb === 'function' ? optOrCb : cb;
+          return Promise.resolve().then(() => fn({ name }));
+        },
+        query: () => Promise.resolve({ held: [], pending: [] }),
+      };
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -698,7 +710,7 @@
     e.preventDefault();
 
     const user       = document.getElementById('username').value.trim();
-    const pass       = document.getElementById('password').value.trim();
+    const pass       = document.getElementById('password').value; // sem trim — preserva senha exata
     const btnSubmit  = document.getElementById('btnSubmit');
     const btnText    = document.getElementById('btnText');
     const spinner    = document.getElementById('btnSpinner');
