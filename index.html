@@ -1122,7 +1122,6 @@
         <h2 id="pageTitle">Dashboard</h2>
       </div>
       <div class="topbar-right">
-        <div class="topbar-separator" style="width:1px;height:24px;background:var(--border);"></div>
         <div class="conn-badge" id="connStatus">Online</div>
 
         <!-- Sino de tarefas -->
@@ -1132,13 +1131,10 @@
             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
             <span id="sinoBadge" style="display:none;position:absolute;top:2px;right:2px;width:16px;height:16px;background:#ff3d57;border-radius:50%;font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;border:2px solid #fff;"></span>
           </button>
-          <!-- Dropdown de tarefas -->
           <div id="notifDropdown" style="display:none;position:absolute;top:46px;right:0;width:360px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.14);z-index:9999;overflow:hidden;">
             <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
               <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;color:var(--text);">Tarefas</span>
-              <div style="display:flex;gap:8px;align-items:center;">
-                <button onclick="navigate('tarefas');toggleTarefaDropdown()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Ver todas →</button>
-              </div>
+              <button onclick="navigate('tarefas');toggleTarefaDropdown()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Ver todas →</button>
             </div>
             <div id="notifDropList" style="max-height:320px;overflow-y:auto;"></div>
             <div style="padding:10px 18px;border-top:1px solid var(--border-light);text-align:center;">
@@ -2885,11 +2881,10 @@
     if (_alertList) _alertList.innerHTML = _alertItems || '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:16px;">✅ Sem alertas</div>';
     if (_alertBadge) { if (_alertCount > 0) { _alertBadge.style.display='flex'; _alertBadge.textContent=String(_alertCount); } else _alertBadge.style.display='none'; }
 
-      // Badge na sidebar de agenda
-      const badge = document.getElementById('agendaBadge');
-      const total = venceHoje + venceAmanha + totalAtrasadas;
-      if (badge && total > 0) { badge.textContent = total; badge.style.display = 'inline'; }
-    }
+    // Badge na sidebar de agenda
+    const badge = document.getElementById('agendaBadge');
+    const totalBadge = venceHoje + venceAmanha + totalAtrasadas;
+    if (badge && totalBadge > 0) { badge.textContent = totalBadge; badge.style.display = 'inline'; }
 
     document.getElementById('dashStats').innerHTML = `
       <div class="stat-card accent"><div class="label">Total Clientes</div><div class="value">${totalClientes}</div></div>
@@ -3767,74 +3762,61 @@
     try {
         const today = new Date().toISOString().slice(0, 10);
 
-        // 1) Marcar parcelas vencidas como atrasadas
+        // 1) Marcar pendentes vencidas como atrasadas
         const { data: pendentes } = await sb.from('parcelas').select('id').eq('status', 'pendente').eq('empresa_id', EMPRESA_ID).lt('data_vencimento', today);
         if (pendentes && pendentes.length > 0) {
             const ids = pendentes.map(p => p.id);
             await sb.from('parcelas').update({ status: 'atrasada' }).in('id', ids).eq('empresa_id', EMPRESA_ID);
         }
 
-        // 2) Para cada parcela atrasada, criar/atualizar registo de inadimplência
-        // Seleciona sem taxa_multa/taxa_mora_dia para evitar erro se colunas não existirem
+        // 2) Para cada atrasada, criar/atualizar registo de inadimplência individualmente
         const { data: atrasadas } = await sb.from('parcelas')
-          .select('*,operacao:operacoes(id,numero_contrato,cliente_id)')
-          .eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
+            .select('*,operacao:operacoes(id,numero_contrato,cliente_id)')
+            .eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID);
 
         let erroLoop = 0;
-        for (const p of (atrasadas || [])) { 
+        for (const p of (atrasadas || [])) {
             try {
-                const dias = Math.max(0, Math.floor((new Date() - new Date(p.data_vencimento + 'T12:00:00')) / 86400000)); 
-                const multa = (p.valor_total || 0) * 2 / 100;   // 2% fixo
-                const mora  = (p.valor_total || 0) * 0.0333 / 100 * dias; 
-                const total = (p.valor_total || 0) + multa + mora; 
-
-                const { data: existente } = await sb.from('inadimplencia').select('id, status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID); 
-
-                if (existente && existente.length > 0) { 
+                const dias = Math.max(0, Math.floor((new Date() - new Date(p.data_vencimento + 'T12:00:00')) / 86400000));
+                const multa = (p.valor_total || 0) * 2 / 100;
+                const mora  = (p.valor_total || 0) * 0.0333 / 100 * dias;
+                const total = (p.valor_total || 0) + multa + mora;
+                const { data: existente } = await sb.from('inadimplencia').select('id,status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID);
+                if (existente && existente.length > 0) {
                     if (existente[0].status === 'pendente') {
                         await sb.from('inadimplencia').update({
-                          dias_atraso: dias,
-                          valor_multa: Math.round(multa*100)/100,
-                          valor_mora:  Math.round(mora*100)/100,
-                          valor_total_devido: Math.round(total*100)/100
-                        }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); 
+                            dias_atraso: dias, valor_multa: Math.round(multa*100)/100,
+                            valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100
+                        }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID);
                     }
-                } else { 
+                } else {
                     await sb.from('inadimplencia').insert({
-                      empresa_id: EMPRESA_ID,
-                      operacao_id: p.operacao?.id || p.operacao_id || null,
-                      parcela_id:  p.id,
-                      cliente_id:  p.operacao?.cliente_id || null,
-                      dias_atraso: dias,
-                      valor_devido: p.valor_total || 0,
-                      valor_multa:  Math.round(multa*100)/100,
-                      valor_mora:   Math.round(mora*100)/100,
-                      valor_total_devido: Math.round(total*100)/100,
-                      status: 'pendente'
-                    }); 
+                        empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id || p.operacao_id || null,
+                        parcela_id: p.id, cliente_id: p.operacao?.cliente_id || null,
+                        dias_atraso: dias, valor_devido: p.valor_total || 0,
+                        valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100,
+                        valor_total_devido: Math.round(total*100)/100, status: 'pendente'
+                    });
                 }
-            } catch(eLoop) {
-                erroLoop++;
-                console.warn('[Sync] Parcela ' + p.id + ':', eLoop.message);
-            }
-        } 
+            } catch(eInner) { erroLoop++; console.warn('[Sync] parcela', p.id, eInner.message); }
+        }
 
-        // 3) Resolver automaticamente as que foram pagas
+        // 3) Resolver pagas automaticamente
         const { data: pagas } = await sb.from('parcelas').select('id').eq('status', 'paga').eq('empresa_id', EMPRESA_ID);
         if (pagas && pagas.length > 0) {
             const idsPagas = pagas.map(p => p.id);
             await sb.from('inadimplencia').update({ status: 'resolvido' }).in('parcela_id', idsPagas).eq('status', 'pendente').eq('empresa_id', EMPRESA_ID);
         }
 
-        if (erroLoop > 0) showToast('⚠️ Sincronizado com ' + erroLoop + ' aviso(s).', 'warning');
-        else if(btn) showToast('✅ Inadimplência Sincronizada!', 'success'); 
+        if (erroLoop > 0) showToast('⚠️ Sincronizado com ' + erroLoop + ' aviso(s). Ver F12.', 'warning');
+        else showToast('✅ Inadimplência Sincronizada!', 'success');
 
     } catch (e) {
         showToast('Erro ao sincronizar: ' + e.message, 'error');
         console.error('[checkInadimplencia]', e);
     } finally {
-        // Sempre atualizar a tabela, independente de erros
-        await loadInadimplencia();
+        // SEMPRE recarregar a tabela, mesmo em caso de erro parcial
+        try { await loadInadimplencia(); } catch(e2) { console.error('[loadInad]', e2); }
         if(btn) { btn.innerHTML = '<svg style="width:16px;height:16px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg> Atualizar Sistema'; btn.disabled = false; }
     }
   }
@@ -4061,6 +4043,25 @@
   // =============================================
   // SISTEMA DE TAREFAS
   // =============================================
+
+  // ── ALERT DROPDOWN (inadimplência / vencimentos) ──
+  let alertDropOpen = false;
+  function toggleAlertDropdown() {
+    const dd  = document.getElementById('alertDropdown');
+    const btn = document.getElementById('btnAlertSino');
+    alertDropOpen = !alertDropOpen;
+    dd.style.display = alertDropOpen ? 'block' : 'none';
+    if (alertDropOpen && btn) btn.style.background = 'var(--surface-2)';
+    else if (btn) btn.style.background = 'var(--surface)';
+  }
+  document.addEventListener('click', function(e) {
+    const btn = document.getElementById('btnAlertSino');
+    const dd  = document.getElementById('alertDropdown');
+    if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
+      dd.style.display = 'none';
+      alertDropOpen = false;
+    }
+  });
 
   let tarefaDropOpen = false;
 
