@@ -8,17 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet" />
   
-  <!-- Polyfill navigator.locks — Easypanel/iframe -->
   <script>
-    if (!navigator.locks) {
-      navigator.locks = {
-        request: (name, optOrCb, cb) => {
-          const fn = typeof optOrCb === 'function' ? optOrCb : cb;
-          return Promise.resolve().then(() => fn({ name }));
-        },
-        query: () => Promise.resolve({ held: [], pending: [] }),
-      };
-    }
+    if (!navigator.locks) { navigator.locks = { request: (n,o,c) => { const f=typeof o==="function"?o:c; return Promise.resolve().then(()=>f({name:n})); }, query: ()=>Promise.resolve({held:[],pending:[]}) }; }
   </script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -1142,29 +1133,26 @@
         <div class="topbar-separator" style="width:1px;height:24px;background:var(--border);"></div>
         <div class="conn-badge" id="connStatus">Online</div>
 
+        <!-- Sino de alertas -->
+        <div style="position:relative;">
+          <button id="btnAlertSino" onclick="toggleAlertDropdown()" style="width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;" title="Alertas">
+            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+            <span id="alertBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#ff3d57;border-radius:50%;font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;font-family:Outfit,sans-serif;border:2px solid var(--surface);padding:0 2px;"></span>
+          </button>
+          <div id="alertDropdown" style="display:none;position:absolute;top:46px;right:0;width:300px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.15);z-index:9999;overflow:hidden;">
+            <div style="padding:12px 16px 8px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
+              <span style="font-family:Outfit,sans-serif;font-weight:700;font-size:13px;color:var(--text);">⚠️ Alertas</span>
+              <button onclick="navigate('inadimplencia');toggleAlertDropdown()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;">Inadimplência →</button>
+            </div>
+            <div id="alertDropList" style="max-height:260px;overflow-y:auto;padding:10px 12px;"></div>
+          </div>
+        </div>
+
         <!-- Botão de tema -->
         <button class="theme-btn" id="btnTheme" onclick="toggleTheme()" title="Alternar tema">
           <svg id="themeIconSun" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none"><circle cx="12" cy="12" r="5"/><path stroke-linecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           <svg id="themeIconMoon" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
         </button>
-
-        <!-- Sino de alertas/inadimplência -->
-        <div style="position:relative;">
-          <button id="btnAlertSino" onclick="toggleAlertDropdown()" style="width:38px;height:38px;border-radius:50%;border:1.5px solid var(--border);background:var(--surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.2s;position:relative;" title="Alertas"
-            onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='var(--surface)'">
-            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-            <span id="alertBadge" style="display:none;position:absolute;top:2px;right:2px;min-width:16px;height:16px;background:#ff3d57;border-radius:50%;font-size:9px;font-weight:800;color:#fff;align-items:center;justify-content:center;font-family:'Outfit',sans-serif;border:2px solid var(--surface);padding:0 2px;"></span>
-          </button>
-          <div id="alertDropdown" style="display:none;position:absolute;top:46px;right:0;width:340px;background:var(--surface);border:1.5px solid var(--border);border-radius:16px;box-shadow:0 12px 40px rgba(0,0,0,0.14);z-index:9999;overflow:hidden;">
-            <div style="padding:14px 18px 10px;border-bottom:1px solid var(--border-light);display:flex;align-items:center;justify-content:space-between;">
-              <span style="font-family:'Outfit',sans-serif;font-weight:700;font-size:14px;color:var(--text);">⚠️ Alertas do Sistema</span>
-              <button onclick="navigate('inadimplencia');toggleAlertDropdown()" style="font-size:11px;color:var(--primary);font-weight:600;background:none;border:none;cursor:pointer;padding:3px 6px;border-radius:6px;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">Ver inadimplência →</button>
-            </div>
-            <div id="alertDropList" style="max-height:300px;overflow-y:auto;padding:10px 14px;display:flex;flex-direction:column;gap:8px;">
-              <div style="text-align:center;color:var(--text-light);font-size:13px;padding:20px 0;">Nenhum alerta</div>
-            </div>
-          </div>
-        </div>
 
         <!-- Sino de tarefas -->
         <div style="position:relative;">
@@ -1404,46 +1392,6 @@
                 <input type="file" id="uploadLogoPlano" accept="image/png, image/jpeg" style="display: none;" onchange="previewLogo(event)">
               </div>
               <button class="btn btn-info" id="btnSalvarLogoPlano" style="width: 100%; justify-content: center; padding: 14px;" onclick="saveLogoPlano()">Atualizar Logótipo</button>
-            </div>
-          </div>
-
-          <!-- CARD: BACKUP -->
-          <div class="card" style="border-top: 4px solid var(--vivid-teal);">
-            <div class="card-header">
-              <h3>
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Backup dos Dados
-              </h3>
-            </div>
-            <div class="card-body">
-              <p style="color:var(--text-secondary);font-size:13.5px;margin-bottom:20px;line-height:1.6;">Baixe um arquivo <strong>.json</strong> com todos os seus dados: clientes, operações, parcelas, inadimplência e histórico de cobranças.</p>
-              <div style="background:var(--bg);border:1px solid var(--border-light);border-radius:12px;padding:16px;margin-bottom:20px;">
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                  <span style="font-size:13px;color:var(--text-secondary);">Clientes</span>
-                  <span id="bkTotalClientes" style="font-weight:700;font-size:13px;">—</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                  <span style="font-size:13px;color:var(--text-secondary);">Operações</span>
-                  <span id="bkTotalOps" style="font-weight:700;font-size:13px;">—</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
-                  <span style="font-size:13px;color:var(--text-secondary);">Parcelas</span>
-                  <span id="bkTotalParc" style="font-weight:700;font-size:13px;">—</span>
-                </div>
-                <div style="display:flex;justify-content:space-between;align-items:center;">
-                  <span style="font-size:13px;color:var(--text-secondary);">Inadimplência</span>
-                  <span id="bkTotalInad" style="font-weight:700;font-size:13px;">—</span>
-                </div>
-              </div>
-              <button class="btn btn-primary" id="btnBaixarBackup" style="width:100%;justify-content:center;padding:14px;background:linear-gradient(135deg,#00b4a6,#00bcd4);" onclick="baixarBackupClientes()">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Baixar Backup Completo (.json)
-              </button>
-              <div style="height:1px;background:var(--border-light);margin:16px 0;"></div>
-              <button class="btn btn-danger" id="btnExcluirTodosClientes" style="width:100%;justify-content:center;padding:14px;" onclick="confirmarExcluirTodosClientes()">
-                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                Excluir Todos os Dados
-              </button>
             </div>
           </div>
 
@@ -1714,11 +1662,8 @@
     </div>
     <div class="modal-body">
       <div id="importStep1">
-        <p style="font-size:13.5px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
-          Selecione o arquivo <strong>.xlsx</strong> com as colunas:<br>
-          <code style="background:var(--surface-2);padding:2px 8px;border-radius:6px;font-size:12px;">Especialista · Nome completo · Saldo Devedor · Parcelas · Próx. Venc. · Valor Parcela · Atraso Contr.</code>
-        </p>
-        <div class="file-upload-box" id="importDropZone" style="padding:36px;border:2px dashed #a0b0d0;" ondragover="event.preventDefault();" ondrop="handleImportDrop(event)">
+        <p style="font-size:13.5px;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">Selecione o arquivo <strong>.xlsx</strong> com as colunas: Especialista · Nome completo · Saldo Devedor · Parcelas · Próx. Venc. · Valor Parcela · Atraso Contr.</p>
+        <div class="file-upload-box" style="padding:36px;border:2px dashed #a0b0d0;" ondragover="event.preventDefault();" ondrop="handleImportDrop(event)">
           <span style="flex-direction:column;align-items:center;gap:10px;display:flex;">
             <svg style="width:36px;height:36px;color:var(--vivid-blue);opacity:.7;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
             <strong style="font-size:14px;color:var(--text);">Arraste o arquivo .xlsx aqui</strong>
@@ -1730,28 +1675,17 @@
       </div>
       <div id="importStep2" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:14px;">
-          <div>
-            <strong id="importPreviewTitle" style="font-size:14px;"></strong>
-            <div id="importMatchInfo" style="font-size:12px;color:var(--text-secondary);margin-top:3px;"></div>
-          </div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <div><strong id="importPreviewTitle" style="font-size:14px;"></strong><div id="importMatchInfo" style="font-size:12px;color:var(--text-secondary);margin-top:3px;"></div></div>
+          <div style="display:flex;gap:8px;">
             <span style="font-size:12px;padding:4px 12px;background:var(--success-bg);color:var(--success-text);border-radius:100px;font-weight:700;">● Vinculado</span>
-            <span style="font-size:12px;padding:4px 12px;background:var(--warning-bg);color:var(--warning-text);border-radius:100px;font-weight:700;">● Novo cadastro</span>
+            <span style="font-size:12px;padding:4px 12px;background:var(--warning-bg);color:var(--warning-text);border-radius:100px;font-weight:700;">● Novo</span>
           </div>
         </div>
         <div style="max-height:340px;overflow-y:auto;border-radius:var(--radius-sm);border:1px solid var(--border);">
           <table style="width:100%;border-collapse:collapse;font-size:12.5px;">
-            <thead style="position:sticky;top:0;z-index:2;">
-              <tr style="background:linear-gradient(90deg,#1e2b40,#1a2436);color:#e8edf5;">
-                <th style="padding:10px 12px;text-align:left;font-weight:700;">Especialista</th>
-                <th style="padding:10px 12px;text-align:left;font-weight:700;">Nome</th>
-                <th style="padding:10px 12px;text-align:left;font-weight:700;">Parcelas</th>
-                <th style="padding:10px 12px;text-align:left;font-weight:700;">Próx. Venc.</th>
-                <th style="padding:10px 12px;text-align:right;font-weight:700;">Saldo</th>
-                <th style="padding:10px 12px;text-align:center;font-weight:700;">Atraso</th>
-                <th style="padding:10px 12px;text-align:center;font-weight:700;">Status</th>
-              </tr>
-            </thead>
+            <thead style="position:sticky;top:0;z-index:2;"><tr style="background:linear-gradient(90deg,#1e2b40,#1a2436);color:#e8edf5;">
+              <th style="padding:10px 12px;text-align:left;">Especialista</th><th style="padding:10px 12px;text-align:left;">Nome</th><th style="padding:10px 12px;text-align:left;">Parcelas</th><th style="padding:10px 12px;text-align:left;">Próx.Venc.</th><th style="padding:10px 12px;text-align:right;">Saldo</th><th style="padding:10px 12px;text-align:center;">Atraso</th><th style="padding:10px 12px;text-align:center;">Status</th>
+            </tr></thead>
             <tbody id="importPreviewBody"></tbody>
           </table>
         </div>
@@ -1760,10 +1694,7 @@
     <div class="modal-footer">
       <button class="btn btn-outline" onclick="resetImportModal()">Trocar Arquivo</button>
       <button class="btn btn-outline" onclick="closeModal('modalImportarPlanilha')">Cancelar</button>
-      <button class="btn btn-primary" id="btnConfirmarImport" onclick="confirmarImportacao()" style="display:none;">
-        <svg style="width:15px;height:15px;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
-        Confirmar Importação
-      </button>
+      <button class="btn btn-primary" id="btnConfirmarImport" onclick="confirmarImportacao()" style="display:none;">Confirmar Importação</button>
     </div>
   </div>
 </div>
@@ -1832,8 +1763,8 @@
         </div>
 
         <h4 class="form-section-title">Dados Pessoais</h4>
-        <div class="form-group"><label>Nome Completo</label><input type="text" id="cNome" placeholder="Nome do cliente" oninput="verificarDuplicadoCliente()" /><div id="alertaDuplicado" style="display:none;margin-top:6px;padding:10px 14px;background:var(--warning-bg);border:1.5px solid var(--warning);border-radius:var(--radius-xs);font-size:12.5px;color:var(--warning-text);font-weight:600;cursor:pointer;" onclick="abrirClienteExistente()"></div></div>
-        <div class="form-group"><label>CPF</label><input type="text" id="cCpf" maxlength="14" oninput="maskCPF(this); verificarDuplicadoCliente()" placeholder="000.000.000-00" /></div>
+        <div class="form-group"><label>Nome Completo</label><input type="text" id="cNome" placeholder="Nome do cliente" /></div>
+        <div class="form-group"><label>CPF</label><input type="text" id="cCpf" maxlength="14" oninput="maskCPF(this)" placeholder="000.000.000-00" /></div>
         <div class="form-group"><label>Data Nascimento</label><input type="date" id="cNasc" /></div>
         <div class="form-group">
           <label>Sexo</label>
@@ -2474,9 +2405,7 @@
       document.getElementById('appShell').innerHTML = '<div style="max-width:480px;margin:80px auto;text-align:center;padding:20px;"><h2>Credenciais não configuradas</h2></div>';
       return;
     }
-    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
-    });
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false } });
     
     if (sessionStorage.getItem('microcred_auth') !== 'true' || !EMPRESA_ID) {
       window.location.href = 'login.html'; 
@@ -2567,7 +2496,7 @@
       case 'operacoes': loadOperacoes(); break;
       case 'parcelas': loadParcelas(); break; 
       case 'inadimplencia': 
-          document.getElementById('tblInadimplencia').innerHTML = '<tr><td colspan="6" class="empty-state"><svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="animation:spin 1s linear infinite;display:inline-block;margin-right:6px;vertical-align:middle;"><path stroke-linecap="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>A carregar...</td></tr>';
+          document.getElementById('tblInadimplencia').innerHTML = '<tr><td colspan="6" class="empty-state">A carregar...</td></tr>';
           loadInadimplencia(); 
           break;
       case 'renovacoes': loadRenovacoes(); break;
@@ -2805,32 +2734,28 @@
       hoje.setHours(0,0,0,0);
       const diffTime = dateObj - hoje;
       const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      
       document.getElementById('planoDataVenc').textContent = dateObj.toLocaleDateString('pt-BR');
       const diasEl = document.getElementById('planoDiasRestantes');
-      if (diffDays < 0) { diasEl.textContent = 'Expirado'; diasEl.style.color = 'var(--danger)'; }
-      else if (diffDays <= 7) { diasEl.textContent = diffDays + ' dias (Vence em breve!)'; diasEl.style.color = 'var(--danger)'; }
-      else { diasEl.textContent = diffDays + ' dias'; diasEl.style.color = 'var(--success-text)'; }
+      
+      if (diffDays < 0) {
+          diasEl.textContent = 'Expirado'; diasEl.style.color = 'var(--danger)';
+      } else if (diffDays <= 7) {
+          diasEl.textContent = diffDays + ' dias (Vence em breve!)'; diasEl.style.color = 'var(--danger)';
+      } else {
+          diasEl.textContent = diffDays + ' dias'; diasEl.style.color = 'var(--success-text)';
+      }
     }
     const currentLogo = sessionStorage.getItem('microcred_logo');
     document.getElementById('previewLogoPlano').src = (currentLogo && currentLogo !== 'null') ? currentLogo : DEFAULT_LOGO;
+
+    // Pre-fill profile fields
     document.getElementById('perfilNome').value    = sessionStorage.getItem('microcred_empresa') || '';
     document.getElementById('perfilUsuario').value = sessionStorage.getItem('microcred_usuario') || '';
     document.getElementById('perfilSenha').value   = '';
+    // Totais backup
+    Promise.all([sb.from('clientes').select('id',{count:'exact',head:true}).eq('empresa_id',EMPRESA_ID),sb.from('operacoes').select('id',{count:'exact',head:true}).eq('empresa_id',EMPRESA_ID),sb.from('parcelas').select('id',{count:'exact',head:true}).eq('empresa_id',EMPRESA_ID),sb.from('inadimplencia').select('id',{count:'exact',head:true}).eq('empresa_id',EMPRESA_ID)]).then(([rC,rO,rP,rI])=>{const s=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v??0;};s('bkTotalClientes',rC.count);s('bkTotalOps',rO.count);s('bkTotalParc',rP.count);s('bkTotalInad',rI.count);}).catch(()=>{});
     document.getElementById('perfilSenhaConf').value = '';
-
-    // Carrega totais para o card de backup
-    Promise.all([
-      sb.from('clientes').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
-      sb.from('operacoes').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
-      sb.from('parcelas').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
-      sb.from('inadimplencia').select('id', { count: 'exact', head: true }).eq('empresa_id', EMPRESA_ID),
-    ]).then(([rCli, rOp, rParc, rInad]) => {
-      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v ?? '0'; };
-      set('bkTotalClientes', rCli.count ?? 0);
-      set('bkTotalOps',      rOp.count  ?? 0);
-      set('bkTotalParc',     rParc.count ?? 0);
-      set('bkTotalInad',     rInad.count ?? 0);
-    }).catch(() => {});
   }
 
   async function salvarPerfil() {
@@ -2958,45 +2883,15 @@
     const venceHoje = parcelasAll.filter(p => p.data_vencimento === today && p.status === 'pendente').length;
     const venceAmanha = parcelasAll.filter(p => p.data_vencimento === tomorrowStr && p.status === 'pendente').length;
 
-    // Popula sino de alertas no topbar
-    const alertBadge = document.getElementById('alertBadge');
-    const alertList  = document.getElementById('alertDropList');
-    let alertCount = 0;
-    let alertItems = '';
-
-    if (totalAtrasadas > 0) {
-      alertCount += totalAtrasadas;
-      alertItems += `<div onclick="navigate('inadimplencia');toggleAlertDropdown()" style="background:var(--danger-bg);border:1px solid rgba(229,57,53,0.2);border-radius:10px;padding:10px 12px;cursor:pointer;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-        <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--danger-text);">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          ${totalAtrasadas} parcela${totalAtrasadas>1?'s':''} em atraso
-        </div>
-        <div style="font-size:11px;color:var(--danger-text);opacity:.75;margin-top:2px;">Ver inadimplência →</div>
-      </div>`;
-    }
-    if (venceHoje > 0) {
-      alertCount += venceHoje;
-      alertItems += `<div onclick="navigate('parcelas');toggleAlertDropdown()" style="background:var(--warning-bg);border:1px solid rgba(255,171,0,0.2);border-radius:10px;padding:10px 12px;cursor:pointer;transition:opacity .2s;" onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
-        <div style="display:flex;align-items:center;gap:8px;font-weight:700;font-size:13px;color:var(--warning-text);">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-          ${venceHoje} parcela${venceHoje>1?'s':''} vencem hoje
-        </div>
-      </div>`;
-    }
-    if (venceAmanha > 0) {
-      alertItems += `<div style="background:rgba(255,171,0,0.05);border:1px solid rgba(255,171,0,0.15);border-radius:10px;padding:10px 12px;">
-        <div style="display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;color:var(--warning-text);">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-          ${venceAmanha} parcela${venceAmanha>1?'s':''} vencem amanhã
-        </div>
-      </div>`;
-    }
-
-    if (alertList) alertList.innerHTML = alertItems || '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:20px 0;">✅ Nenhum alerta pendente</div>';
-    if (alertBadge) {
-      if (alertCount > 0) { alertBadge.style.display = 'flex'; alertBadge.textContent = alertCount > 99 ? '99+' : alertCount; }
-      else { alertBadge.style.display = 'none'; }
-    }
+    // Atualiza sino de alertas
+    const _alertBadge = document.getElementById('alertBadge');
+    const _alertList  = document.getElementById('alertDropList');
+    let _alertCount = 0, _alertItems = '';
+    if (totalAtrasadas > 0) { _alertCount += totalAtrasadas; _alertItems += '<div onclick="navigate(\'inadimplencia\');toggleAlertDropdown()" style="background:var(--danger-bg);border:1px solid rgba(229,57,53,0.2);border-radius:10px;padding:10px 12px;cursor:pointer;margin-bottom:4px;"><b style="color:var(--danger-text);">⚠️ ' + totalAtrasadas + ' parcela' + (totalAtrasadas>1?'s':'') + ' em atraso</b><div style="font-size:11px;color:var(--danger-text);opacity:.75;">Ver inadimplência →</div></div>'; }
+    if (venceHoje > 0) { _alertCount += venceHoje; _alertItems += '<div onclick="navigate(\'parcelas\');toggleAlertDropdown()" style="background:var(--warning-bg);border:1px solid rgba(255,171,0,0.2);border-radius:10px;padding:10px 12px;cursor:pointer;margin-bottom:4px;"><b style="color:var(--warning-text);">🕐 ' + venceHoje + ' vencem hoje</b></div>'; }
+    if (venceAmanha > 0) { _alertItems += '<div style="background:rgba(255,171,0,0.05);border:1px solid rgba(255,171,0,0.12);border-radius:10px;padding:10px 12px;"><b style="color:var(--warning-text);">📅 ' + venceAmanha + ' vencem amanhã</b></div>'; }
+    if (_alertList) _alertList.innerHTML = _alertItems || '<div style="text-align:center;color:var(--text-light);font-size:13px;padding:16px;">✅ Sem alertas</div>';
+    if (_alertBadge) { if (_alertCount > 0) { _alertBadge.style.display='flex'; _alertBadge.textContent=String(_alertCount); } else _alertBadge.style.display='none'; }
 
       // Badge na sidebar de agenda
       const badge = document.getElementById('agendaBadge');
@@ -3384,22 +3279,15 @@
     const id     = document.getElementById('clienteId').value;
     const tipo   = document.getElementById('cTipoRegistro').value || 'cliente';
     const btnSave = document.getElementById('btnSaveCliente');
-    const nome   = document.getElementById('cNome').value.trim();
-    const cpf    = document.getElementById('cCpf').value.trim();
 
-    if (!nome || !cpf)
+    const _savNome = document.getElementById('cNome').value.trim();
+    const _savCpf  = document.getElementById('cCpf').value.trim();
+    if (!_savNome || !_savCpf)
       return showToast('Nome e CPF são obrigatórios.', 'warning');
-
-    // ── Verificação de duplicado ao salvar (bloqueio final) ──
-    if (!id && tipo === 'cliente') {
-      const { data: dup } = await sb.from('clientes')
-        .select('id, nome')
-        .eq('empresa_id', EMPRESA_ID)
-        .or(`nome.ilike.${nome},cpf.eq.${cpf}`)
-        .limit(1);
-      if (dup && dup.length > 0) {
-        return showToast(`⚠️ Cliente "${dup[0].nome}" já está cadastrado com este nome ou CPF.`, 'warning');
-      }
+    // Bloqueia duplicado ao salvar (só para novos cadastros de cliente)
+    if (!id && tipo !== 'avalista') {
+      const { data: dup } = await sb.from('clientes').select('id,nome').eq('empresa_id', EMPRESA_ID).or('nome.ilike.%'+_savNome+'%,cpf.eq.'+_savCpf).limit(1);
+      if (dup && dup.length > 0) return showToast('⚠️ "'+dup[0].nome+'" já está cadastrado com este nome ou CPF.', 'warning');
     }
 
     btnSave.textContent = 'A Guardar...'; btnSave.disabled = true;
@@ -3499,121 +3387,8 @@
 
   async function deleteCliente(id) { deleteRegistro('c:' + id); }
 
-  // ── Verificação em tempo real de duplicado no modal ──
-  let _dupTimer = null;
-  let _dupClienteId = null;
-
-  async function verificarDuplicadoCliente() {
-    const editId = document.getElementById('clienteId').value;
-    if (editId) return; // edição — não verifica
-    clearTimeout(_dupTimer);
-    _dupTimer = setTimeout(async () => {
-      const nome  = document.getElementById('cNome').value.trim();
-      const cpfRaw = document.getElementById('cCpf').value.trim();
-      const cpf   = cpfRaw.replace(/\D/g,'');
-      const alerta = document.getElementById('alertaDuplicado');
-      if (nome.length < 3 && cpf.length < 11) { alerta.style.display='none'; return; }
-
-      let query = sb.from('clientes').select('id, nome, cpf, celular').eq('empresa_id', EMPRESA_ID);
-      if (nome.length >= 3 && cpf.length === 11)   query = query.or(`nome.ilike.%${nome}%,cpf.eq.${cpfRaw}`);
-      else if (cpf.length === 11)                   query = query.eq('cpf', cpfRaw);
-      else                                          query = query.ilike('nome', `%${nome}%`);
-
-      const { data } = await query.limit(1);
-      if (data && data.length > 0) {
-        _dupClienteId = data[0].id;
-        alerta.style.display = 'block';
-        alerta.innerHTML = `⚠️ Cliente já cadastrado: <strong>${data[0].nome}</strong> | CPF: ${data[0].cpf||'—'} | Tel: ${data[0].celular||'—'}<br><span style="text-decoration:underline;font-size:11px;">Clique aqui para abrir o cadastro existente</span>`;
-      } else {
-        _dupClienteId = null;
-        alerta.style.display = 'none';
-      }
-    }, 600);
-  }
-
-  function abrirClienteExistente() {
-    if (!_dupClienteId) return;
-    closeModal('modalCliente');
-    editRegistro('c:' + _dupClienteId);
-  }
-
-  // ── Excluir Todos os Dados ──
-  async function confirmarExcluirTodosClientes() {
-    const ok1 = confirm('⚠️ ATENÇÃO: Isso vai excluir TODOS os dados desta conta.\n\nClientes, operações, parcelas, inadimplência, histórico, tudo.\n\nEsta ação NÃO pode ser desfeita.\n\nClique OK para continuar.');
-    if (!ok1) return;
-    const ok2 = confirm('Tem a certeza absoluta? Todos os dados serão apagados permanentemente.');
-    if (!ok2) return;
-
-    const btn = document.getElementById('btnExcluirTodosClientes');
-    if (btn) { btn.textContent = 'Excluindo...'; btn.disabled = true; }
-
-    const tabelas = [
-      'inadimplencia',
-      'historico_cobrancas',
-      'parcelas',
-      'renovacoes',
-      'operacoes',
-      'avaliacao_financeira',
-      'fluxo_caixa',
-      'micro_negocios',
-      'avalistas',
-      'clientes',
-      'tarefas',
-      'avaliacoes',
-    ];
-
-    let erros = 0;
-    try {
-      for (const tabela of tabelas) {
-        const { error } = await sb.from(tabela).delete().eq('empresa_id', EMPRESA_ID);
-        if (error) { console.warn(`Erro ao limpar ${tabela}:`, error.message); erros++; }
-      }
-      if (erros === 0) {
-        showToast('✅ Todos os dados foram excluídos com sucesso.', 'success');
-      } else {
-        showToast(`⚠️ Concluído com ${erros} erro(s). Alguns dados podem não ter sido removidos.`, 'warning');
-      }
-      // Recarrega todas as views
-      navigate('dashboard');
-    } catch(e) {
-      showToast('Erro ao excluir: ' + e.message, 'error');
-    } finally {
-      if (btn) {
-        btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Excluir Todos os Dados';
-        btn.disabled = false;
-      }
-    }
-  }
-
-  // ── Backup de Clientes (JSON) ──
-  async function baixarBackupClientes() {
-    const btn = document.getElementById('btnBaixarBackup');
-    if (btn) { btn.textContent = 'Gerando...'; btn.disabled = true; }
-    try {
-      const [rCli, rAval, rOp, rParc, rInad, rHist] = await Promise.all([
-        sb.from('clientes').select('*').eq('empresa_id', EMPRESA_ID),
-        sb.from('avalistas').select('*').eq('empresa_id', EMPRESA_ID),
-        sb.from('operacoes').select('*').eq('empresa_id', EMPRESA_ID),
-        sb.from('parcelas').select('*').eq('empresa_id', EMPRESA_ID),
-        sb.from('inadimplencia').select('*').eq('empresa_id', EMPRESA_ID),
-        sb.from('historico_cobrancas').select('*').eq('empresa_id', EMPRESA_ID),
-      ]);
-      const backup = {
-        empresa_id: EMPRESA_ID,
-        empresa_nome: sessionStorage.getItem('microcred_empresa') || '',
-        data_backup: new Date().toISOString(),
-        totais: { clientes: rCli.data?.length||0, avalistas: rAval.data?.length||0, operacoes: rOp.data?.length||0, parcelas: rParc.data?.length||0, inadimplencia: rInad.data?.length||0, historico: rHist.data?.length||0 },
-        dados: { clientes: rCli.data||[], avalistas: rAval.data||[], operacoes: rOp.data||[], parcelas: rParc.data||[], inadimplencia: rInad.data||[], historico_cobrancas: rHist.data||[] }
-      };
-      const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
-      const a = Object.assign(document.createElement('a'), { href: URL.createObjectURL(blob), download: `backup_microcred_${new Date().toISOString().slice(0,10)}.json` });
-      document.body.appendChild(a); a.click(); document.body.removeChild(a);
-      showToast(`✅ Backup gerado: ${backup.totais.clientes} clientes, ${backup.totais.operacoes} operações.`, 'success');
-    } catch(e) { showToast('Erro ao gerar backup: ' + e.message, 'error');
-    } finally {
-      if (btn) { btn.innerHTML = '<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Baixar Backup Completo (.json)'; btn.disabled = false; }
-    }
-  }
+  // =============================================
+  // AVALISTAS – funções de compatibilidade
   // =============================================
   async function loadAvalistas() { loadClientes(); }
   async function openAvalistaModal(a) { editRegistro('a:' + (a?.id || '')); }
@@ -3911,13 +3686,13 @@
   // =============================================
   async function loadParcelas() { 
     const searchStr = (document.getElementById('filterParcelaBusca')?.value || '').trim().toLowerCase(); 
+    // sem filtro: mostra atrasadas e pendentes 
     const status = document.getElementById('filterParcelaStatus')?.value; 
     const date = document.getElementById('filterParcelaDate')?.value; 
     
     let q = sb.from('parcelas').select('*,operacao:operacoes(numero_contrato, cliente:clientes(nome,cpf))').eq('empresa_id', EMPRESA_ID).order('data_vencimento'); 
     if (status) q = q.eq('status', status); 
-    if (date)   q = q.eq('data_vencimento', date); 
-    // Se não há filtros, limita para não sobrecarregar
+    if (date) q = q.eq('data_vencimento', date); 
     if (!searchStr && !status && !date) q = q.in('status', ['atrasada','pendente']).limit(200);
     let { data } = await q; 
     
@@ -3928,18 +3703,8 @@
       p.status = 'atrasada'; 
     } 
     
-    if (searchStr) {
-      data = (data||[]).filter(p => { 
-        const nome = (p.operacao?.cliente?.nome || '').toLowerCase(); 
-        const cpf  = (p.operacao?.cliente?.cpf  || '').toLowerCase(); 
-        return nome.includes(searchStr) || cpf.includes(searchStr); 
-      }); 
-    }
-    
-    if (!data || data.length === 0) { 
-      document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>'; 
-      return; 
-    } 
+    if (searchStr) { data = (data||[]).filter(p => { const nome=(p.operacao?.cliente?.nome||'').toLowerCase(); const cpf=(p.operacao?.cliente?.cpf||''); return nome.includes(searchStr)||cpf.includes(searchStr); }); }
+    if (!data || data.length === 0) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>'; return; } 
     
     const todayStr = new Date().toISOString().slice(0,10);
     document.getElementById('tblParcelas').innerHTML = data.map(p => {
@@ -4010,33 +3775,19 @@
     try {
         const today = new Date().toISOString().slice(0, 10);
 
-        // Marca pendentes vencidas como atrasadas
         const { data: pendentes } = await sb.from('parcelas').select('id').eq('status', 'pendente').eq('empresa_id', EMPRESA_ID).lt('data_vencimento', today);
         if (pendentes && pendentes.length > 0) {
             const ids = pendentes.map(p => p.id);
             await sb.from('parcelas').update({ status: 'atrasada' }).in('id', ids).eq('empresa_id', EMPRESA_ID);
         }
 
-        // Busca atrasadas — inclui cliente_id direto via operacao E fallback pelo cliente da operação
-        const { data: atrasadas } = await sb.from('parcelas')
-          .select('*, operacao:operacoes(id, numero_contrato, cliente_id, taxa_multa, taxa_mora_dia)')
-          .eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
-
+        const { data: atrasadas } = await sb.from('parcelas').select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)').eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
         for (const p of (atrasadas || [])) { 
-            const dias  = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); 
-            const taxa_multa   = p.operacao?.taxa_multa    ?? 2;
-            const taxa_mora    = p.operacao?.taxa_mora_dia ?? 0.0333;
-            const multa = p.valor_total * taxa_multa / 100; 
-            const mora  = p.valor_total * taxa_mora  / 100 * dias; 
+            const dias = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); 
+            const multa = p.valor_total * (p.operacao?.taxa_multa ?? 2) / 100; 
+            const mora = p.valor_total * (p.operacao?.taxa_mora_dia ?? 0.0333) / 100 * dias; 
             const total = p.valor_total + multa + mora; 
             
-            // cliente_id: pega da operação; se null, busca direto na tabela operacoes
-            let clienteId = p.operacao?.cliente_id || null;
-            if (!clienteId && p.operacao_id) {
-              const { data: opDirect } = await sb.from('operacoes').select('cliente_id').eq('id', p.operacao_id).single();
-              clienteId = opDirect?.cliente_id || null;
-            }
-
             const { data: existente } = await sb.from('inadimplencia').select('id, status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID); 
             
             if (existente && existente.length > 0) { 
@@ -4044,11 +3795,10 @@
                     await sb.from('inadimplencia').update({ dias_atraso: dias, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100 }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); 
                 }
             } else { 
-                await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id || p.operacao_id, parcela_id: p.id, cliente_id: clienteId, dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, status: 'pendente' }); 
+                await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id || p.operacao_id, parcela_id: p.id, cliente_id: p.operacao?.cliente_id || null, dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, status: 'pendente' }); 
             } 
         } 
 
-        // Marca como resolvido as parcelas pagas
         const { data: pagas } = await sb.from('parcelas').select('id').eq('status', 'paga').eq('empresa_id', EMPRESA_ID);
         if (pagas && pagas.length > 0) {
             const idsPagas = pagas.map(p => p.id);
@@ -4080,10 +3830,7 @@
         if (i.status === 'pendente') {
             inadCacheAgrupado[i.cliente_id].total += i.valor_total_devido; 
         }
-        // Atualiza especialista se vier preenchido
-        if (i.especialista && i.especialista !== '-') {
-            inadCacheAgrupado[i.cliente_id].especialista = i.especialista;
-        }
+        if (i.especialista && i.especialista !== '-') inadCacheAgrupado[i.cliente_id].especialista = i.especialista;
         inadCacheAgrupado[i.cliente_id].itens.push(i); 
     }); 
 
@@ -4091,14 +3838,11 @@
     for(let cid in inadCacheAgrupado) { 
         const g = inadCacheAgrupado[cid]; 
         const pendentesCount = g.itens.filter(i => i.status === 'pendente').length;
-        const espBadge = g.especialista && g.especialista !== '-'
-            ? `<span style="background:linear-gradient(135deg,rgba(255,87,34,0.1),rgba(255,87,34,0.05));color:var(--primary);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;border:1px solid rgba(255,87,34,0.2);">${g.especialista}</span>`
-            : '<span style="color:var(--text-light);font-size:12px;">—</span>';
         
         html += `
             <tr style="background: ${pendentesCount > 0 ? 'var(--warning-bg)' : 'var(--success-bg)'}; font-weight:600;">
                 <td>${g.cliente.nome}</td>
-                <td>${espBadge}</td>
+                <td>${g.especialista && g.especialista !== '-' ? '<span style="background:rgba(255,87,34,0.1);color:var(--primary);padding:2px 9px;border-radius:100px;font-size:11px;font-weight:700;border:1px solid rgba(255,87,34,0.2);">'+g.especialista+'</span>' : '<span style="color:var(--text-light);">—</span>'}</td>
                 <td>${g.cliente.cpf || '—'}</td>
                 <td>${g.itens.length} registo(s)</td>
                 <td style="color: ${pendentesCount > 0 ? 'var(--warning-text)' : 'var(--success-text)'}">${fmt(g.total)}</td>
@@ -4112,51 +3856,29 @@
             <tr id="inad-det-${cid}" style="display:none;">
                 <td colspan="6" style="padding:0;">
                     <table style="background:#fff; border-left:4px solid ${pendentesCount > 0 ? 'var(--warning)' : 'var(--success)'}; margin: 0;">
-                        <thead><tr>
-                          <th>Contrato / Origem</th>
-                          <th>Parcelas</th>
-                          <th>Próx. Venc.</th>
-                          <th>Dias Atraso</th>
-                          <th>Saldo Devedor</th>
-                          <th>Situação</th>
-                        </tr></thead>
+                        <thead><tr><th>Contrato</th><th>Parcela</th><th>Vencimento</th><th>Dias Atraso</th><th>Valor Atualizado</th><th>Etiquetas de Situação</th></tr></thead>
                         <tbody>
-                            ${g.itens.map(i => {
-                                // Dados de origem: pode ser contrato normal ou importação de planilha
-                                const origemContrato = i.operacao?.numero_contrato
-                                    ? `<span style="font-weight:600;">${i.operacao.numero_contrato}</span>`
-                                    : `<span style="background:var(--info-bg);color:var(--info-text);padding:2px 8px;border-radius:100px;font-size:10px;font-weight:700;">📥 Planilha</span>`;
-                                
-                                // Parcelas: do contrato ou do campo importado
-                                const parcelasInfo = i.parcela
-                                    ? `Nº ${i.parcela.numero_parcela}`
-                                    : (i.parcelas_info || '-');
-                                
-                                // Vencimento: da parcela ou do campo importado
-                                const vencimento = i.parcela?.data_vencimento
-                                    ? fmtDate(i.parcela.data_vencimento)
-                                    : (i.prox_vencimento ? fmtDate(i.prox_vencimento) : '-');
-
-                                return `<tr>
-                                    <td>${origemContrato}</td>
-                                    <td>${parcelasInfo}</td>
-                                    <td>${vencimento}</td>
-                                    <td><strong>${i.dias_atraso}d</strong></td>
-                                    <td style="font-weight:700;color:var(--danger-text);">${fmt(i.valor_total_devido)}</td>
+                            ${g.itens.map(i => `
+                                <tr>
+                                    <td>${i.operacao?.numero_contrato || '-'}</td>
+                                    <td>Nº ${i.parcela?.numero_parcela || '-'}</td>
+                                    <td>${fmtDate(i.parcela?.data_vencimento)}</td>
+                                    <td>${i.dias_atraso}</td>
+                                    <td style="font-weight:600;">${fmt(i.valor_total_devido)}</td>
                                     <td>
-                                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
-                                            <span onclick="alterarStatusInad('${i.id}','pendente')" class="badge badge-btn ${i.status==='pendente'?'badge-danger':'badge-neutral'}" title="Pendente">Pendente</span>
-                                            <span onclick="alterarStatusInad('${i.id}','resolvido')" class="badge badge-btn ${i.status==='resolvido'?'badge-success':'badge-neutral'}" title="Resolvido">Resolvido</span>
+                                        <div style="display: flex; gap: 8px;">
+                                            <span onclick="alterarStatusInad('${i.id}', 'pendente')" class="badge badge-btn ${i.status === 'pendente' ? 'badge-danger' : 'badge-neutral'}" title="Marcar como Pendente">Pendente</span>
+                                            <span onclick="alterarStatusInad('${i.id}', 'resolvido')" class="badge badge-btn ${i.status === 'resolvido' ? 'badge-success' : 'badge-neutral'}" title="Marcar como Resolvido">Resolvido</span>
                                         </div>
                                     </td>
-                                </tr>`;
-                            }).join('')}
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </td>
             </tr>`; 
     } 
-    document.getElementById('tblInadimplencia').innerHTML = html || '<tr><td colspan="6" class="empty-state">Nenhum registo baseado no filtro atual.</td></tr>'; 
+    document.getElementById('tblInadimplencia').innerHTML = html || '<tr><td colspan="5" class="empty-state">Nenhum registo baseado no filtro atual.</td></tr>'; 
   } 
   
   function toggleDetInad(cid) { const el = document.getElementById(`inad-det-${cid}`); el.style.display = el.style.display === 'none' ? 'table-row' : 'none'; } 
@@ -4324,22 +4046,6 @@
     dd.style.display = tarefaDropOpen ? 'block' : 'none';
     if (tarefaDropOpen) loadTarefaDropdown();
   }
-
-  let alertDropOpen = false;
-  function toggleAlertDropdown() {
-    const dd = document.getElementById('alertDropdown');
-    alertDropOpen = !alertDropOpen;
-    dd.style.display = alertDropOpen ? 'block' : 'none';
-  }
-  document.addEventListener('click', function(e) {
-    const btn = document.getElementById('btnAlertSino');
-    const dd  = document.getElementById('alertDropdown');
-    if (btn && dd && !btn.contains(e.target) && !dd.contains(e.target)) {
-      dd.style.display = 'none';
-      alertDropOpen = false;
-    }
-  });
-
   document.addEventListener('click', function(e) {
     const btn = document.getElementById('btnTarefaSino');
     const dd  = document.getElementById('notifDropdown');
@@ -4710,311 +4416,164 @@
   // Stub para compatibilidade
   async function loadAvaliacoes() { loadLeads(); }
 
-  // =============================================
-  // IMPORTAR PLANILHA DE INADIMPLÊNCIA
-  // =============================================
-
+  // ── IMPORTAR PLANILHA ──
   let _importData = [];
-
-  function openImportarPlanilha() {
-    if (typeof XLSX === 'undefined') {
-      showToast('Recarregue a página e tente novamente.', 'error'); return;
-    }
-    resetImportModal();
-    openModal('modalImportarPlanilha');
-  }
-
-  function resetImportModal() {
-    _importData = [];
-    document.getElementById('importStep1').style.display = 'block';
-    document.getElementById('importStep2').style.display = 'none';
-    document.getElementById('btnConfirmarImport').style.display = 'none';
-    document.getElementById('importFileName').textContent = '';
-    const fi = document.getElementById('importFileInput');
-    if (fi) fi.value = '';
-    document.getElementById('importPreviewBody').innerHTML = '';
-  }
-
-  function handleImportDrop(e) {
-    e.preventDefault();
-    const file = e.dataTransfer?.files?.[0];
-    if (file) processImportFile(file);
-  }
-
-  function handleImportFile(input) {
-    const file = input.files?.[0];
-    if (file) processImportFile(file);
-  }
-
-  function _normCol(s) {
-    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9 ]/gi, '').trim().toLowerCase();
-  }
-
-  function processImportFile(file) {
-    if (!file.name.match(/\.xlsx?$/i)) { showToast('Selecione um arquivo .xlsx válido.', 'error'); return; }
-    document.getElementById('importFileName').textContent = '📄 ' + file.name;
-    const reader = new FileReader();
-    reader.onerror = () => showToast('Erro ao ler o arquivo.', 'error');
-    reader.onload = async (evt) => {
-      try {
-        const wb = XLSX.read(new Uint8Array(evt.target.result), { type: 'array', cellDates: true });
-        const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, defval: null });
-        if (!aoa || aoa.length < 2) { showToast('Planilha sem dados.', 'warning'); return; }
-
-        const hdrs = aoa[0].map(h => _normCol(String(h || '')));
-        const ci = {
-          especialista: hdrs.findIndex(h => h.includes('especialista')),
-          nome:         hdrs.findIndex(h => h.includes('nome')),
-          telefone:     hdrs.findIndex(h => h.includes('telefone') || h.includes('celular')),
-          saldo:        hdrs.findIndex(h => h.includes('saldo')),
-          parcelas:     hdrs.findIndex(h => h === 'parcelas' || (h.includes('parcela') && !h.includes('valor'))),
-          proxVenc:     hdrs.findIndex(h => h.includes('prox') && h.includes('venc')),
-          valorParcela: hdrs.findIndex(h => h.includes('valor') && h.includes('parcela')),
-          atraso:       hdrs.findIndex(h => h.includes('atraso')),
-        };
-        if (ci.especialista < 0) ci.especialista = 0;
-        if (ci.nome < 0)         ci.nome         = 1;
-        if (ci.saldo < 0)        ci.saldo        = 5;
-        if (ci.parcelas < 0)     ci.parcelas     = 6;
-        if (ci.proxVenc < 0)     ci.proxVenc     = 7;
-        if (ci.valorParcela < 0) ci.valorParcela = 8;
-        if (ci.atraso < 0)       ci.atraso       = 9;
-
-        const g = (row, key) => { const v = row[ci[key]]; return v === undefined ? null : v; };
-
-        const toDateStr = (v) => {
-          if (!v) return null;
-          if (v instanceof Date) return isNaN(v) ? null : v.toISOString().slice(0, 10);
-          if (typeof v === 'string' && v.match(/^\d{4}-\d{2}-\d{2}/)) return v.slice(0, 10);
-          if (typeof v === 'string' && v.match(/^\d{2}\/\d{2}\/\d{4}/)) { const [d,m,y]=v.split('/'); return `${y}-${m}-${d}`; }
-          if (typeof v === 'number' && v > 1) { const d = new Date(Math.round((v-25569)*86400*1000)); return isNaN(d)?null:d.toISOString().slice(0,10); }
-          return null;
-        };
-        const toNum = (v) => { if (v==null) return 0; if (typeof v==='number') return Math.round(v*100)/100; return parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0; };
-        const toDias = (v) => { const m=String(v||'0').match(/(\d+)/); return m?parseInt(m[1]):0; };
-
-        _importData = aoa.slice(1)
-          .filter(row => { const n=String(g(row,'nome')||'').trim(); return n && n.toLowerCase() !== 'total geral'; })
-          .map(row => {
-            const ar = g(row,'atraso');
-            return {
-              especialista: String(g(row,'especialista')||'-').trim(),
-              nome:         String(g(row,'nome')||'').trim(),
-              telefone:     String(g(row,'telefone')||'').trim(),
-              saldo:        toNum(g(row,'saldo')),
-              parcelas:     String(g(row,'parcelas')||'').trim(),
-              proxVenc:     toDateStr(g(row,'proxVenc')),
-              valorParcela: String(g(row,'valorParcela')||'').trim(),
-              atraso:       String(ar||'').trim(),
-              diasAtraso:   toDias(ar),
-            };
-          });
-
-        if (_importData.length === 0) { showToast('Nenhum dado válido encontrado.', 'warning'); return; }
+  function _normCol(s){return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9 ]/gi,'').trim().toLowerCase();}
+  function openImportarPlanilha(){if(typeof XLSX==='undefined'){showToast('Recarregue a página.','error');return;}resetImportModal();openModal('modalImportarPlanilha');}
+  function resetImportModal(){_importData=[];document.getElementById('importStep1').style.display='block';document.getElementById('importStep2').style.display='none';document.getElementById('btnConfirmarImport').style.display='none';document.getElementById('importFileName').textContent='';const fi=document.getElementById('importFileInput');if(fi)fi.value='';document.getElementById('importPreviewBody').innerHTML='';}
+  function handleImportDrop(e){e.preventDefault();const f=e.dataTransfer?.files?.[0];if(f)processImportFile(f);}
+  function handleImportFile(input){const f=input.files?.[0];if(f)processImportFile(f);}
+  function processImportFile(file){
+    if(!file.name.match(/\.xlsx?$/i)){showToast('Selecione .xlsx','error');return;}
+    document.getElementById('importFileName').textContent='📄 '+file.name;
+    const reader=new FileReader();
+    reader.onerror=()=>showToast('Erro ao ler.','error');
+    reader.onload=async(evt)=>{
+      try{
+        const wb=XLSX.read(new Uint8Array(evt.target.result),{type:'array',cellDates:true});
+        const aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:null});
+        if(!aoa||aoa.length<2){showToast('Planilha vazia.','warning');return;}
+        const hdrs=aoa[0].map(h=>_normCol(String(h||'')));
+        const ci={especialista:hdrs.findIndex(h=>h.includes('especialista')),nome:hdrs.findIndex(h=>h.includes('nome')),telefone:hdrs.findIndex(h=>h.includes('telefone')||h.includes('celular')),saldo:hdrs.findIndex(h=>h.includes('saldo')),parcelas:hdrs.findIndex(h=>h==='parcelas'||(h.includes('parcela')&&!h.includes('valor'))),proxVenc:hdrs.findIndex(h=>h.includes('prox')&&h.includes('venc')),valorParcela:hdrs.findIndex(h=>h.includes('valor')&&h.includes('parcela')),atraso:hdrs.findIndex(h=>h.includes('atraso'))};
+        if(ci.especialista<0)ci.especialista=0;if(ci.nome<0)ci.nome=1;if(ci.saldo<0)ci.saldo=5;if(ci.parcelas<0)ci.parcelas=6;if(ci.proxVenc<0)ci.proxVenc=7;if(ci.valorParcela<0)ci.valorParcela=8;if(ci.atraso<0)ci.atraso=9;
+        const g=(row,key)=>{const v=row[ci[key]];return v===undefined?null:v;};
+        const toD=(v)=>{if(!v)return null;if(v instanceof Date)return isNaN(v)?null:v.toISOString().slice(0,10);if(typeof v==='string'&&v.match(/^\d{4}-\d{2}-\d{2}/))return v.slice(0,10);if(typeof v==='string'&&v.match(/^\d{2}\/\d{2}\/\d{4}/)){const[d,m,y]=v.split('/');return y+'-'+m+'-'+d;}if(typeof v==='number'&&v>1){const d=new Date(Math.round((v-25569)*86400*1000));return isNaN(d)?null:d.toISOString().slice(0,10);}return null;};
+        const toN=(v)=>{if(v==null)return 0;if(typeof v==='number')return Math.round(v*100)/100;return parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0;};
+        const toDias=(v)=>{const m=String(v||'0').match(/(\d+)/);return m?parseInt(m[1]):0;};
+        _importData=aoa.slice(1).filter(row=>{const n=String(g(row,'nome')||'').trim();return n&&n.toLowerCase()!=='total geral';}).map(row=>{const ar=g(row,'atraso');return{especialista:String(g(row,'especialista')||'-').trim(),nome:String(g(row,'nome')||'').trim(),telefone:String(g(row,'telefone')||'').trim(),saldo:toN(g(row,'saldo')),parcelas:String(g(row,'parcelas')||'').trim(),proxVenc:toD(g(row,'proxVenc')),valorParcela:String(g(row,'valorParcela')||'').trim(),atraso:String(ar||'').trim(),diasAtraso:toDias(ar)};});
+        if(_importData.length===0){showToast('Nenhum dado válido.','warning');return;}
         await buildImportPreview();
-      } catch (err) {
-        console.error('[Importar]', err);
-        showToast('Erro ao ler arquivo: ' + err.message, 'error');
-      }
+      }catch(err){console.error('[Importar]',err);showToast('Erro: '+err.message,'error');}
     };
     reader.readAsArrayBuffer(file);
   }
-
-  async function buildImportPreview() {
-    const { data: clientes } = await sb.from('clientes').select('id, nome').eq('empresa_id', EMPRESA_ID);
-    const clienteMap = {};
-    (clientes || []).forEach(c => { if (c.nome) clienteMap[_normCol(c.nome)] = c; });
-
-    const tbody = document.getElementById('importPreviewBody');
-    tbody.innerHTML = '';
-    let found = 0, notFound = 0;
-
-    _importData.forEach(row => {
-      const match = clienteMap[_normCol(row.nome)];
-      row._clienteId = match?.id || null;
-      if (match) found++; else notFound++;
-
-      const proxFmt = row.proxVenc ? (() => { try { return new Date(row.proxVenc+'T12:00:00').toLocaleDateString('pt-BR'); } catch { return row.proxVenc; } })() : '-';
-      const saldoFmt = row.saldo.toLocaleString('pt-BR', { style:'currency', currency:'BRL' });
-      const diasBadge = row.diasAtraso >= 90
-        ? `<span style="background:#fff0f2;color:#c0001a;padding:2px 9px;border-radius:100px;font-weight:700;font-size:11px;">${row.diasAtraso}d ⚠️</span>`
-        : row.diasAtraso >= 30
-          ? `<span style="background:#fff9e6;color:#8a5c00;padding:2px 9px;border-radius:100px;font-weight:700;font-size:11px;">${row.diasAtraso}d</span>`
-          : `<span style="background:#f0f2f8;color:#4a5568;padding:2px 9px;border-radius:100px;font-weight:700;font-size:11px;">${row.diasAtraso}d</span>`;
-      const statusCell = match
-        ? `<span style="background:var(--success-bg);color:var(--success-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">✓ Vinculado</span>`
-        : `<span style="background:var(--warning-bg);color:var(--warning-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">⚡ Novo</span>`;
-
-      const tr = document.createElement('tr');
-      tr.style.cssText = `background:${match?'var(--success-bg)':'var(--warning-bg)'};border-bottom:1px solid var(--border-light);`;
-      tr.innerHTML = `<td style="padding:9px 12px;font-weight:600;font-size:12px;color:var(--primary);white-space:nowrap;">${row.especialista}</td><td style="padding:9px 12px;font-weight:600;">${row.nome}</td><td style="padding:9px 12px;white-space:nowrap;">${row.parcelas||'-'}</td><td style="padding:9px 12px;white-space:nowrap;">${proxFmt}</td><td style="padding:9px 12px;text-align:right;font-weight:700;">${saldoFmt}</td><td style="padding:9px 12px;text-align:center;">${diasBadge}</td><td style="padding:9px 12px;text-align:center;">${statusCell}</td>`;
+  async function buildImportPreview(){
+    const{data:clientes}=await sb.from('clientes').select('id,nome').eq('empresa_id',EMPRESA_ID);
+    const cm={};(clientes||[]).forEach(c=>{if(c.nome)cm[_normCol(c.nome)]=c;});
+    const tbody=document.getElementById('importPreviewBody');tbody.innerHTML='';
+    let found=0,notFound=0;
+    _importData.forEach(row=>{
+      const match=cm[_normCol(row.nome)];row._clienteId=match?.id||null;
+      if(match)found++;else notFound++;
+      const proxFmt=row.proxVenc?(()=>{try{return new Date(row.proxVenc+'T12:00:00').toLocaleDateString('pt-BR');}catch{return row.proxVenc;}})():'-';
+      const saldoFmt=row.saldo.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+      const diasBadge=row.diasAtraso>=90?'<span style="background:#fff0f2;color:#c0001a;padding:2px 8px;border-radius:100px;font-weight:700;font-size:11px;">'+row.diasAtraso+'d ⚠️</span>':row.diasAtraso>=30?'<span style="background:#fff9e6;color:#8a5c00;padding:2px 8px;border-radius:100px;font-weight:700;font-size:11px;">'+row.diasAtraso+'d</span>':'<span style="background:#f0f2f8;color:#4a5568;padding:2px 8px;border-radius:100px;font-weight:700;font-size:11px;">'+row.diasAtraso+'d</span>';
+      const st=match?'<span style="background:var(--success-bg);color:var(--success-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">✓ Vinculado</span>':'<span style="background:var(--warning-bg);color:var(--warning-text);padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;">⚡ Novo</span>';
+      const tr=document.createElement('tr');tr.style.cssText='background:'+(match?'var(--success-bg)':'var(--warning-bg)')+';border-bottom:1px solid var(--border-light);';
+      tr.innerHTML='<td style="padding:9px 12px;font-weight:600;font-size:12px;color:var(--primary);">'+row.especialista+'</td><td style="padding:9px 12px;font-weight:600;">'+row.nome+'</td><td style="padding:9px 12px;">'+row.parcelas+'</td><td style="padding:9px 12px;">'+proxFmt+'</td><td style="padding:9px 12px;text-align:right;font-weight:700;">'+saldoFmt+'</td><td style="padding:9px 12px;text-align:center;">'+diasBadge+'</td><td style="padding:9px 12px;text-align:center;">'+st+'</td>';
       tbody.appendChild(tr);
     });
-
-    document.getElementById('importPreviewTitle').textContent = `${_importData.length} cliente(s) na planilha`;
-    document.getElementById('importMatchInfo').textContent = `${found} vinculado(s) · ${notFound} novo(s)`;
-    document.getElementById('importStep1').style.display = 'none';
-    document.getElementById('importStep2').style.display = 'block';
-    document.getElementById('btnConfirmarImport').style.display = 'flex';
+    document.getElementById('importPreviewTitle').textContent=_importData.length+' cliente(s) na planilha';
+    document.getElementById('importMatchInfo').textContent=found+' vinculado(s) · '+notFound+' novo(s)';
+    document.getElementById('importStep1').style.display='none';document.getElementById('importStep2').style.display='block';document.getElementById('btnConfirmarImport').style.display='flex';
   }
-
-  async function confirmarImportacao() {
-    const btn = document.getElementById('btnConfirmarImport');
-    btn.textContent = 'Importando...'; btn.disabled = true;
-    let ok = 0, fail = 0;
-    const hoje = new Date().toISOString().slice(0, 10);
-
-    // Parseia "2 de 8" → { atual: 2, total: 8 }
-    function parseParcelas(str) {
-      const m = String(str || '').match(/(\d+)\s*de\s*(\d+)/i);
-      return m ? { atual: parseInt(m[1]), total: parseInt(m[2]) } : { atual: 1, total: 1 };
-    }
-
-    // Limpa valor monetário "R$ 2.309,60" → 2309.60
-    function parseValor(str) {
-      if (!str) return 0;
-      if (typeof str === 'number') return Math.round(str * 100) / 100;
-      return parseFloat(String(str).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
-    }
-
-    // Adiciona N meses a uma data string YYYY-MM-DD
-    function addMonths(dateStr, n) {
-      const d = new Date(dateStr + 'T12:00:00');
-      d.setMonth(d.getMonth() + n);
-      return d.toISOString().slice(0, 10);
-    }
-
-    for (const row of _importData) {
-      try {
-        // ── 1. Garante cliente ──
-        let clienteId = row._clienteId;
-        if (!clienteId) {
-          const obj = { empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente', tipo: 'cliente' };
-          if (row.telefone && row.telefone !== 'null' && row.telefone !== '') obj.celular = row.telefone;
-          const { data: c1, error: e1 } = await sb.from('clientes').insert(obj).select('id').single();
-          if (e1) {
-            const { data: c2, error: e2 } = await sb.from('clientes').insert({ empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente' }).select('id').single();
-            if (e2) throw new Error('Criar cliente: ' + e2.message);
-            clienteId = c2.id;
-          } else { clienteId = c1.id; }
+  async function confirmarImportacao(){
+    const btn=document.getElementById('btnConfirmarImport');btn.textContent='Importando...';btn.disabled=true;
+    let ok=0,fail=0;
+    const hoje=new Date().toISOString().slice(0,10);
+    function parseParcelas(str){const m=String(str||'').match(/(\d+)\s*de\s*(\d+)/i);return m?{atual:parseInt(m[1]),total:parseInt(m[2])}:{atual:1,total:1};}
+    function parseValor(str){if(!str)return 0;if(typeof str==='number')return Math.round(str*100)/100;return parseFloat(String(str).replace(/[^\d.,]/g,'').replace(',','.'))||0;}
+    function addMonths(ds,n){const d=new Date(ds+'T12:00:00');d.setMonth(d.getMonth()+n);return d.toISOString().slice(0,10);}
+    for(const row of _importData){
+      try{
+        let clienteId=row._clienteId;
+        if(!clienteId){
+          const obj={empresa_id:EMPRESA_ID,nome:row.nome,status:'inadimplente',tipo:'cliente'};
+          if(row.telefone&&row.telefone!=='null'&&row.telefone!=='')obj.celular=row.telefone;
+          const{data:c1,error:e1}=await sb.from('clientes').insert(obj).select('id').single();
+          if(e1){const{data:c2,error:e2}=await sb.from('clientes').insert({empresa_id:EMPRESA_ID,nome:row.nome,status:'inadimplente'}).select('id').single();if(e2)throw new Error('Cliente: '+e2.message);clienteId=c2.id;}
+          else clienteId=c1.id;
         }
-
-        const parc      = parseParcelas(row.parcelas);  // { atual: 2, total: 8 }
-        const vlrParc   = parseValor(row.valorParcela);
-        const proxVenc  = row.proxVenc || hoje;
-
-        // ── 2. Verifica se já existe operação importada para este cliente ──
-        let operacaoId = null;
-        const { data: opExist } = await sb.from('operacoes')
-          .select('id')
-          .eq('empresa_id', EMPRESA_ID)
-          .eq('cliente_id', clienteId)
-          .ilike('observacoes', '%[IMPORTADO]%')
-          .limit(1);
-
-        if (opExist && opExist.length > 0) {
-          operacaoId = opExist[0].id;
-          // Limpa parcelas antigas desta operação para reimportar
-          await sb.from('parcelas').delete().eq('operacao_id', operacaoId).eq('empresa_id', EMPRESA_ID);
-          // Limpa inadimplência vinculada
-          await sb.from('inadimplencia').delete().eq('operacao_id', operacaoId).eq('empresa_id', EMPRESA_ID);
-        } else {
-          // Cria operação mínima
-          const numContrato = `IMP-${row.especialista.slice(0,3).toUpperCase()}-${Date.now().toString().slice(-6)}`;
-          const { data: novaOp, error: eOp } = await sb.from('operacoes').insert({
-            empresa_id:       EMPRESA_ID,
-            cliente_id:       clienteId,
-            numero_contrato:  numContrato,
-            valor_aprovado:   row.saldo,
-            num_parcelas:     parc.total,
-            valor_parcela:    vlrParc,
-            taxa_multa:       2,
-            taxa_mora_dia:    0.0333,
-            status:           'inadimplente',
-            observacoes:      `[IMPORTADO] Especialista: ${row.especialista}`,
-          }).select('id').single();
-          if (eOp) throw new Error('Criar operação: ' + eOp.message);
-          operacaoId = novaOp.id;
+        const parc=parseParcelas(row.parcelas);
+        const vlrParc=parseValor(row.valorParcela)||Math.round(row.saldo/Math.max(parc.total-parc.atual+1,1)*100)/100;
+        const proxVenc=row.proxVenc||hoje;
+        let operacaoId=null;
+        const{data:opEx}=await sb.from('operacoes').select('id').eq('empresa_id',EMPRESA_ID).eq('cliente_id',clienteId).ilike('observacoes','%[IMPORTADO]%').limit(1);
+        if(opEx&&opEx.length>0){
+          operacaoId=opEx[0].id;
+          await sb.from('parcelas').delete().eq('operacao_id',operacaoId).eq('empresa_id',EMPRESA_ID);
+          await sb.from('inadimplencia').delete().eq('operacao_id',operacaoId).eq('empresa_id',EMPRESA_ID);
+        }else{
+          const numContrato='IMP-'+row.especialista.slice(0,3).toUpperCase()+'-'+Date.now().toString().slice(-6);
+          const{data:novaOp,error:eOp}=await sb.from('operacoes').insert({empresa_id:EMPRESA_ID,cliente_id:clienteId,numero_contrato:numContrato,valor_aprovado:row.saldo,num_parcelas:parc.total,valor_parcela:vlrParc,taxa_multa:2,taxa_mora_dia:0.0333,status:'inadimplente',observacoes:'[IMPORTADO] Especialista: '+row.especialista}).select('id').single();
+          if(eOp)throw new Error('Operação: '+eOp.message);
+          operacaoId=novaOp.id;
         }
-
-        // ── 3. Cria as parcelas restantes ──
-        // parcela atual (atrasada) + parcelas futuras até o total
-        const parcelasParaInserir = [];
-        const parcelaAtualIdx = parc.atual; // ex: 2
-
-        for (let i = parcelaAtualIdx; i <= parc.total; i++) {
-          const mesesAfrente = i - parcelaAtualIdx; // 0 = proxVenc, 1 = +1 mês, etc.
-          const dataVenc = mesesAfrente === 0 ? proxVenc : addMonths(proxVenc, mesesAfrente);
-          const isAtrasada = dataVenc < hoje; // comparação de strings YYYY-MM-DD funciona
-
-          parcelasParaInserir.push({
-            empresa_id:    EMPRESA_ID,
-            operacao_id:   operacaoId,
-            numero_parcela: i,
-            valor_total:   vlrParc,
-            valor_principal: vlrParc,
-            valor_juros:   0,
-            data_vencimento: dataVenc,
-            status:        isAtrasada ? 'atrasada' : 'pendente',
-          });
+        const parcs=[];
+        for(let i=parc.atual;i<=parc.total;i++){const meses=i-parc.atual;const dv=meses===0?proxVenc:addMonths(proxVenc,meses);parcs.push({empresa_id:EMPRESA_ID,operacao_id:operacaoId,numero_parcela:i,valor_total:vlrParc,valor_principal:vlrParc,valor_juros:0,data_vencimento:dv,status:dv<hoje?'atrasada':'pendente'});}
+        const{data:parcsIns,error:eParcelas}=await sb.from('parcelas').insert(parcs).select('id,numero_parcela,data_vencimento,status');
+        if(eParcelas)throw new Error('Parcelas: '+eParcelas.message);
+        for(const pa of(parcsIns||[]).filter(p=>p.status==='atrasada')){
+          const dias=Math.floor((new Date(hoje)-new Date(pa.data_vencimento+'T12:00:00'))/86400000);
+          const multa=vlrParc*0.02;const mora=vlrParc*0.000333*dias;const total=vlrParc+multa+mora;
+          const inadObj={empresa_id:EMPRESA_ID,cliente_id:clienteId,operacao_id:operacaoId,parcela_id:pa.id,dias_atraso:dias,valor_devido:vlrParc,valor_multa:Math.round(multa*100)/100,valor_mora:Math.round(mora*100)/100,valor_total_devido:Math.round(total*100)/100,status:'pendente'};
+          const inadFull={...inadObj,especialista:row.especialista};
+          const{error:eI}=await sb.from('inadimplencia').insert(inadFull);
+          if(eI)await sb.from('inadimplencia').insert(inadObj);
         }
-
-        const { data: parcelasInseridas, error: eParcelas } = await sb
-          .from('parcelas').insert(parcelasParaInserir).select('id, numero_parcela, data_vencimento, status');
-        if (eParcelas) throw new Error('Criar parcelas: ' + eParcelas.message);
-
-        // ── 4. Cria inadimplência para cada parcela atrasada ──
-        const atrasadas = (parcelasInseridas || []).filter(p => p.status === 'atrasada');
-        for (const patraso of atrasadas) {
-          const dias = Math.floor((new Date(hoje) - new Date(patraso.data_vencimento + 'T12:00:00')) / 86400000);
-          const multa = vlrParc * 0.02;
-          const mora  = vlrParc * 0.000333 * dias;
-          const total = vlrParc + multa + mora;
-
-          const inadObj = {
-            empresa_id:        EMPRESA_ID,
-            cliente_id:        clienteId,
-            operacao_id:       operacaoId,
-            parcela_id:        patraso.id,
-            dias_atraso:       dias,
-            valor_devido:      vlrParc,
-            valor_multa:       Math.round(multa * 100) / 100,
-            valor_mora:        Math.round(mora  * 100) / 100,
-            valor_total_devido: Math.round(total * 100) / 100,
-            status:            'pendente',
-          };
-
-          // Tenta com colunas extras, fallback sem elas
-          const inadFull = { ...inadObj, especialista: row.especialista, parcelas_info: row.parcelas, prox_vencimento: row.proxVenc };
-          const { error: eI1 } = await sb.from('inadimplencia').insert(inadFull);
-          if (eI1) {
-            const { error: eI2 } = await sb.from('inadimplencia').insert(inadObj);
-            if (eI2) console.warn('[Importar] Erro inadimplência:', eI2.message);
-          }
-        }
-
-        // ── 5. Histórico ──
-        await sb.from('historico_cobrancas').insert({
-          empresa_id:    EMPRESA_ID,
-          cliente_id:    clienteId,
-          data_registro: hoje,
-          tipo:          'Importação Planilha',
-          mensagem:      `📥 Especialista: ${row.especialista} | Parcelas: ${row.parcelas||'-'} | Venc: ${row.proxVenc||'-'} | Valor Parcela: ${row.valorParcela||'-'} | Atraso: ${row.atraso||'-'} | ${parcelasParaInserir.length} parcela(s) criada(s)`,
-        });
-
+        await sb.from('historico_cobrancas').insert({empresa_id:EMPRESA_ID,cliente_id:clienteId,data_registro:hoje,tipo:'Importação Planilha',mensagem:'📥 Esp: '+row.especialista+' | Parc: '+row.parcelas+' | Venc: '+(row.proxVenc||'-')+' | Vlr: '+(row.valorParcela||'-')+' | Atraso: '+(row.atraso||'-')+' | '+parcs.length+' parcela(s)'});
         ok++;
-      } catch (e) {
-        console.error(`[Importar] ❌ ${row.nome}:`, e.message);
-        fail++;
-      }
+      }catch(e){console.error('[Importar] '+row.nome+':',e.message);fail++;}
     }
-
-    btn.textContent = 'Confirmar Importação'; btn.disabled = false;
+    btn.textContent='Confirmar Importação';btn.disabled=false;
     closeModal('modalImportarPlanilha');
-    if (ok > 0)   showToast(`✅ ${ok} cliente(s) importado(s) com operações e parcelas!`, 'success');
-    if (fail > 0) showToast(`⚠️ ${fail} erro(s) — veja o F12.`, 'warning');
+    if(ok>0)showToast('✅ '+ok+' cliente(s) importado(s)!','success');
+    if(fail>0)showToast('⚠️ '+fail+' erro(s) — F12.','warning');
     await loadInadimplencia();
   }
+
+  // ── BACKUP ──
+  async function baixarBackupClientes(){
+    const btn=document.getElementById('btnBaixarBackup');
+    if(btn){btn.textContent='Gerando...';btn.disabled=true;}
+    try{
+      const[rCli,rAval,rOp,rParc,rInad,rHist]=await Promise.all([sb.from('clientes').select('*').eq('empresa_id',EMPRESA_ID),sb.from('avalistas').select('*').eq('empresa_id',EMPRESA_ID),sb.from('operacoes').select('*').eq('empresa_id',EMPRESA_ID),sb.from('parcelas').select('*').eq('empresa_id',EMPRESA_ID),sb.from('inadimplencia').select('*').eq('empresa_id',EMPRESA_ID),sb.from('historico_cobrancas').select('*').eq('empresa_id',EMPRESA_ID)]);
+      const backup={empresa_id:EMPRESA_ID,empresa_nome:sessionStorage.getItem('microcred_empresa')||'',data_backup:new Date().toISOString(),totais:{clientes:rCli.data?.length||0,operacoes:rOp.data?.length||0,parcelas:rParc.data?.length||0,inadimplencia:rInad.data?.length||0},dados:{clientes:rCli.data||[],avalistas:rAval.data||[],operacoes:rOp.data||[],parcelas:rParc.data||[],inadimplencia:rInad.data||[],historico_cobrancas:rHist.data||[]}};
+      const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
+      const a=Object.assign(document.createElement('a'),{href:URL.createObjectURL(blob),download:'backup_microcred_'+new Date().toISOString().slice(0,10)+'.json'});
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      showToast('✅ Backup gerado: '+backup.totais.clientes+' clientes.','success');
+    }catch(e){showToast('Erro: '+e.message,'error');}
+    finally{if(btn){btn.innerHTML='<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Baixar Backup Completo (.json)';btn.disabled=false;}}
+  }
+
+  // ── EXCLUIR TODOS OS DADOS ──
+  async function confirmarExcluirTodosClientes(){
+    if(!confirm('⚠️ Isso vai excluir TODOS os dados. NÃO pode ser desfeito. OK para continuar.'))return;
+    if(!confirm('Tem a certeza absoluta?'))return;
+    const btn=document.getElementById('btnExcluirTodosClientes');
+    if(btn){btn.textContent='Excluindo...';btn.disabled=true;}
+    const tabelas=['inadimplencia','historico_cobrancas','parcelas','renovacoes','operacoes','avaliacao_financeira','fluxo_caixa','micro_negocios','avalistas','clientes','tarefas','avaliacoes'];
+    let erros=0;
+    for(const t of tabelas){const{error}=await sb.from(t).delete().eq('empresa_id',EMPRESA_ID);if(error){console.warn('Erro em '+t+':',error.message);erros++;}}
+    if(erros===0)showToast('✅ Todos os dados excluídos.','success');else showToast('⚠️ Concluído com '+erros+' erro(s).','warning');
+    navigate('dashboard');
+    if(btn){btn.innerHTML='<svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg> Excluir Todos os Dados';btn.disabled=false;}
+  }
+
+  // ── VERIFICAR DUPLICADO ──
+  let _dupTimer=null,_dupClienteId=null;
+  async function verificarDuplicadoCliente(){
+    const editId=document.getElementById('clienteId').value;
+    if(editId)return;
+    clearTimeout(_dupTimer);
+    _dupTimer=setTimeout(async()=>{
+      const nome=document.getElementById('cNome').value.trim();
+      const cpfRaw=document.getElementById('cCpf').value.trim();
+      const alerta=document.getElementById('alertaDuplicado');
+      if(nome.length<3&&cpfRaw.replace(/\D/g,'').length<11){if(alerta)alerta.style.display='none';return;}
+      let q=sb.from('clientes').select('id,nome,cpf,celular').eq('empresa_id',EMPRESA_ID);
+      if(nome.length>=3&&cpfRaw.replace(/\D/g,'').length===11)q=q.or('nome.ilike.%'+nome+'%,cpf.eq.'+cpfRaw);
+      else if(cpfRaw.replace(/\D/g,'').length===11)q=q.eq('cpf',cpfRaw);
+      else q=q.ilike('nome','%'+nome+'%');
+      const{data}=await q.limit(1);
+      if(data&&data.length>0){_dupClienteId=data[0].id;if(alerta){alerta.style.display='block';alerta.innerHTML='⚠️ Já cadastrado: <strong>'+data[0].nome+'</strong> | CPF: '+(data[0].cpf||'—')+'<br><span style="text-decoration:underline;font-size:11px;cursor:pointer;" onclick="abrirClienteExistente()">Clique para abrir o cadastro existente</span>';}}
+      else{_dupClienteId=null;if(alerta)alerta.style.display='none';}
+    },600);
+  }
+  function abrirClienteExistente(){if(!_dupClienteId)return;closeModal('modalCliente');editRegistro('c:'+_dupClienteId);}
+
+
 
   // =============================================
   // WHATSAPP — MODAL FORMATADO
