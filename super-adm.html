@@ -649,6 +649,26 @@
 
     .ibtn.i-import:hover { color: var(--purple); border-color: var(--purple-border); background: var(--purple-dim); }
     .ibtn.i-import       { color: var(--text-3); }
+    .ibtn.i-edit:hover   { color: var(--teal);   border-color: var(--teal-border);   background: var(--teal-dim); }
+    .ibtn.i-edit         { color: var(--text-3); }
+
+    /* Toggle switch */
+    .toggle-wrap { display: flex; align-items: center; gap: 10px; }
+    .toggle-switch { position: relative; width: 42px; height: 24px; flex-shrink: 0; }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute; inset: 0; background: rgba(255,255,255,0.1);
+      border: 1px solid var(--border-md); border-radius: 24px; cursor: pointer;
+      transition: var(--t);
+    }
+    .toggle-slider::before {
+      content: ''; position: absolute; height: 16px; width: 16px;
+      left: 3px; bottom: 3px; background: var(--text-3);
+      border-radius: 50%; transition: var(--t);
+    }
+    .toggle-switch input:checked + .toggle-slider { background: var(--green-dim); border-color: var(--green-border); }
+    .toggle-switch input:checked + .toggle-slider::before { transform: translateX(18px); background: var(--green); }
+    .toggle-label { font-size: 13px; color: var(--text-2); line-height: 1.4; }
 
     .btn-backup-all {
       background: linear-gradient(135deg, #1a2a3e, #1e3350);
@@ -1276,9 +1296,101 @@
 </div>
 
 
+<!-- ══ MODAL: EDITAR CLIENTE ══ -->
+<div class="modal-overlay" id="modalEditarCliente">
+  <div class="modal" style="max-width:440px;">
+    <div class="modal-head">
+      <h3>Editar Inquilino</h3>
+      <p>Altere as credenciais de <strong id="editClienteNome" style="color:var(--primary);"></strong></p>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editClienteId">
+      <div class="fg" style="margin-bottom:14px;">
+        <label>Nome da Empresa</label>
+        <input type="text" id="editNomeEmpresa" placeholder="Nome da empresa">
+      </div>
+      <div class="fg" style="margin-bottom:14px;">
+        <label>Usuário (Login)</label>
+        <input type="text" id="editUsuario" placeholder="Login de acesso" autocomplete="off">
+      </div>
+
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+        <div class="m-divider-line" style="flex:1;height:1px;background:var(--border);"></div>
+        <span style="font-family:'DM Mono',monospace;font-size:9px;color:var(--text-3);text-transform:uppercase;letter-spacing:1.5px;white-space:nowrap;">Nova Senha (opcional)</span>
+        <div class="m-divider-line" style="flex:1;height:1px;background:var(--border);"></div>
+      </div>
+
+      <div class="fg" style="margin-bottom:20px;">
+        <label>Nova Senha</label>
+        <input type="text" id="editSenha" placeholder="Deixe em branco para não alterar" autocomplete="new-password">
+      </div>
+
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:10px;padding:16px 18px;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:1.5px;color:var(--text-3);margin-bottom:12px;">Permissões de Funcionalidade</div>
+        <div class="toggle-wrap">
+          <label class="toggle-switch">
+            <input type="checkbox" id="editAllowUpload" checked>
+            <span class="toggle-slider"></span>
+          </label>
+          <div>
+            <div class="toggle-label" style="font-weight:600;color:var(--text);">Upload de Imagens</div>
+            <div class="toggle-label" style="font-size:11.5px;color:var(--text-3);margin-top:2px;">Permitir que o usuário envie fotos de documentos e atividades dos clientes</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn btn-ghost" style="flex:1;padding:11px;" onclick="closeModal('modalEditarCliente')">Cancelar</button>
+      <button class="btn btn-primary" style="flex:2;padding:11px;" id="btnSalvarEdicao" onclick="salvarEdicaoCliente()">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+          <path stroke-linecap="round" d="M5 13l4 4L19 7"/>
+        </svg>
+        Salvar Alterações
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
-  // ──────────────────────────────────────────
-  // SUPABASE
+  function openModalEditarCliente(id, nome, usuario, allowUpload) {
+    document.getElementById('editClienteId').value = id;
+    document.getElementById('editClienteNome').textContent = nome;
+    document.getElementById('editNomeEmpresa').value = nome;
+    document.getElementById('editUsuario').value = usuario;
+    document.getElementById('editSenha').value = '';
+    document.getElementById('editAllowUpload').checked = allowUpload;
+    openModal('modalEditarCliente');
+  }
+
+  async function salvarEdicaoCliente() {
+    const id    = document.getElementById('editClienteId').value;
+    const nome  = document.getElementById('editNomeEmpresa').value.trim();
+    const user  = document.getElementById('editUsuario').value.trim();
+    const senha = document.getElementById('editSenha').value;
+    const allow = document.getElementById('editAllowUpload').checked;
+    const btn   = document.getElementById('btnSalvarEdicao');
+
+    if (!nome || !user) { showToast('Nome e usuário são obrigatórios.', 'warning'); return; }
+
+    btn.textContent = 'Salvando…'; btn.disabled = true;
+    try {
+      const upd = { nome_empresa: nome, usuario: user, allow_upload_imagens: allow };
+      if (senha.trim()) upd.senha = senha.trim();
+
+      const { error } = await sb.from('usuarios_clientes').update(upd).eq('id', id);
+      if (error) throw error;
+      showToast('Inquilino atualizado com sucesso!', 'success');
+      closeModal('modalEditarCliente');
+      carregarClientes();
+    } catch (e) {
+      showToast('Erro ao salvar: ' + e.message, 'error');
+    } finally {
+      btn.textContent = 'Salvar Alterações'; btn.disabled = false;
+    }
+  }
+</script>
+
+
   // ──────────────────────────────────────────
   const SUPABASE_URL      = 'https://iwuxqrjidsrsjwtbiycg.supabase.co';
   const SUPABASE_ANON_KEY = 'sb_publishable_bmsS5bUWDAQVxIp0ovQtow_gWMauzwd';
@@ -1363,6 +1475,7 @@
     const iUnlock   = ic(`<path stroke-linecap="round" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z"/>`);
     const iDl       = ic(`<path stroke-linecap="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>`);
     const iTrash    = ic(`<path stroke-linecap="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>`);
+    const iEdit     = ic(`<path stroke-linecap="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>`);
 
     tbody.innerHTML = (data || []).map(c => {
       const vencido   = c.vencimento < hoje;
@@ -1392,6 +1505,7 @@
         <td><span class="badge ${bdClass}"><span class="badge-dot"></span>${bdLabel}</span></td>
         <td>
           <div class="actions">
+            <button class="ibtn i-edit"   title="Editar Usuário/Senha"  onclick="openModalEditarCliente('${c.id}','${c.nome_empresa.replace(/'/g,"\\'")}','${c.usuario}', ${c.allow_upload_imagens !== false})">${iEdit}</button>
             <button class="ibtn i-pic"  title="Alterar Logo"       onclick="openModalLogo('${c.id}','${logoSafe}')">${iPhoto}</button>
             <button class="ibtn i-cal"  title="Renovar Assinatura" onclick="openModalRenovar('${c.id}','${c.nome_empresa}','${c.vencimento}')">${iCal}</button>
             ${btnLock}
