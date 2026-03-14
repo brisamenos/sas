@@ -4750,8 +4750,29 @@
     let ok = 0, fail = 0;
     const hoje = new Date().toISOString().slice(0, 10);
 
+    // Parseia "2 de 8" → { atual: 2, total: 8 }
+    function parseParcelas(str) {
+      const m = String(str || '').match(/(\d+)\s*de\s*(\d+)/i);
+      return m ? { atual: parseInt(m[1]), total: parseInt(m[2]) } : { atual: 1, total: 1 };
+    }
+
+    // Limpa valor monetário "R$ 2.309,60" → 2309.60
+    function parseValor(str) {
+      if (!str) return 0;
+      if (typeof str === 'number') return Math.round(str * 100) / 100;
+      return parseFloat(String(str).replace(/[^\d.,]/g, '').replace(',', '.')) || 0;
+    }
+
+    // Adiciona N meses a uma data string YYYY-MM-DD
+    function addMonths(dateStr, n) {
+      const d = new Date(dateStr + 'T12:00:00');
+      d.setMonth(d.getMonth() + n);
+      return d.toISOString().slice(0, 10);
+    }
+
     for (const row of _importData) {
       try {
+        // ── 1. Garante cliente ──
         let clienteId = row._clienteId;
         if (!clienteId) {
           const obj = { empresa_id: EMPRESA_ID, nome: row.nome, status: 'inadimplente', tipo: 'cliente' };
@@ -4764,38 +4785,117 @@
           } else { clienteId = c1.id; }
         }
 
-        const { data: ex } = await sb.from('inadimplencia').select('id').eq('empresa_id', EMPRESA_ID).eq('cliente_id', clienteId).is('parcela_id', null).eq('status', 'pendente');
-        if (ex && ex.length > 0) {
-          // Tenta atualizar com colunas extras; se falhar, atualiza só os campos base
-          const updFull = { especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0, parcelas_info: row.parcelas, prox_vencimento: row.proxVenc };
-          const { error: eu1 } = await sb.from('inadimplencia').update(updFull).eq('id', ex[0].id);
-          if (eu1) {
-            // Fallback sem colunas novas
-            const { error: eu2 } = await sb.from('inadimplencia').update({ especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_total_devido: row.saldo, valor_multa: 0, valor_mora: 0 }).eq('id', ex[0].id);
-            if (eu2) throw new Error('Atualizar inadimplência: ' + eu2.message);
-            console.warn('[Importar] Salvo sem parcelas_info/prox_vencimento — execute o SQL de colunas no Supabase');
-          }
+        const parc      = parseParcelas(row.parcelas);  // { atual: 2, total: 8 }
+        const vlrParc   = parseValor(row.valorParcela);
+        const proxVenc  = row.proxVenc || hoje;
+
+        // ── 2. Verifica se já existe operação importada para este cliente ──
+        let operacaoId = null;
+        const { data: opExist } = await sb.from('operacoes')
+          .select('id')
+          .eq('empresa_id', EMPRESA_ID)
+          .eq('cliente_id', clienteId)
+          .ilike('observacoes', '%[IMPORTADO]%')
+          .limit(1);
+
+        if (opExist && opExist.length > 0) {
+          operacaoId = opExist[0].id;
+          // Limpa parcelas antigas desta operação para reimportar
+          await sb.from('parcelas').delete().eq('operacao_id', operacaoId).eq('empresa_id', EMPRESA_ID);
+          // Limpa inadimplência vinculada
+          await sb.from('inadimplencia').delete().eq('operacao_id', operacaoId).eq('empresa_id', EMPRESA_ID);
         } else {
-          // Tenta inserir com colunas extras; se falhar, insere só os campos base
-          const insFull = { empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente', parcelas_info: row.parcelas, prox_vencimento: row.proxVenc };
-          const { error: ei1 } = await sb.from('inadimplencia').insert(insFull);
-          if (ei1) {
-            // Fallback sem colunas novas
-            const insBase = { empresa_id: EMPRESA_ID, cliente_id: clienteId, especialista: row.especialista, dias_atraso: row.diasAtraso, valor_devido: row.saldo, valor_multa: 0, valor_mora: 0, valor_total_devido: row.saldo, status: 'pendente' };
-            const { error: ei2 } = await sb.from('inadimplencia').insert(insBase);
-            if (ei2) throw new Error('Inserir inadimplência: ' + ei2.message);
-            console.warn('[Importar] Salvo sem parcelas_info/prox_vencimento — execute o SQL de colunas no Supabase');
+          // Cria operação mínima
+          const numContrato = `IMP-${row.especialista.slice(0,3).toUpperCase()}-${Date.now().toString().slice(-6)}`;
+          const { data: novaOp, error: eOp } = await sb.from('operacoes').insert({
+            empresa_id:       EMPRESA_ID,
+            cliente_id:       clienteId,
+            numero_contrato:  numContrato,
+            valor_aprovado:   row.saldo,
+            num_parcelas:     parc.total,
+            valor_parcela:    vlrParc,
+            status:           'inadimplente',
+            observacoes:      `[IMPORTADO] Especialista: ${row.especialista}`,
+          }).select('id').single();
+          if (eOp) throw new Error('Criar operação: ' + eOp.message);
+          operacaoId = novaOp.id;
+        }
+
+        // ── 3. Cria as parcelas restantes ──
+        // parcela atual (atrasada) + parcelas futuras até o total
+        const parcelasParaInserir = [];
+        const parcelaAtualIdx = parc.atual; // ex: 2
+
+        for (let i = parcelaAtualIdx; i <= parc.total; i++) {
+          const mesesAfrente = i - parcelaAtualIdx; // 0 = proxVenc, 1 = +1 mês, etc.
+          const dataVenc = mesesAfrente === 0 ? proxVenc : addMonths(proxVenc, mesesAfrente);
+          const isAtrasada = dataVenc < hoje; // comparação de strings YYYY-MM-DD funciona
+
+          parcelasParaInserir.push({
+            empresa_id:    EMPRESA_ID,
+            operacao_id:   operacaoId,
+            numero_parcela: i,
+            valor_total:   vlrParc,
+            valor_principal: vlrParc,
+            valor_juros:   0,
+            data_vencimento: dataVenc,
+            status:        isAtrasada ? 'atrasada' : 'pendente',
+          });
+        }
+
+        const { data: parcelasInseridas, error: eParcelas } = await sb
+          .from('parcelas').insert(parcelasParaInserir).select('id, numero_parcela, data_vencimento, status');
+        if (eParcelas) throw new Error('Criar parcelas: ' + eParcelas.message);
+
+        // ── 4. Cria inadimplência para cada parcela atrasada ──
+        const atrasadas = (parcelasInseridas || []).filter(p => p.status === 'atrasada');
+        for (const patraso of atrasadas) {
+          const dias = Math.floor((new Date(hoje) - new Date(patraso.data_vencimento + 'T12:00:00')) / 86400000);
+          const multa = vlrParc * 0.02;
+          const mora  = vlrParc * 0.000333 * dias;
+          const total = vlrParc + multa + mora;
+
+          const inadObj = {
+            empresa_id:        EMPRESA_ID,
+            cliente_id:        clienteId,
+            operacao_id:       operacaoId,
+            parcela_id:        patraso.id,
+            dias_atraso:       dias,
+            valor_devido:      vlrParc,
+            valor_multa:       Math.round(multa * 100) / 100,
+            valor_mora:        Math.round(mora  * 100) / 100,
+            valor_total_devido: Math.round(total * 100) / 100,
+            status:            'pendente',
+          };
+
+          // Tenta com colunas extras, fallback sem elas
+          const inadFull = { ...inadObj, especialista: row.especialista, parcelas_info: row.parcelas, prox_vencimento: row.proxVenc };
+          const { error: eI1 } = await sb.from('inadimplencia').insert(inadFull);
+          if (eI1) {
+            const { error: eI2 } = await sb.from('inadimplencia').insert(inadObj);
+            if (eI2) console.warn('[Importar] Erro inadimplência:', eI2.message);
           }
         }
 
-        await sb.from('historico_cobrancas').insert({ empresa_id: EMPRESA_ID, cliente_id: clienteId, data_registro: hoje, tipo: 'Importação Planilha', mensagem: `📥 Especialista: ${row.especialista} | Parcelas: ${row.parcelas||'-'} | Venc: ${row.proxVenc||'-'} | Valor: ${row.valorParcela||'-'} | Atraso: ${row.atraso||'-'}` });
+        // ── 5. Histórico ──
+        await sb.from('historico_cobrancas').insert({
+          empresa_id:    EMPRESA_ID,
+          cliente_id:    clienteId,
+          data_registro: hoje,
+          tipo:          'Importação Planilha',
+          mensagem:      `📥 Especialista: ${row.especialista} | Parcelas: ${row.parcelas||'-'} | Venc: ${row.proxVenc||'-'} | Valor Parcela: ${row.valorParcela||'-'} | Atraso: ${row.atraso||'-'} | ${parcelasParaInserir.length} parcela(s) criada(s)`,
+        });
+
         ok++;
-      } catch (e) { console.error(`[Importar] ❌ ${row.nome}:`, e.message); fail++; }
+      } catch (e) {
+        console.error(`[Importar] ❌ ${row.nome}:`, e.message);
+        fail++;
+      }
     }
 
     btn.textContent = 'Confirmar Importação'; btn.disabled = false;
     closeModal('modalImportarPlanilha');
-    if (ok > 0)   showToast(`✅ ${ok} cliente(s) importado(s)!`, 'success');
+    if (ok > 0)   showToast(`✅ ${ok} cliente(s) importado(s) com operações e parcelas!`, 'success');
     if (fail > 0) showToast(`⚠️ ${fail} erro(s) — veja o F12.`, 'warning');
     await loadInadimplencia();
   }
