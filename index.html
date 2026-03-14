@@ -1162,7 +1162,40 @@
 
       <div class="page-section" id="page-plano">
         <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));">
-          
+
+          <!-- CARD: DADOS DE ACESSO -->
+          <div class="card" style="border-top: 4px solid #8b5cf6;">
+            <div class="card-header"><h3>
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+              Dados de Acesso
+            </h3></div>
+            <div class="card-body">
+              <div class="form-group" style="margin-bottom:14px;">
+                <label>Nome / Empresa</label>
+                <input type="text" id="perfilNome" placeholder="Seu nome ou empresa" />
+              </div>
+              <div class="form-group" style="margin-bottom:14px;">
+                <label>Usuário (Login)</label>
+                <input type="text" id="perfilUsuario" placeholder="Seu login de acesso" autocomplete="off" />
+              </div>
+              <div style="height:1px;background:var(--border-light);margin:18px 0;"></div>
+              <p style="font-size:12px;color:var(--text-secondary);margin-bottom:12px;">Deixe em branco para não alterar a senha.</p>
+              <div class="form-group" style="margin-bottom:14px;">
+                <label>Nova Senha</label>
+                <input type="password" id="perfilSenha" placeholder="Nova senha (opcional)" autocomplete="new-password" />
+              </div>
+              <div class="form-group" style="margin-bottom:20px;">
+                <label>Confirmar Nova Senha</label>
+                <input type="password" id="perfilSenhaConf" placeholder="Confirme a nova senha" />
+              </div>
+              <button class="btn btn-primary" style="width:100%;justify-content:center;padding:14px;" id="btnSalvarPerfil" onclick="salvarPerfil()">
+                <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" d="M5 13l4 4L19 7"/></svg>
+                Salvar Alterações
+              </button>
+            </div>
+          </div>
+
+          <!-- CARD: ASSINATURA -->
           <div class="card" style="border-top: 4px solid var(--primary);">
             <div class="card-header"><h3>Detalhes da Assinatura</h3></div>
             <div class="card-body">
@@ -1187,6 +1220,7 @@
             </div>
           </div>
 
+          <!-- CARD: LOGO -->
           <div class="card" style="border-top: 4px solid var(--info);">
             <div class="card-header"><h3>Identidade Visual (Logótipo)</h3></div>
             <div class="card-body" style="text-align: center;">
@@ -1546,7 +1580,14 @@
         <input type="hidden" id="cStatus" value="ativo" />
 
         <h4 class="form-section-title">Foto da Atividade Comercial</h4>
-        <div class="form-group full">
+        <!-- Banner de bloqueio de upload -->
+        <div id="uploadBlockBannerCliente" style="display:none;align-items:center;gap:12px;background:#fff9e6;border:1.5px solid #ffab00;border-radius:10px;padding:12px 16px;margin-bottom:14px;">
+          <svg style="width:22px;height:22px;flex-shrink:0;color:#b45309;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div>
+            <div style="font-size:12.5px;font-weight:700;color:#92400e;margin-bottom:2px;">Upload de imagens desativado</div>
+            <div style="font-size:11.5px;color:#b45309;line-height:1.5;">Este recurso não está disponível no seu plano atual. <strong>Faça upgrade para o Plano PRO</strong> para enviar fotos e documentos.</div>
+          </div>
+        </div>
           <label>Foto do Negócio / Ponto Comercial</label>
           <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;">
             <div class="file-upload-box" style="flex:1;min-width:160px;position:relative;">
@@ -1702,6 +1743,11 @@
         </div>
         
         <div class="form-group full"><label>Observações</label><textarea id="aObs"></textarea></div>
+        <!-- Banner de bloqueio de upload -->
+        <div id="uploadBlockBannerAvalista" style="display:none;align-items:center;gap:12px;background:#fff9e6;border:1.5px solid #ffab00;border-radius:10px;padding:12px 16px;margin-bottom:10px;">
+          <svg style="width:20px;height:20px;flex-shrink:0;color:#b45309;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+          <div style="font-size:11.5px;color:#92400e;line-height:1.5;"><strong>Upload desativado.</strong> Faça upgrade para o Plano PRO para enviar fotos.</div>
+        </div>
         <div class="form-group full">
           <label>Foto Perfil</label>
           <div class="file-upload-box">
@@ -2112,6 +2158,9 @@
   const EMPRESA_NOME = sessionStorage.getItem('microcred_empresa');
   const DEFAULT_LOGO = 'https://i.ibb.co/JwN1xd6y/image-2-removebg-preview.png';
 
+  // Permissão de upload: true por default até carregar do DB
+  let ALLOW_UPLOAD_IMAGENS = true;
+
   async function initApp() {
     if (!SUPABASE_URL || SUPABASE_URL === 'SUA_URL_AQUI') {
       document.getElementById('appShell').innerHTML = '<div style="max-width:480px;margin:80px auto;text-align:center;padding:20px;"><h2>Credenciais não configuradas</h2></div>';
@@ -2156,6 +2205,14 @@
     }
 
     navigate('dashboard');
+
+    // Buscar permissões e usuário do banco
+    sb.from('usuarios_clientes').select('usuario, allow_upload_imagens').eq('id', EMPRESA_ID).single().then(({ data }) => {
+      if (data) {
+        ALLOW_UPLOAD_IMAGENS = data.allow_upload_imagens !== false;
+        if (data.usuario) sessionStorage.setItem('microcred_usuario', data.usuario);
+      }
+    });
   }
 
   function logout() {
@@ -2281,11 +2338,58 @@
 
   async function uploadFileToSupabase(file, folderName) {
     if (!file) return null;
+    // Bloquear upload de imagens de clientes/avalistas se a permissão estiver desativada
+    if (!ALLOW_UPLOAD_IMAGENS && (folderName === 'clientes' || folderName === 'avalistas')) {
+      showToastUpgradePro();
+      throw new Error('Upload de imagens bloqueado. Faça upgrade para o plano PRO.');
+    }
     const fileExt = file.name.split('.').pop();
     const fileName = `${folderName}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     const { error } = await sb.storage.from('imagens').upload(fileName, file);
     if (error) throw new Error(error.message);
     return sb.storage.from('imagens').getPublicUrl(fileName).data.publicUrl;
+  }
+
+  function showToastUpgradePro() {
+    const c = document.getElementById('toastContainer');
+    const t = document.createElement('div');
+    t.className = 'toast warning';
+    t.style.cssText = 'max-width:340px;padding:14px 18px 14px 14px;gap:12px;align-items:flex-start;';
+    t.innerHTML = `
+      <svg style="width:22px;height:22px;flex-shrink:0;margin-top:1px;" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+      <div>
+        <div style="font-weight:700;font-size:13.5px;margin-bottom:3px;">Funcionalidade bloqueada</div>
+        <div style="font-size:12px;opacity:0.9;line-height:1.5;">O upload de imagens está desativado no seu plano atual. <strong>Faça upgrade para o Plano PRO</strong> para liberar esta função.</div>
+      </div>`;
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 5000);
+  }
+
+  // Aplica overlay visual de bloqueio nos campos de upload de imagem
+  function aplicarBloqueioUpload() {
+    const uploadIds = ['cFotoAtiv','cFotoAtivCamera','cDocFrente','cDocFrenteCamera','cDocVerso','cDocVersoCamera','aFoto'];
+    const bannerIds = ['uploadBlockBannerCliente','uploadBlockBannerAvalista'];
+
+    uploadIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      if (!ALLOW_UPLOAD_IMAGENS) {
+        el.disabled = true;
+        el.style.opacity = '0.4';
+        el.style.cursor = 'not-allowed';
+        el.onclick = (e) => { e.preventDefault(); showToastUpgradePro(); };
+      } else {
+        el.disabled = false;
+        el.style.opacity = '';
+        el.style.cursor = '';
+        el.onclick = null;
+      }
+    });
+
+    bannerIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = ALLOW_UPLOAD_IMAGENS ? 'none' : 'flex';
+    });
   }
 
   function capturarLocalizacao() {
@@ -2369,6 +2473,48 @@
     }
     const currentLogo = sessionStorage.getItem('microcred_logo');
     document.getElementById('previewLogoPlano').src = (currentLogo && currentLogo !== 'null') ? currentLogo : DEFAULT_LOGO;
+
+    // Pre-fill profile fields
+    document.getElementById('perfilNome').value    = sessionStorage.getItem('microcred_empresa') || '';
+    document.getElementById('perfilUsuario').value = sessionStorage.getItem('microcred_usuario') || '';
+    document.getElementById('perfilSenha').value   = '';
+    document.getElementById('perfilSenhaConf').value = '';
+  }
+
+  async function salvarPerfil() {
+    const nome     = document.getElementById('perfilNome').value.trim();
+    const usuario  = document.getElementById('perfilUsuario').value.trim();
+    const senha    = document.getElementById('perfilSenha').value;
+    const senhaConf = document.getElementById('perfilSenhaConf').value;
+    const btn = document.getElementById('btnSalvarPerfil');
+
+    if (!nome || !usuario) return showToast('Nome e usuário são obrigatórios.', 'warning');
+    if (senha && senha !== senhaConf) return showToast('As senhas não coincidem.', 'error');
+
+    btn.textContent = 'Salvando...'; btn.disabled = true;
+    try {
+      const upd = { nome_empresa: nome, usuario };
+      if (senha) upd.senha = senha;
+
+      const { error } = await sb.from('usuarios_clientes').update(upd).eq('id', EMPRESA_ID);
+      if (error) throw error;
+
+      sessionStorage.setItem('microcred_empresa', nome);
+      sessionStorage.setItem('microcred_usuario', usuario);
+
+      const emailDisplay = document.getElementById('userEmailDisplay');
+      const userAvatar   = document.getElementById('userAvatar');
+      if (emailDisplay) emailDisplay.textContent = nome;
+      if (userAvatar)   userAvatar.textContent   = nome.charAt(0).toUpperCase();
+
+      document.getElementById('perfilSenha').value = '';
+      document.getElementById('perfilSenhaConf').value = '';
+      showToast('Perfil atualizado com sucesso!', 'success');
+    } catch (e) {
+      showToast('Erro ao salvar: ' + e.message, 'error');
+    } finally {
+      btn.textContent = 'Salvar Alterações'; btn.disabled = false;
+    }
   }
 
   function handleLogoClick() {
@@ -2779,6 +2925,10 @@
     // Reset select avalista e carregar lista
     document.getElementById('cAvSelect').value = '';
     carregarAvalistasSelect();
+
+    // Mostrar/ocultar aviso de upload bloqueado
+    aplicarBloqueioUpload();
+
     openModal('modalCliente');
   }
 
@@ -2857,7 +3007,7 @@
     const { data } = await q;
     document.getElementById('tblAvalistas').innerHTML = (data || []).map(a => `<tr><td><div style="display:flex; align-items:center; gap:10px;">${a.foto_perfil ? `<img src="${a.foto_perfil}" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid #ccc;" />` : ''}<strong>${a.nome}</strong></div></td><td>${a.cpf}</td><td>${a.cliente?.nome || '-'}</td><td>${a.celular || a.telefone || '-'}</td><td>${a.parentesco || '-'}</td><td><div class="btn-group"><button class="btn btn-outline btn-sm" onclick="editAvalista('${a.id}')">Editar</button>${(a.celular || a.telefone) ? `<button class="btn btn-sm" onclick="openWhatsAppAvalista('${a.celular || a.telefone}','${a.nome}')" style="background:linear-gradient(135deg,#1a7a4a,#25d366);color:#fff;border:none;gap:5px;" title="WhatsApp Avalista"><svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a9.9 9.9 0 00-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/><path d="M11.998 2C6.473 2 2 6.473 2 11.998c0 1.988.583 3.843 1.59 5.397L2 22l4.766-1.543A9.96 9.96 0 0011.998 22C17.523 22 22 17.527 22 12.002 22 6.473 17.523 2 11.998 2zm0 17.925a7.912 7.912 0 01-4.037-1.105l-.29-.172-2.998.97.998-2.918-.189-.3A7.916 7.916 0 014.075 12c0-4.367 3.556-7.923 7.923-7.923s7.923 3.556 7.923 7.923-3.556 7.925-7.923 7.925z"/></svg> WA</button>` : ''}<button class="btn btn-danger btn-sm" onclick="deleteAvalista('${a.id}')">Apagar</button></div></td></tr>`).join('') || '<tr><td colspan="6" class="empty-state">Nenhum avalista registado</td></tr>';
   }
-  async function openAvalistaModal(a) { document.getElementById('modalAvalistaTitle').textContent = a ? 'Editar Avalista' : 'Novo Avalista'; await loadClienteOptions('aCliente', a?.cliente_id); document.getElementById('avalistaId').value = a?.id || ''; document.getElementById('aFoto').value = ''; document.getElementById('aFotoUrl').value = a?.foto_perfil || ''; document.getElementById('aNome').value = a?.nome || ''; document.getElementById('aCpf').value = a?.cpf || ''; document.getElementById('aRg').value = a?.rg || ''; document.getElementById('aTel').value = a?.telefone || ''; document.getElementById('aCel').value = a?.celular || ''; document.getElementById('aEmail').value = a?.email || ''; document.getElementById('aEnd').value = a?.endereco || ''; document.getElementById('aNum').value = a?.numero || ''; document.getElementById('aBairro').value = a?.bairro || ''; document.getElementById('aCidade').value = a?.cidade || ''; document.getElementById('aUf').value = a?.uf || ''; document.getElementById('aCep').value = a?.cep || ''; document.getElementById('aRenda').value = toMoneyInput(a?.renda_mensal); document.getElementById('aParent').value = a?.parentesco || ''; document.getElementById('aObs').value = a?.observacoes || ''; openModal('modalAvalista'); }
+  async function openAvalistaModal(a) { document.getElementById('modalAvalistaTitle').textContent = a ? 'Editar Avalista' : 'Novo Avalista'; await loadClienteOptions('aCliente', a?.cliente_id); document.getElementById('avalistaId').value = a?.id || ''; document.getElementById('aFoto').value = ''; document.getElementById('aFotoUrl').value = a?.foto_perfil || ''; document.getElementById('aNome').value = a?.nome || ''; document.getElementById('aCpf').value = a?.cpf || ''; document.getElementById('aRg').value = a?.rg || ''; document.getElementById('aTel').value = a?.telefone || ''; document.getElementById('aCel').value = a?.celular || ''; document.getElementById('aEmail').value = a?.email || ''; document.getElementById('aEnd').value = a?.endereco || ''; document.getElementById('aNum').value = a?.numero || ''; document.getElementById('aBairro').value = a?.bairro || ''; document.getElementById('aCidade').value = a?.cidade || ''; document.getElementById('aUf').value = a?.uf || ''; document.getElementById('aCep').value = a?.cep || ''; document.getElementById('aRenda').value = toMoneyInput(a?.renda_mensal); document.getElementById('aParent').value = a?.parentesco || ''; document.getElementById('aObs').value = a?.observacoes || ''; aplicarBloqueioUpload(); openModal('modalAvalista'); }
   async function editAvalista(id) { const { data } = await sb.from('avalistas').select('*').eq('id', id).eq('empresa_id', EMPRESA_ID).single(); if (data) openAvalistaModal(data); }
   async function saveAvalista() { const id = document.getElementById('avalistaId').value; const btnSave = document.getElementById('btnSaveAvalista'); if (!document.getElementById('aNome').value) return showToast('Nome obrigatório', 'error'); btnSave.textContent = 'A Guardar...'; btnSave.disabled = true; try { let fotoUrl = document.getElementById('aFotoUrl').value; const fileFoto = document.getElementById('aFoto').files[0]; if (fileFoto) fotoUrl = await uploadFileToSupabase(fileFoto, 'avalistas'); const obj = { empresa_id: EMPRESA_ID, cliente_id: document.getElementById('aCliente').value || null, nome: document.getElementById('aNome').value, cpf: document.getElementById('aCpf').value, rg: document.getElementById('aRg').value, telefone: document.getElementById('aTel').value, celular: document.getElementById('aCel').value, email: document.getElementById('aEmail').value, endereco: document.getElementById('aEnd').value, numero: document.getElementById('aNum').value, bairro: document.getElementById('aBairro').value, cidade: document.getElementById('aCidade').value, uf: document.getElementById('aUf').value, cep: document.getElementById('aCep').value, renda_mensal: unmaskMoney(document.getElementById('aRenda').value), parentesco: document.getElementById('aParent').value, observacoes: document.getElementById('aObs').value, foto_perfil: fotoUrl, }; await (id ? sb.from('avalistas').update(obj).eq('id', id).eq('empresa_id', EMPRESA_ID) : sb.from('avalistas').insert(obj)); closeModal('modalAvalista'); loadAvalistas(); } catch (e) { showToast('Erro', 'error'); } finally { btnSave.textContent = 'Salvar Avalista'; btnSave.disabled = false; } }
   async function deleteAvalista(id) { if (!confirm('Apagar avalista?')) return; await sb.from('avalistas').delete().eq('id', id).eq('empresa_id', EMPRESA_ID); loadAvalistas(); }
