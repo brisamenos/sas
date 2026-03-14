@@ -3834,13 +3834,14 @@
   // =============================================
   async function loadParcelas() { 
     const searchStr = (document.getElementById('filterParcelaBusca')?.value || '').trim().toLowerCase(); 
-    if (!searchStr) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Pesquise para ver parcelas.</td></tr>'; return; } 
     const status = document.getElementById('filterParcelaStatus')?.value; 
     const date = document.getElementById('filterParcelaDate')?.value; 
     
     let q = sb.from('parcelas').select('*,operacao:operacoes(numero_contrato, cliente:clientes(nome,cpf))').eq('empresa_id', EMPRESA_ID).order('data_vencimento'); 
     if (status) q = q.eq('status', status); 
-    if (date) q = q.eq('data_vencimento', date); 
+    if (date)   q = q.eq('data_vencimento', date); 
+    // Se não há filtros, limita para não sobrecarregar
+    if (!searchStr && !status && !date) q = q.in('status', ['atrasada','pendente']).limit(200);
     let { data } = await q; 
     
     const today = new Date().toISOString().slice(0, 10); 
@@ -3850,13 +3851,18 @@
       p.status = 'atrasada'; 
     } 
     
-    data = (data||[]).filter(p => { 
-      const nome = (p.operacao?.cliente?.nome || '').toLowerCase(); 
-      const cpf = (p.operacao?.cliente?.cpf || ''); 
-      return nome.includes(searchStr) || cpf.includes(searchStr); 
-    }); 
+    if (searchStr) {
+      data = (data||[]).filter(p => { 
+        const nome = (p.operacao?.cliente?.nome || '').toLowerCase(); 
+        const cpf  = (p.operacao?.cliente?.cpf  || '').toLowerCase(); 
+        return nome.includes(searchStr) || cpf.includes(searchStr); 
+      }); 
+    }
     
-    if (data.length === 0) { document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>'; return; } 
+    if (!data || data.length === 0) { 
+      document.getElementById('tblParcelas').innerHTML = '<tr><td colspan="9" class="empty-state">Nenhuma parcela encontrada.</td></tr>'; 
+      return; 
+    } 
     
     const todayStr = new Date().toISOString().slice(0,10);
     document.getElementById('tblParcelas').innerHTML = data.map(p => {
@@ -3927,19 +3933,33 @@
     try {
         const today = new Date().toISOString().slice(0, 10);
 
+        // Marca pendentes vencidas como atrasadas
         const { data: pendentes } = await sb.from('parcelas').select('id').eq('status', 'pendente').eq('empresa_id', EMPRESA_ID).lt('data_vencimento', today);
         if (pendentes && pendentes.length > 0) {
             const ids = pendentes.map(p => p.id);
             await sb.from('parcelas').update({ status: 'atrasada' }).in('id', ids).eq('empresa_id', EMPRESA_ID);
         }
 
-        const { data: atrasadas } = await sb.from('parcelas').select('*,operacao:operacoes(id,numero_contrato,cliente_id,taxa_multa,taxa_mora_dia)').eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
+        // Busca atrasadas — inclui cliente_id direto via operacao E fallback pelo cliente da operação
+        const { data: atrasadas } = await sb.from('parcelas')
+          .select('*, operacao:operacoes(id, numero_contrato, cliente_id, taxa_multa, taxa_mora_dia)')
+          .eq('status', 'atrasada').eq('empresa_id', EMPRESA_ID); 
+
         for (const p of (atrasadas || [])) { 
-            const dias = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); 
-            const multa = p.valor_total * (p.operacao?.taxa_multa || 2) / 100; 
-            const mora = p.valor_total * (p.operacao?.taxa_mora_dia || 0.0333) / 100 * dias; 
+            const dias  = Math.floor((new Date() - new Date(p.data_vencimento)) / 86400000); 
+            const taxa_multa   = p.operacao?.taxa_multa    ?? 2;
+            const taxa_mora    = p.operacao?.taxa_mora_dia ?? 0.0333;
+            const multa = p.valor_total * taxa_multa / 100; 
+            const mora  = p.valor_total * taxa_mora  / 100 * dias; 
             const total = p.valor_total + multa + mora; 
             
+            // cliente_id: pega da operação; se null, busca direto na tabela operacoes
+            let clienteId = p.operacao?.cliente_id || null;
+            if (!clienteId && p.operacao_id) {
+              const { data: opDirect } = await sb.from('operacoes').select('cliente_id').eq('id', p.operacao_id).single();
+              clienteId = opDirect?.cliente_id || null;
+            }
+
             const { data: existente } = await sb.from('inadimplencia').select('id, status').eq('parcela_id', p.id).eq('empresa_id', EMPRESA_ID); 
             
             if (existente && existente.length > 0) { 
@@ -3947,10 +3967,11 @@
                     await sb.from('inadimplencia').update({ dias_atraso: dias, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100 }).eq('id', existente[0].id).eq('empresa_id', EMPRESA_ID); 
                 }
             } else { 
-                await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id, parcela_id: p.id, cliente_id: p.operacao?.cliente_id, dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, status: 'pendente' }); 
+                await sb.from('inadimplencia').insert({ empresa_id: EMPRESA_ID, operacao_id: p.operacao?.id || p.operacao_id, parcela_id: p.id, cliente_id: clienteId, dias_atraso: dias, valor_devido: p.valor_total, valor_multa: Math.round(multa*100)/100, valor_mora: Math.round(mora*100)/100, valor_total_devido: Math.round(total*100)/100, status: 'pendente' }); 
             } 
         } 
 
+        // Marca como resolvido as parcelas pagas
         const { data: pagas } = await sb.from('parcelas').select('id').eq('status', 'paga').eq('empresa_id', EMPRESA_ID);
         if (pagas && pagas.length > 0) {
             const idsPagas = pagas.map(p => p.id);
@@ -4814,6 +4835,8 @@
             valor_aprovado:   row.saldo,
             num_parcelas:     parc.total,
             valor_parcela:    vlrParc,
+            taxa_multa:       2,
+            taxa_mora_dia:    0.0333,
             status:           'inadimplente',
             observacoes:      `[IMPORTADO] Especialista: ${row.especialista}`,
           }).select('id').single();
