@@ -3847,9 +3847,9 @@
     const inadByParcela = {};
     (inadData || []).forEach(r => { if (r.parcela_id) inadByParcela[r.parcela_id] = r; });
 
-    // 2) Buscar TODAS as parcelas atrasadas directamente (fonte da verdade)
+    // 2) Buscar TODAS as parcelas atrasadas directamente (incluindo observacoes da operacao)
     const { data: parcelasAtrasadas } = await sb.from('parcelas')
-      .select('*, operacao:operacoes(id, numero_contrato, cliente_id, cliente:clientes(*))')
+      .select('*, operacao:operacoes(id, numero_contrato, cliente_id, observacoes, cliente:clientes(*))')
       .eq('status', 'atrasada')
       .eq('empresa_id', EMPRESA_ID);
 
@@ -3862,42 +3862,48 @@
     if (pendentesVencidas && pendentesVencidas.length > 0) {
       const ids = pendentesVencidas.map(p => p.id);
       await sb.from('parcelas').update({ status: 'atrasada' }).in('id', ids).eq('empresa_id', EMPRESA_ID);
-      // Reload after marking
       const { data: extra } = await sb.from('parcelas')
-        .select('*, operacao:operacoes(id, numero_contrato, cliente_id, cliente:clientes(*))')
+        .select('*, operacao:operacoes(id, numero_contrato, cliente_id, observacoes, cliente:clientes(*))')
         .in('id', ids)
         .eq('empresa_id', EMPRESA_ID);
       (extra || []).forEach(p => { if (!parcelasAtrasadas.find(x => x.id === p.id)) parcelasAtrasadas.push(p); });
     }
 
-    // 3) Construir visão unificada: para cada parcela atrasada, usar dados de inadimplencia se existir
+    // Helper: extrai especialista das observacoes da operacao (importacoes via planilha)
+    function _espFromObs(obs) {
+      if (!obs) return null;
+      const m = obs.match(/Especialista:\s*([^|\n\r]+)/i);
+      return m ? m[1].trim() : null;
+    }
+
+    // 3) Construir visao unificada
     inadCacheAgrupado = {};
 
     for (const p of (parcelasAtrasadas || [])) {
       const inadRec = inadByParcela[p.id];
-      const cli = p.operacao?.cliente || { nome: 'Sem cliente', cpf: '—', celular: '', telefone: '' };
+      const cli = p.operacao?.cliente || { nome: 'Sem cliente', cpf: '\u2014', celular: '', telefone: '' };
       const clienteId = p.operacao?.cliente_id || 'sem_cliente_' + p.id;
       const dias = Math.max(0, Math.floor((new Date() - new Date(p.data_vencimento + 'T12:00:00')) / 86400000));
       const multa = (p.valor_total || 0) * 2 / 100;
       const mora  = (p.valor_total || 0) * 0.0333 / 100 * dias;
       const total = (p.valor_total || 0) + multa + mora;
 
-      // Ignorar resolvidos se filtro = pendente
       const statusRec = inadRec ? inadRec.status : 'pendente';
-      if (statusFilter === 'pendente'   && statusRec !== 'pendente')   continue;
-      if (statusFilter === 'resolvido'  && statusRec !== 'resolvido')  continue;
+      if (statusFilter === 'pendente'  && statusRec !== 'pendente')  continue;
+      if (statusFilter === 'resolvido' && statusRec !== 'resolvido') continue;
+
+      // Especialista: inadimplencia.especialista > observacoes da operacao > '-'
+      const espObs = _espFromObs(p.operacao?.observacoes);
+      const especialistaParcela = (inadRec?.especialista && inadRec.especialista !== '-')
+        ? inadRec.especialista
+        : (espObs || '-');
 
       if (!inadCacheAgrupado[clienteId]) {
-        inadCacheAgrupado[clienteId] = {
-          cliente:     cli,
-          total:       0,
-          itens:       [],
-          especialista: inadRec?.especialista || '-'
-        };
+        inadCacheAgrupado[clienteId] = { cliente: cli, total: 0, itens: [], especialista: especialistaParcela };
       }
 
       if (statusRec === 'pendente') inadCacheAgrupado[clienteId].total += Math.round(total * 100) / 100;
-      if (inadRec?.especialista && inadRec.especialista !== '-') inadCacheAgrupado[clienteId].especialista = inadRec.especialista;
+      if (especialistaParcela !== '-') inadCacheAgrupado[clienteId].especialista = especialistaParcela;
 
       inadCacheAgrupado[clienteId].itens.push({
         id:               inadRec?.id || null,
@@ -4540,13 +4546,30 @@
         const aoa=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:null});
         if(!aoa||aoa.length<2){showToast('Planilha vazia.','warning');return;}
         const hdrs=aoa[0].map(h=>_normCol(String(h||'')));
-        const ci={especialista:hdrs.findIndex(h=>h.includes('especialista')),nome:hdrs.findIndex(h=>h.includes('nome')),telefone:hdrs.findIndex(h=>h.includes('telefone')||h.includes('celular')),saldo:hdrs.findIndex(h=>h.includes('saldo')),parcelas:hdrs.findIndex(h=>h==='parcelas'||(h.includes('parcela')&&!h.includes('valor'))),proxVenc:hdrs.findIndex(h=>h.includes('prox')&&h.includes('venc')),valorParcela:hdrs.findIndex(h=>h.includes('valor')&&h.includes('parcela')),atraso:hdrs.findIndex(h=>h.includes('atraso'))};
-        if(ci.especialista<0)ci.especialista=0;if(ci.nome<0)ci.nome=1;if(ci.saldo<0)ci.saldo=5;if(ci.parcelas<0)ci.parcelas=6;if(ci.proxVenc<0)ci.proxVenc=7;if(ci.valorParcela<0)ci.valorParcela=8;if(ci.atraso<0)ci.atraso=9;
+        const ci={
+          especialista: hdrs.findIndex(h=>h.includes('especialista')),
+          nome:         hdrs.findIndex(h=>h.includes('nome')),
+          telefone:     hdrs.findIndex(h=>h.includes('telefone')||h.includes('celular')),
+          endereco:     hdrs.findIndex(h=>h.includes('endereco')||h.includes('endereco')),
+          saldo:        hdrs.findIndex(h=>h.includes('saldo')),
+          parcelas:     hdrs.findIndex(h=>h==='parcelas'||(h.includes('parcela')&&!h.includes('valor'))),
+          proxVenc:     hdrs.findIndex(h=>h.includes('prox')&&h.includes('venc')),
+          valorParcela: hdrs.findIndex(h=>h.includes('valor')&&h.includes('parcela')),
+          atraso:       hdrs.findIndex(h=>h.includes('atraso')),
+          situacao:     hdrs.findIndex(h=>h.includes('situac')||h.includes('situaç'))
+        };
+        if(ci.especialista<0)ci.especialista=0;
+        if(ci.nome<0)ci.nome=1;
+        if(ci.saldo<0)ci.saldo=5;
+        if(ci.parcelas<0)ci.parcelas=6;
+        if(ci.proxVenc<0)ci.proxVenc=7;
+        if(ci.valorParcela<0)ci.valorParcela=8;
+        if(ci.atraso<0)ci.atraso=9;
         const g=(row,key)=>{const v=row[ci[key]];return v===undefined?null:v;};
         const toD=(v)=>{if(!v)return null;if(v instanceof Date)return isNaN(v)?null:v.toISOString().slice(0,10);if(typeof v==='string'&&v.match(/^\d{4}-\d{2}-\d{2}/))return v.slice(0,10);if(typeof v==='string'&&v.match(/^\d{2}\/\d{2}\/\d{4}/)){const[d,m,y]=v.split('/');return y+'-'+m+'-'+d;}if(typeof v==='number'&&v>1){const d=new Date(Math.round((v-25569)*86400*1000));return isNaN(d)?null:d.toISOString().slice(0,10);}return null;};
         const toN=(v)=>{if(v==null)return 0;if(typeof v==='number')return Math.round(v*100)/100;return parseFloat(String(v).replace(/[^\d.,]/g,'').replace(',','.'))||0;};
         const toDias=(v)=>{const m=String(v||'0').match(/(\d+)/);return m?parseInt(m[1]):0;};
-        _importData=aoa.slice(1).filter(row=>{const n=String(g(row,'nome')||'').trim();return n&&n.toLowerCase()!=='total geral';}).map(row=>{const ar=g(row,'atraso');return{especialista:String(g(row,'especialista')||'-').trim(),nome:String(g(row,'nome')||'').trim(),telefone:String(g(row,'telefone')||'').trim(),saldo:toN(g(row,'saldo')),parcelas:String(g(row,'parcelas')||'').trim(),proxVenc:toD(g(row,'proxVenc')),valorParcela:String(g(row,'valorParcela')||'').trim(),atraso:String(ar||'').trim(),diasAtraso:toDias(ar)};});
+        _importData=aoa.slice(1).filter(row=>{const n=String(g(row,'nome')||'').trim();return n&&n.toLowerCase()!=='total geral'&&n!=='';}).map(row=>{const ar=g(row,'atraso');const esp=String(g(row,'especialista')||'-').trim();return{especialista:esp||'-',nome:String(g(row,'nome')||'').trim(),telefone:String(g(row,'telefone')||'').trim(),endereco:String(g(row,'endereco')||'').trim(),saldo:toN(g(row,'saldo')),parcelas:String(g(row,'parcelas')||'').trim(),proxVenc:toD(g(row,'proxVenc')),valorParcela:String(g(row,'valorParcela')||'').trim(),atraso:String(ar||'').trim(),diasAtraso:toDias(ar)};});
         if(_importData.length===0){showToast('Nenhum dado válido.','warning');return;}
         await buildImportPreview();
       }catch(err){console.error('[Importar]',err);showToast('Erro: '+err.message,'error');}
@@ -4584,24 +4607,33 @@
       try{
         let clienteId=row._clienteId;
         if(!clienteId){
-          const obj={empresa_id:EMPRESA_ID,nome:row.nome,status:'inadimplente',tipo:'cliente'};
+          // Criar novo cliente com todos os dados disponíveis
+          const obj={empresa_id:EMPRESA_ID,nome:row.nome,status:'inadimplente'};
           if(row.telefone&&row.telefone!=='null'&&row.telefone!=='')obj.celular=row.telefone;
+          if(row.endereco&&row.endereco!=='null'&&row.endereco!=='')obj.endereco=row.endereco;
           const{data:c1,error:e1}=await sb.from('clientes').insert(obj).select('id').single();
-          if(e1){const{data:c2,error:e2}=await sb.from('clientes').insert({empresa_id:EMPRESA_ID,nome:row.nome,status:'inadimplente'}).select('id').single();if(e2)throw new Error('Cliente: '+e2.message);clienteId=c2.id;}
-          else clienteId=c1.id;
+          if(e1){
+            // fallback mínimo
+            const{data:c2,error:e2}=await sb.from('clientes').insert({empresa_id:EMPRESA_ID,nome:row.nome,status:'inadimplente'}).select('id').single();
+            if(e2)throw new Error('Cliente: '+e2.message);
+            clienteId=c2.id;
+          } else clienteId=c1.id;
         }
         const parc=parseParcelas(row.parcelas);
         const vlrParc=parseValor(row.valorParcela)||Math.round(row.saldo/Math.max(parc.total-parc.atual+1,1)*100)/100;
         const proxVenc=row.proxVenc||hoje;
+        const obsTexto='[IMPORTADO] Especialista: '+row.especialista;
         let operacaoId=null;
         const{data:opEx}=await sb.from('operacoes').select('id').eq('empresa_id',EMPRESA_ID).eq('cliente_id',clienteId).ilike('observacoes','%[IMPORTADO]%').limit(1);
         if(opEx&&opEx.length>0){
           operacaoId=opEx[0].id;
+          // Atualizar observacoes com especialista actualizado e saldo
+          await sb.from('operacoes').update({observacoes:obsTexto,valor_aprovado:row.saldo,num_parcelas:parc.total,valor_parcela:vlrParc}).eq('id',operacaoId).eq('empresa_id',EMPRESA_ID);
           await sb.from('parcelas').delete().eq('operacao_id',operacaoId).eq('empresa_id',EMPRESA_ID);
           await sb.from('inadimplencia').delete().eq('operacao_id',operacaoId).eq('empresa_id',EMPRESA_ID);
         }else{
-          const numContrato='IMP-'+row.especialista.slice(0,3).toUpperCase()+'-'+Date.now().toString().slice(-6);
-          const{data:novaOp,error:eOp}=await sb.from('operacoes').insert({empresa_id:EMPRESA_ID,cliente_id:clienteId,numero_contrato:numContrato,valor_aprovado:row.saldo,num_parcelas:parc.total,valor_parcela:vlrParc,taxa_multa:2,taxa_mora_dia:0.0333,status:'inadimplente',observacoes:'[IMPORTADO] Especialista: '+row.especialista}).select('id').single();
+          const numContrato='IMP-'+row.especialista.replace(/[^A-Z0-9]/gi,'').slice(0,4).toUpperCase()+'-'+Date.now().toString().slice(-6);
+          const{data:novaOp,error:eOp}=await sb.from('operacoes').insert({empresa_id:EMPRESA_ID,cliente_id:clienteId,numero_contrato:numContrato,valor_aprovado:row.saldo,num_parcelas:parc.total,valor_parcela:vlrParc,taxa_multa:2,taxa_mora_dia:0.0333,status:'inadimplente',observacoes:obsTexto}).select('id').single();
           if(eOp)throw new Error('Operação: '+eOp.message);
           operacaoId=novaOp.id;
         }
@@ -4609,13 +4641,16 @@
         for(let i=parc.atual;i<=parc.total;i++){const meses=i-parc.atual;const dv=meses===0?proxVenc:addMonths(proxVenc,meses);parcs.push({empresa_id:EMPRESA_ID,operacao_id:operacaoId,numero_parcela:i,valor_total:vlrParc,valor_principal:vlrParc,valor_juros:0,data_vencimento:dv,status:dv<hoje?'atrasada':'pendente'});}
         const{data:parcsIns,error:eParcelas}=await sb.from('parcelas').insert(parcs).select('id,numero_parcela,data_vencimento,status');
         if(eParcelas)throw new Error('Parcelas: '+eParcelas.message);
+        // Usar diasAtraso da planilha para a parcela actual (mais preciso), calcular para as restantes
         for(const pa of(parcsIns||[]).filter(p=>p.status==='atrasada')){
-          const dias=Math.floor((new Date(hoje)-new Date(pa.data_vencimento+'T12:00:00'))/86400000);
+          const diasCalc=Math.max(0,Math.floor((new Date(hoje)-new Date(pa.data_vencimento+'T12:00:00'))/86400000));
+          // Se for a parcela "atual" da planilha (numero_parcela===parc.atual), usar dias da planilha
+          const dias=pa.numero_parcela===parc.atual?Math.max(row.diasAtraso,diasCalc):diasCalc;
           const multa=vlrParc*0.02;const mora=vlrParc*0.000333*dias;const total=vlrParc+multa+mora;
-          const inadObj={empresa_id:EMPRESA_ID,cliente_id:clienteId,operacao_id:operacaoId,parcela_id:pa.id,dias_atraso:dias,valor_devido:vlrParc,valor_multa:Math.round(multa*100)/100,valor_mora:Math.round(mora*100)/100,valor_total_devido:Math.round(total*100)/100,status:'pendente'};
-          const inadFull={...inadObj,especialista:row.especialista};
-          const{error:eI}=await sb.from('inadimplencia').insert(inadFull);
-          if(eI)await sb.from('inadimplencia').insert(inadObj);
+          const inadBase={empresa_id:EMPRESA_ID,cliente_id:clienteId,operacao_id:operacaoId,parcela_id:pa.id,dias_atraso:dias,valor_devido:vlrParc,valor_multa:Math.round(multa*100)/100,valor_mora:Math.round(mora*100)/100,valor_total_devido:Math.round(total*100)/100,status:'pendente'};
+          // Sempre tentar salvar com especialista; se falhar (coluna não existe), salva sem
+          const{error:eI}=await sb.from('inadimplencia').insert({...inadBase,especialista:row.especialista});
+          if(eI)await sb.from('inadimplencia').insert(inadBase);
         }
         await sb.from('historico_cobrancas').insert({empresa_id:EMPRESA_ID,cliente_id:clienteId,data_registro:hoje,tipo:'Importação Planilha',mensagem:'📥 Esp: '+row.especialista+' | Parc: '+row.parcelas+' | Venc: '+(row.proxVenc||'-')+' | Vlr: '+(row.valorParcela||'-')+' | Atraso: '+(row.atraso||'-')+' | '+parcs.length+' parcela(s)'});
         ok++;
